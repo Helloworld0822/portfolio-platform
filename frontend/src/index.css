@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --color-primary: #006fcf;
+  --color-primary-hover: #1374d4;
+  --color-primary-pressed: #00509e;
+  --color-navy: #00175a;
+  --color-navy-deep: #000c3d;
+  --color-ink: #1a1a1a;
+  --color-ink-muted: #53565a;
+  --color-ink-subdued: #86888c;
+  --color-ink-on-navy-muted: #b7c3d9;
+  --color-canvas: #ffffff;
+  --color-surface-1: #f7f8f9;
+  --color-surface-2: #ecedee;
+  --color-border: #d5d9dc;
+  --color-success: #00875a;
+  --color-gold: #bf9b30;
+
+  --shadow-card: 0 1px 4px rgba(0, 23, 90, 0.1);
+  --shadow-elevated: 0 6px 24px rgba(0, 23, 90, 0.16);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--color-surface-1);
+  line-height: 1.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2")
+    format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}

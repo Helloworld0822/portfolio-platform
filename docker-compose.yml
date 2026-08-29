@@ -1,0 +1,73 @@
+name: portfolio-platform
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Containerfile
+    image: portfolio-platform-nginx:latest
+    ports:
+      - "${HOST_HTTP_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:80/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Containerfile
+    image: portfolio-platform-frontend:latest
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Containerfile
+    image: portfolio-platform-api:latest
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8080"
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-blog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-blog}
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_blog}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-blog}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres-data:

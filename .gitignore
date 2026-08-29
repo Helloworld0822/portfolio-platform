@@ -1,0 +1,23 @@
+# Environment
+.env
+.env.local
+
+# Node
+node_modules/
+frontend/dist/
+npm-debug.log*
+
+# Rust
+backend/target/
+Cargo.lock.bak
+
+# OMC / Claude
+.omc/
+.claude/
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
