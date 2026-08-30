@@ -21,3 +21,6 @@ Cargo.lock.bak
 # Editor
 .vscode/
 .idea/
+
+# Agent orchestration
+.omo/
