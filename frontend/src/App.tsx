@@ -1,5 +1,7 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
+import { BLOG_URL, isBlogHost, isPortfolioHost } from "./lib/site";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import Story from "./components/Story";
@@ -26,20 +28,53 @@ function Home() {
 }
 
 function App() {
+  const blogHome = isBlogHost();
+  // On the portfolio host, blog content lives on the blog host, so redirect
+  // there instead of serving a duplicate blog section.
+  const redirectToBlogHost = isPortfolioHost();
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <Header />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/blog" element={<BlogList />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route
+            path="/"
+            element={blogHome ? <Navigate to="/blog" replace /> : <Home />}
+          />
+          <Route
+            path="/blog"
+            element={
+              redirectToBlogHost ? <RedirectToBlogHost /> : <BlogList />
+            }
+          />
+          <Route
+            path="/blog/:slug"
+            element={
+              redirectToBlogHost ? <RedirectToBlogHost /> : <BlogPost />
+            }
+          />
           <Route path="/admin" element={<Admin />} />
         </Routes>
         <Footer />
       </AuthProvider>
     </BrowserRouter>
   );
+}
+
+function RedirectToBlogHost() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const target = `${BLOG_URL}${pathname}`;
+    if (window.location.href !== target) {
+      // Absolute cross-origin URLs must be assigned directly; react-router
+      // <Navigate> would treat them as a relative path and mangle the URL.
+      window.location.assign(target);
+    }
+  }, [pathname]);
+
+  return null;
 }
 
 export default App;
