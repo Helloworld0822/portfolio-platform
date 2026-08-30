@@ -50,10 +50,12 @@ pub fn issue_jwt_with_ttl(
 }
 
 pub fn validate_jwt(token: &str, secret: &str) -> anyhow::Result<Claims> {
+    let mut validation = Validation::default();
+    validation.leeway = 0;
     let data = decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret.as_bytes()),
-        &Validation::default(),
+        &validation,
     )?;
     Ok(data.claims)
 }

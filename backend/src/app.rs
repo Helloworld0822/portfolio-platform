@@ -7,6 +7,14 @@ use crate::openapi::ApiDoc;
 use crate::routes;
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
+    // Mounted under /api so the nginx gateway's existing `location /api/` rule
+    // proxies the docs without extra configuration. Registered BEFORE the
+    // `/api` scope so the docs routes are not swallowed by the scope's 404 for
+    // unmatched subpaths.
+    cfg.service(
+        SwaggerUi::new("/api/docs/{_:.*}").url("/api/openapi.json", ApiDoc::openapi()),
+    );
+
     cfg.service(
         web::scope("/api")
             .route("/health", web::get().to(routes::health::health))
@@ -40,6 +48,10 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             // Admin blog
             .route("/admin/posts", web::get().to(routes::posts::list_admin_posts))
             .route("/admin/posts", web::post().to(routes::posts::create_post))
+            .route(
+                "/admin/posts/{id}",
+                web::get().to(routes::posts::get_admin_post),
+            )
             .route("/admin/posts/{id}", web::put().to(routes::posts::update_post))
             .route(
                 "/admin/posts/{id}",
@@ -72,12 +84,6 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 "/admin/comments/{id}",
                 web::delete().to(routes::comments::delete_comment),
             ),
-    );
-
-    // Mounted under /api so the nginx gateway's existing `location /api/` rule
-    // proxies the docs without extra configuration.
-    cfg.service(
-        SwaggerUi::new("/api/docs/{_:.*}").url("/api/openapi.json", ApiDoc::openapi()),
     );
 }
 

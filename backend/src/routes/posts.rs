@@ -52,6 +52,36 @@ pub async fn get_post(
     Ok(HttpResponse::Ok().json(post))
 }
 
+/// Fetch one full post by id, drafts included. Used by the admin editor to
+/// load a post's markdown body, which the list endpoint does not return.
+#[utoipa::path(
+    get,
+    path = "/api/admin/posts/{id}",
+    tag = "admin/posts",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    responses(
+        (status = 200, description = "The post", body = Post),
+        (status = 401, description = "Missing or invalid token"),
+        (status = 404, description = "No post with that id")
+    )
+)]
+pub async fn get_admin_post(
+    pool: web::Data<PgPool>,
+    _user: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let id = path.into_inner();
+
+    let post: Post = sqlx::query_as("SELECT * FROM posts WHERE id = $1")
+        .bind(id)
+        .fetch_optional(pool.get_ref())
+        .await?
+        .ok_or(AppError::NotFound)?;
+
+    Ok(HttpResponse::Ok().json(post))
+}
+
 /// List every post, drafts included.
 #[utoipa::path(
     get,

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, ToSchema, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct Post {
     pub id: Uuid,
     pub slug: String,
@@ -15,7 +15,7 @@ pub struct Post {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize, ToSchema, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct PostSummary {
     pub id: Uuid,
     pub slug: String,
@@ -40,7 +40,7 @@ pub struct UpdatePostRequest {
     pub published: Option<bool>,
 }
 
-#[derive(Debug, Serialize, ToSchema, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct Project {
     pub id: Uuid,
     pub title: String,
@@ -82,7 +82,7 @@ pub struct UpdateProjectRequest {
     pub published: Option<bool>,
 }
 
-#[derive(Debug, Serialize, ToSchema, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct ContactMessage {
     pub id: Uuid,
     pub name: String,
@@ -98,7 +98,7 @@ pub struct CreateContactRequest {
     pub message: String,
 }
 
-#[derive(Debug, Serialize, ToSchema, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct Comment {
     pub id: Uuid,
     pub post_id: Uuid,

@@ -57,6 +57,7 @@ impl Modify for SecurityAddon {
         routes::comments::create_comment,
         routes::comments::delete_comment,
         routes::posts::list_admin_posts,
+        routes::posts::get_admin_post,
         routes::posts::create_post,
         routes::posts::update_post,
         routes::posts::delete_post,

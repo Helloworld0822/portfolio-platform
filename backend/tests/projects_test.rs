@@ -28,9 +28,12 @@ async fn list_projects_returns_only_published(pool: PgPool) {
     let req = test::TestRequest::get().uri("/api/projects").to_request();
     let projects: Vec<Project> = test::call_and_read_body_json(&app, req).await;
 
-    assert_eq!(projects.len(), 1);
-    assert_eq!(projects[0].title, "Live");
-    assert_eq!(projects[0].tags, vec!["Rust".to_string()]);
+    // The 0005 seed migration preloads published projects, so assert the
+    // semantics (unpublished excluded) rather than an exact count or order.
+    let live = projects.iter().find(|p| p.title == "Live").expect("Live project");
+    assert_eq!(live.tags, vec!["Rust".to_string()]);
+    assert!(projects.iter().all(|p| p.published));
+    assert!(!projects.iter().any(|p| p.title == "Hidden"));
 }
 
 #[sqlx::test(migrations = "./migrations")]

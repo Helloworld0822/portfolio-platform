@@ -67,6 +67,24 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
     }
   };
 
+  const handleDelete = async (comment: Comment) => {
+    if (!window.confirm("이 댓글을 삭제할까요?")) {
+      return;
+    }
+
+    try {
+      const res = await authFetch(`/api/admin/comments/${comment.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error("댓글을 삭제하지 못했습니다.");
+      }
+      loadComments();
+    } catch {
+      setError("댓글을 삭제하지 못했습니다.");
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-navy">댓글</h2>
@@ -97,6 +115,15 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
                 <span className="text-xs text-ink-subdued">
                   {new Date(comment.created_at).toLocaleDateString("ko-KR")}
                 </span>
+                {user?.isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(comment)}
+                    className="ml-2 text-xs text-ink-subdued transition-colors duration-[120ms] hover:text-red-600"
+                  >
+                    삭제
+                  </button>
+                )}
               </div>
               <p className="mt-1 text-sm leading-relaxed text-ink-muted">
                 {comment.body}
