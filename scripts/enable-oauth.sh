@@ -26,8 +26,10 @@ fi
 sed -i "s|^GITHUB_CLIENT_ID=.*|GITHUB_CLIENT_ID=${CLIENT_ID}|" .env
 sed -i "s|^GITHUB_CLIENT_SECRET=.*|GITHUB_CLIENT_SECRET=${CLIENT_SECRET}|" .env
 
-echo "wrote credentials to .env; recreating api container..."
-podman-compose up -d --force-recreate api
+echo "wrote credentials to .env; recreating api + nginx so the config and
+upstream DNS both refresh (recreating only api leaves nginx with a stale
+container IP -> 502)..."
+podman-compose up -d --force-recreate api nginx
 
 echo "done. Verify: open https://blog.helloworld0822.site/admin and click GitHub으로 로그인"
 echo "callback URL expected by GitHub: https://blog.helloworld0822.site/api/auth/github/callback"
