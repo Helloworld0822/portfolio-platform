@@ -47,6 +47,24 @@ docker compose up -d --build
 GitHub OAuth App 의 Authorization callback URL 은
 `{BACKEND_BASE_URL}/api/auth/github/callback` 로 등록해야 한다.
 
+### 배포 후 GitHub OAuth 활성화 (1회)
+
+사이트가 이미 public 도메인에 떠 있다면 (예: `https://blog.helloworld0822.site`):
+
+1. GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**
+   - Homepage URL: `https://<your-domain>`
+   - Authorization callback URL: `https://<your-domain>/api/auth/github/callback`
+2. Client ID / Client Secret 을 아래 스크립트에 전달 (`.env` 갱신 + api 컨테이너 재생성):
+
+   ```bash
+   scripts/enable-oauth.sh <CLIENT_ID> <CLIENT_SECRET>
+   ```
+
+3. `https://<your-domain>/admin` 에서 **GitHub으로 로그인** 시도.
+
+`ADMIN_GITHUB_USERNAME` 과 일치하는 GitHub 계정만 `/admin` 대시보드에 접근할 수 있고,
+다른 모든 GitHub 계정은 댓글 작성용 일반 사용자로 로그인된다.
+
 ## API
 
 공개 엔드포인트는 인증이 필요 없고, `/api/admin/*` 는 `Authorization: Bearer <JWT>` 를 요구한다.
