@@ -3,7 +3,6 @@ mod common;
 use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
 use portfolio_blog_api::config::Config;
-use sqlx::PgPool;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -46,15 +45,43 @@ async fn mock_user_endpoint(server: &MockServer, login: &str) {
         .await;
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn login_redirects_to_github(pool: PgPool) {
-    let app = test::init_service(
+async fn build_app(
+    pool: common::PgPool,
+) -> impl actix_web::dev::Service<
+    actix_http::Request,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+> {
+    test::init_service(
         App::new()
             .app_data(web::Data::new(common::test_config()))
             .app_data(web::Data::new(pool))
             .configure(configure_app),
     )
-    .await;
+    .await
+}
+
+async fn build_app_with_config(
+    pool: common::PgPool,
+    config: Config,
+) -> impl actix_web::dev::Service<
+    actix_http::Request,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+> {
+    test::init_service(
+        App::new()
+            .app_data(web::Data::new(config))
+            .app_data(web::Data::new(pool))
+            .configure(configure_app),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn login_redirects_to_github() {
+    let (pool, _db) = common::setup().await;
+    let app = build_app(pool).await;
 
     let req = test::TestRequest::get()
         .uri("/api/auth/github/login")
@@ -68,15 +95,10 @@ async fn login_redirects_to_github(pool: PgPool) {
     assert!(target.contains("scope=read:user"));
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn callback_without_a_code_redirects_with_an_error(pool: PgPool) {
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+#[tokio::test]
+async fn callback_without_a_code_redirects_with_an_error() {
+    let (pool, _db) = common::setup().await;
+    let app = build_app(pool).await;
 
     let req = test::TestRequest::get()
         .uri("/api/auth/github/callback")
@@ -84,25 +106,17 @@ async fn callback_without_a_code_redirects_with_an_error(pool: PgPool) {
     let resp = test::call_service(&app, req).await;
 
     assert_eq!(resp.status(), 302);
-    assert_eq!(
-        location(&resp),
-        "http://localhost:5173/?error=unauthorized"
-    );
+    assert_eq!(location(&resp), "http://localhost:5173/?error=unauthorized");
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn callback_issues_a_token_for_the_admin(pool: PgPool) {
+#[tokio::test]
+async fn callback_issues_a_token_for_the_admin() {
+    let (pool, _db) = common::setup().await;
     let server = MockServer::start().await;
     mock_token_endpoint(&server, "gho_test_token").await;
     mock_user_endpoint(&server, common::ADMIN_USERNAME).await;
 
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(config_pointing_at(&server)))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+    let app = build_app_with_config(pool, config_pointing_at(&server)).await;
 
     let req = test::TestRequest::get()
         .uri("/api/auth/github/callback?code=valid-code")
@@ -123,19 +137,14 @@ async fn callback_issues_a_token_for_the_admin(pool: PgPool) {
     assert_eq!(claims.role, "admin");
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn callback_issues_a_user_token_for_a_non_admin_github_user(pool: PgPool) {
+#[tokio::test]
+async fn callback_issues_a_user_token_for_a_non_admin_github_user() {
+    let (pool, _db) = common::setup().await;
     let server = MockServer::start().await;
     mock_token_endpoint(&server, "gho_test_token").await;
     mock_user_endpoint(&server, "someone-else").await;
 
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(config_pointing_at(&server)))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+    let app = build_app_with_config(pool, config_pointing_at(&server)).await;
 
     let req = test::TestRequest::get()
         .uri("/api/auth/github/callback?code=valid-code")
@@ -156,19 +165,14 @@ async fn callback_issues_a_user_token_for_a_non_admin_github_user(pool: PgPool) 
     assert_eq!(claims.role, "user");
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn callback_redirects_a_non_admin_user_to_the_state_path(pool: PgPool) {
+#[tokio::test]
+async fn callback_redirects_a_non_admin_user_to_the_state_path() {
+    let (pool, _db) = common::setup().await;
     let server = MockServer::start().await;
     mock_token_endpoint(&server, "gho_test_token").await;
     mock_user_endpoint(&server, "someone-else").await;
 
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(config_pointing_at(&server)))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+    let app = build_app_with_config(pool, config_pointing_at(&server)).await;
 
     let req = test::TestRequest::get()
         .uri("/api/auth/github/callback?code=valid-code&state=%2Fblog%2Fhello-world")

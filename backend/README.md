@@ -19,8 +19,10 @@ cargo run
 
 ## Running tests
 
-Tests that touch the database use `sqlx::test`, which needs a reachable
-Postgres server to create ephemeral test databases against:
+Tests that touch the database each create a throwaway database
+(`test_<uuid>`), run the migrations, and return a pool via
+`tests/common::setup()`. They need a reachable Postgres server with
+database-creation privileges:
 
 ```bash
 docker compose up -d postgres
@@ -38,8 +40,7 @@ curl http://localhost/api/health   # through nginx, not the api container direct
 
 `nginx` is the only container with a published host port (`HOST_HTTP_PORT`,
 default 80); `api` and `postgres` are reachable only on the internal
-compose network (`postgres`'s 5432 stays published too, for local
-`sqlx::test` runs against it).
+compose network (`postgres`'s 5432 stays published too, for local `cargo test` runs against it).
 
 ## Deploying to the Raspberry Pi (manual — requires your credentials)
 

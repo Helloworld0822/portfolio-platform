@@ -8,7 +8,7 @@ portfolio-platform/
 ├─ .env.example           # api / postgres 환경변수 템플릿
 ├─ nginx/                 # 리버스 프록시 게이트웨이 (/api → api, / → frontend)
 ├─ frontend/              # React 19 + TypeScript + Vite + Tailwind 4
-└─ backend/               # Rust + Actix-web 4 + sqlx + PostgreSQL 16
+└─ backend/               # Rust + Actix-web 4 + bb8-postgres + PostgreSQL 16
 ```
 
 ## 빠른 시작
@@ -136,8 +136,9 @@ export DATABASE_URL=postgres://blog:blog@localhost:5432/portfolio_blog
 cargo test                                                  # 통합 테스트 포함
 ```
 
-통합 테스트는 `#[sqlx::test]` 를 쓰기 때문에 테스트마다 임시 DB 를 만들고 지운다.
-따라서 `DATABASE_URL` 이 가리키는 서버에 DB 생성 권한이 필요하다.
+통합 테스트는 각 테스트마다 임시 DB(`test_<uuid>`)를 만들고 마이그레이션을 적용한 뒤
+풀을 반환하는 `tests/common::setup()` 을 쓴다. 따라서 `DATABASE_URL` 이 가리키는 서버에
+DB 생성 권한이 필요하다.
 
 ```bash
 cd frontend

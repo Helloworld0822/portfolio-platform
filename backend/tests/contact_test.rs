@@ -4,18 +4,28 @@ use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
 use portfolio_blog_api::models::ContactMessage;
 use serde_json::json;
-use sqlx::PgPool;
 
-#[sqlx::test(migrations = "./migrations")]
-async fn contact_form_stores_a_message(pool: PgPool) {
-    let app = test::init_service(
+async fn build_app(
+    pool: common::PgPool,
+) -> impl actix_web::dev::Service<
+    actix_http::Request,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+> {
+    test::init_service(
         App::new()
             .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(pool))
             .configure(configure_app),
     )
-    .await;
+    .await
+}
 
+#[tokio::test]
+async fn contact_form_stores_a_message() {
+    let (pool, _db) = common::setup().await;
+
+    let app = build_app(pool.clone()).await;
     let req = test::TestRequest::post()
         .uri("/api/contact")
         .set_json(json!({
@@ -31,23 +41,20 @@ async fn contact_form_stores_a_message(pool: PgPool) {
     let stored: ContactMessage = test::read_body_json(resp).await;
     assert_eq!(stored.name, "방문자");
 
-    let (count,): (i64,) = sqlx::query_as("SELECT count(*) FROM contact_messages")
-        .fetch_one(&pool)
+    let conn = pool.get().await.expect("get connection");
+    let row = conn
+        .query_one("SELECT count(*) FROM contact_messages", &[])
         .await
         .unwrap();
+    let count: i64 = row.get(0);
     assert_eq!(count, 1);
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn contact_form_rejects_a_malformed_email(pool: PgPool) {
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+#[tokio::test]
+async fn contact_form_rejects_a_malformed_email() {
+    let (pool, _db) = common::setup().await;
 
+    let app = build_app(pool).await;
     let req = test::TestRequest::post()
         .uri("/api/contact")
         .set_json(json!({
@@ -60,16 +67,11 @@ async fn contact_form_rejects_a_malformed_email(pool: PgPool) {
     assert_eq!(test::call_service(&app, req).await.status(), 400);
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn contact_form_rejects_an_empty_message(pool: PgPool) {
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+#[tokio::test]
+async fn contact_form_rejects_an_empty_message() {
+    let (pool, _db) = common::setup().await;
 
+    let app = build_app(pool).await;
     let req = test::TestRequest::post()
         .uri("/api/contact")
         .set_json(json!({
@@ -82,24 +84,22 @@ async fn contact_form_rejects_an_empty_message(pool: PgPool) {
     assert_eq!(test::call_service(&app, req).await.status(), 400);
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn the_inbox_is_admin_only(pool: PgPool) {
-    sqlx::query(
-        "INSERT INTO contact_messages (name, email, message)
-         VALUES ('방문자', 'visitor@example.com', '문의드립니다')",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
+#[tokio::test]
+async fn the_inbox_is_admin_only() {
+    let (pool, _db) = common::setup().await;
 
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+    {
+        let conn = pool.get().await.expect("get connection");
+        conn.execute(
+            "INSERT INTO contact_messages (name, email, message)
+             VALUES ('방문자', 'visitor@example.com', '문의드립니다')",
+            &[],
+        )
+        .await
+        .unwrap();
+    }
 
+    let app = build_app(pool).await;
     let anonymous = test::TestRequest::get()
         .uri("/api/admin/contact")
         .to_request();
@@ -109,7 +109,6 @@ async fn the_inbox_is_admin_only(pool: PgPool) {
         .uri("/api/admin/contact")
         .insert_header(common::auth_header())
         .to_request();
-    let messages: Vec<ContactMessage> =
-        test::call_and_read_body_json(&app, authenticated).await;
+    let messages: Vec<ContactMessage> = test::call_and_read_body_json(&app, authenticated).await;
     assert_eq!(messages.len(), 1);
 }

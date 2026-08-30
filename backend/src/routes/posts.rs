@@ -1,8 +1,8 @@
 use actix_web::{web, HttpResponse};
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::auth::middleware::AdminUser;
+use crate::db::PgPool;
 use crate::error::AppError;
 use crate::models::{CreatePostRequest, Post, PostSummary, UpdatePostRequest};
 use crate::slug::unique_slug;
@@ -15,13 +15,20 @@ use crate::slug::unique_slug;
     responses((status = 200, description = "Published posts", body = Vec<PostSummary>))
 )]
 pub async fn list_posts(pool: web::Data<PgPool>) -> Result<HttpResponse, AppError> {
-    let posts: Vec<PostSummary> = sqlx::query_as(
-        "SELECT id, slug, title, excerpt, created_at FROM posts
-         WHERE published = true
-         ORDER BY created_at DESC",
-    )
-    .fetch_all(pool.get_ref())
-    .await?;
+    let conn = pool.get().await?;
+    let rows = conn
+        .query(
+            "SELECT id, slug, title, excerpt, created_at FROM posts
+             WHERE published = true
+             ORDER BY created_at DESC",
+            &[],
+        )
+        .await?;
+
+    let posts: Vec<PostSummary> = rows
+        .iter()
+        .map(PostSummary::try_from)
+        .collect::<Result<_, _>>()?;
 
     Ok(HttpResponse::Ok().json(posts))
 }
@@ -42,13 +49,17 @@ pub async fn get_post(
     path: web::Path<String>,
 ) -> Result<HttpResponse, AppError> {
     let slug = path.into_inner();
+    let conn = pool.get().await?;
 
-    let post: Post = sqlx::query_as("SELECT * FROM posts WHERE slug = $1 AND published = true")
-        .bind(&slug)
-        .fetch_optional(pool.get_ref())
+    let row = conn
+        .query_opt(
+            "SELECT * FROM posts WHERE slug = $1 AND published = true",
+            &[&slug],
+        )
         .await?
         .ok_or(AppError::NotFound)?;
 
+    let post = Post::try_from(&row)?;
     Ok(HttpResponse::Ok().json(post))
 }
 
@@ -72,13 +83,14 @@ pub async fn get_admin_post(
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
     let id = path.into_inner();
+    let conn = pool.get().await?;
 
-    let post: Post = sqlx::query_as("SELECT * FROM posts WHERE id = $1")
-        .bind(id)
-        .fetch_optional(pool.get_ref())
+    let row = conn
+        .query_opt("SELECT * FROM posts WHERE id = $1", &[&id])
         .await?
         .ok_or(AppError::NotFound)?;
 
+    let post = Post::try_from(&row)?;
     Ok(HttpResponse::Ok().json(post))
 }
 
@@ -97,11 +109,18 @@ pub async fn list_admin_posts(
     pool: web::Data<PgPool>,
     _user: AdminUser,
 ) -> Result<HttpResponse, AppError> {
-    let posts: Vec<PostSummary> = sqlx::query_as(
-        "SELECT id, slug, title, excerpt, created_at FROM posts ORDER BY created_at DESC",
-    )
-    .fetch_all(pool.get_ref())
-    .await?;
+    let conn = pool.get().await?;
+    let rows = conn
+        .query(
+            "SELECT id, slug, title, excerpt, created_at FROM posts ORDER BY created_at DESC",
+            &[],
+        )
+        .await?;
+
+    let posts: Vec<PostSummary> = rows
+        .iter()
+        .map(PostSummary::try_from)
+        .collect::<Result<_, _>>()?;
 
     Ok(HttpResponse::Ok().json(posts))
 }
@@ -129,20 +148,24 @@ pub async fn create_post(
     }
 
     let slug = unique_slug(pool.get_ref(), &body.title).await?;
+    let conn = pool.get().await?;
 
-    let post: Post = sqlx::query_as(
-        "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING *",
-    )
-    .bind(&slug)
-    .bind(&body.title)
-    .bind(&body.excerpt)
-    .bind(&body.content_markdown)
-    .bind(body.published)
-    .fetch_one(pool.get_ref())
-    .await?;
+    let row = conn
+        .query_one(
+            "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *",
+            &[
+                &slug,
+                &body.title,
+                &body.excerpt,
+                &body.content_markdown,
+                &body.published,
+            ],
+        )
+        .await?;
 
+    let post = Post::try_from(&row)?;
     Ok(HttpResponse::Created().json(post))
 }
 
@@ -167,12 +190,13 @@ pub async fn update_post(
     body: web::Json<UpdatePostRequest>,
 ) -> Result<HttpResponse, AppError> {
     let id = path.into_inner();
+    let conn = pool.get().await?;
 
-    let existing: Post = sqlx::query_as("SELECT * FROM posts WHERE id = $1")
-        .bind(id)
-        .fetch_optional(pool.get_ref())
+    let existing_row = conn
+        .query_opt("SELECT * FROM posts WHERE id = $1", &[&id])
         .await?
         .ok_or(AppError::NotFound)?;
+    let existing = Post::try_from(&existing_row)?;
 
     let title = body.title.clone().unwrap_or(existing.title);
     let excerpt = body.excerpt.clone().unwrap_or(existing.excerpt);
@@ -182,20 +206,17 @@ pub async fn update_post(
         .unwrap_or(existing.content_markdown);
     let published = body.published.unwrap_or(existing.published);
 
-    let post: Post = sqlx::query_as(
-        "UPDATE posts
-         SET title = $1, excerpt = $2, content_markdown = $3, published = $4, updated_at = now()
-         WHERE id = $5
-         RETURNING *",
-    )
-    .bind(&title)
-    .bind(&excerpt)
-    .bind(&content_markdown)
-    .bind(published)
-    .bind(id)
-    .fetch_one(pool.get_ref())
-    .await?;
+    let row = conn
+        .query_one(
+            "UPDATE posts
+             SET title = $1, excerpt = $2, content_markdown = $3, published = $4, updated_at = now()
+             WHERE id = $5
+             RETURNING *",
+            &[&title, &excerpt, &content_markdown, &published, &id],
+        )
+        .await?;
 
+    let post = Post::try_from(&row)?;
     Ok(HttpResponse::Ok().json(post))
 }
 
@@ -218,13 +239,13 @@ pub async fn delete_post(
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
     let id = path.into_inner();
+    let conn = pool.get().await?;
 
-    let result = sqlx::query("DELETE FROM posts WHERE id = $1")
-        .bind(id)
-        .execute(pool.get_ref())
+    let affected = conn
+        .execute("DELETE FROM posts WHERE id = $1", &[&id])
         .await?;
 
-    if result.rows_affected() == 0 {
+    if affected == 0 {
         return Err(AppError::NotFound);
     }
 

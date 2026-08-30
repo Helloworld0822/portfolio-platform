@@ -1,7 +1,7 @@
 use actix_web::{web, HttpResponse};
-use sqlx::PgPool;
 
 use crate::auth::middleware::AdminUser;
+use crate::db::PgPool;
 use crate::error::AppError;
 use crate::models::{ContactMessage, CreateContactRequest};
 
@@ -36,17 +36,17 @@ pub async fn create_contact_message(
         return Err(AppError::Validation("email is not a valid address".into()));
     }
 
-    let stored: ContactMessage = sqlx::query_as(
-        "INSERT INTO contact_messages (name, email, message)
-         VALUES ($1, $2, $3)
-         RETURNING *",
-    )
-    .bind(name)
-    .bind(email)
-    .bind(message)
-    .fetch_one(pool.get_ref())
-    .await?;
+    let conn = pool.get().await?;
+    let row = conn
+        .query_one(
+            "INSERT INTO contact_messages (name, email, message)
+             VALUES ($1, $2, $3)
+             RETURNING *",
+            &[&name, &email, &message],
+        )
+        .await?;
 
+    let stored = ContactMessage::try_from(&row)?;
     Ok(HttpResponse::Created().json(stored))
 }
 
@@ -65,10 +65,18 @@ pub async fn list_contact_messages(
     pool: web::Data<PgPool>,
     _user: AdminUser,
 ) -> Result<HttpResponse, AppError> {
-    let messages: Vec<ContactMessage> =
-        sqlx::query_as("SELECT * FROM contact_messages ORDER BY created_at DESC")
-            .fetch_all(pool.get_ref())
-            .await?;
+    let conn = pool.get().await?;
+    let rows = conn
+        .query(
+            "SELECT * FROM contact_messages ORDER BY created_at DESC",
+            &[],
+        )
+        .await?;
+
+    let messages: Vec<ContactMessage> = rows
+        .iter()
+        .map(ContactMessage::try_from)
+        .collect::<Result<_, _>>()?;
 
     Ok(HttpResponse::Ok().json(messages))
 }

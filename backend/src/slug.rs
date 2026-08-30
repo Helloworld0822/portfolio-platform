@@ -1,5 +1,6 @@
 use rand::Rng;
-use sqlx::PgPool;
+
+use crate::db::PgPool;
 
 pub fn slugify(title: &str) -> String {
     // If title is entirely non-ASCII, use random suffix
@@ -23,14 +24,14 @@ fn random_suffix() -> String {
         .collect()
 }
 
-pub async fn unique_slug(pool: &PgPool, title: &str) -> Result<String, sqlx::Error> {
+pub async fn unique_slug(pool: &PgPool, title: &str) -> Result<String, anyhow::Error> {
+    let conn = pool.get().await?;
     let base = slugify(title);
 
-    let base_taken: bool =
-        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1)")
-            .bind(&base)
-            .fetch_one(pool)
-            .await?;
+    let base_taken: bool = conn
+        .query_one("SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1)", &[&base])
+        .await?
+        .get(0);
 
     if !base_taken {
         return Ok(base);
@@ -38,10 +39,13 @@ pub async fn unique_slug(pool: &PgPool, title: &str) -> Result<String, sqlx::Err
 
     loop {
         let candidate = format!("{}-{}", base, random_suffix());
-        let taken: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1)")
-            .bind(&candidate)
-            .fetch_one(pool)
-            .await?;
+        let taken: bool = conn
+            .query_one(
+                "SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1)",
+                &[&candidate],
+            )
+            .await?
+            .get(0);
         if !taken {
             return Ok(candidate);
         }

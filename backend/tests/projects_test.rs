@@ -4,27 +4,39 @@ use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
 use portfolio_blog_api::models::Project;
 use serde_json::json;
-use sqlx::PgPool;
 
-#[sqlx::test(migrations = "./migrations")]
-async fn list_projects_returns_only_published(pool: PgPool) {
-    sqlx::query(
-        "INSERT INTO projects (title, description, details, tags, status, published)
-         VALUES ('Live', 'shipped', ARRAY['a'], ARRAY['Rust'], '완료', true),
-                ('Hidden', 'wip', ARRAY['b'], ARRAY['React'], '진행 중', false)",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
-
-    let app = test::init_service(
+async fn build_app(
+    pool: common::PgPool,
+) -> impl actix_web::dev::Service<
+    actix_http::Request,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+> {
+    test::init_service(
         App::new()
             .app_data(web::Data::new(common::test_config()))
             .app_data(web::Data::new(pool))
             .configure(configure_app),
     )
-    .await;
+    .await
+}
 
+#[tokio::test]
+async fn list_projects_returns_only_published() {
+    let (pool, _db) = common::setup().await;
+    {
+        let conn = pool.get().await.expect("get connection");
+        conn.execute(
+            "INSERT INTO projects (title, description, details, tags, status, published)
+             VALUES ('Live', 'shipped', ARRAY['a'], ARRAY['Rust'], '완료', true),
+                    ('Hidden', 'wip', ARRAY['b'], ARRAY['React'], '진행 중', false)",
+            &[],
+        )
+        .await
+        .unwrap();
+    }
+
+    let app = build_app(pool).await;
     let req = test::TestRequest::get().uri("/api/projects").to_request();
     let projects: Vec<Project> = test::call_and_read_body_json(&app, req).await;
 
@@ -36,16 +48,11 @@ async fn list_projects_returns_only_published(pool: PgPool) {
     assert!(!projects.iter().any(|p| p.title == "Hidden"));
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn create_project_requires_authentication(pool: PgPool) {
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+#[tokio::test]
+async fn create_project_requires_authentication() {
+    let (pool, _db) = common::setup().await;
 
+    let app = build_app(pool).await;
     let req = test::TestRequest::post()
         .uri("/api/admin/projects")
         .set_json(json!({
@@ -61,16 +68,11 @@ async fn create_project_requires_authentication(pool: PgPool) {
     assert_eq!(test::call_service(&app, req).await.status(), 401);
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn create_project_stores_arrays_and_optional_fields(pool: PgPool) {
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
+#[tokio::test]
+async fn create_project_stores_arrays_and_optional_fields() {
+    let (pool, _db) = common::setup().await;
 
+    let app = build_app(pool).await;
     let req = test::TestRequest::post()
         .uri("/api/admin/projects")
         .insert_header(common::auth_header())
@@ -97,25 +99,24 @@ async fn create_project_stores_arrays_and_optional_fields(pool: PgPool) {
     assert_eq!(project.url, None);
 }
 
-#[sqlx::test(migrations = "./migrations")]
-async fn update_project_patches_only_the_given_fields(pool: PgPool) {
-    let original: Project = sqlx::query_as(
-        "INSERT INTO projects (title, description, details, tags, status, period, published)
-         VALUES ('Original', 'desc', ARRAY['d1'], ARRAY['t1'], '진행 중', '2026.01', false)
-         RETURNING *",
-    )
-    .fetch_one(&pool)
-    .await
-    .unwrap();
+#[tokio::test]
+async fn update_project_patches_only_the_given_fields() {
+    let (pool, _db) = common::setup().await;
+    let original = {
+        let conn = pool.get().await.expect("get connection");
+        let row = conn
+            .query_one(
+                "INSERT INTO projects (title, description, details, tags, status, period, published)
+                 VALUES ('Original', 'desc', ARRAY['d1'], ARRAY['t1'], '진행 중', '2026.01', false)
+                 RETURNING *",
+                &[],
+            )
+            .await
+            .unwrap();
+        Project::try_from(&row).unwrap()
+    };
 
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(common::test_config()))
-            .app_data(web::Data::new(pool))
-            .configure(configure_app),
-    )
-    .await;
-
+    let app = build_app(pool).await;
     let req = test::TestRequest::put()
         .uri(&format!("/api/admin/projects/{}", original.id))
         .insert_header(common::auth_header())

@@ -32,11 +32,14 @@ impl ResponseError for AppError {
     }
 }
 
-impl From<sqlx::Error> for AppError {
-    fn from(err: sqlx::Error) -> Self {
-        match err {
-            sqlx::Error::RowNotFound => AppError::NotFound,
-            other => AppError::Internal(other.into()),
-        }
+impl From<tokio_postgres::Error> for AppError {
+    fn from(err: tokio_postgres::Error) -> Self {
+        AppError::Internal(err.into())
+    }
+}
+
+impl From<bb8::RunError<tokio_postgres::Error>> for AppError {
+    fn from(err: bb8::RunError<tokio_postgres::Error>) -> Self {
+        AppError::Internal(err.into())
     }
 }
