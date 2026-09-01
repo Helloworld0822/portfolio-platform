@@ -11,9 +11,7 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
     // proxies the docs without extra configuration. Registered BEFORE the
     // `/api` scope so the docs routes are not swallowed by the scope's 404 for
     // unmatched subpaths.
-    cfg.service(
-        SwaggerUi::new("/api/docs/{_:.*}").url("/api/openapi.json", ApiDoc::openapi()),
-    );
+    cfg.service(SwaggerUi::new("/api/docs/{_:.*}").url("/api/openapi.json", ApiDoc::openapi()));
 
     cfg.service(
         web::scope("/api")
@@ -46,13 +44,19 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 web::get().to(routes::auth_routes::github_callback),
             )
             // Admin blog
-            .route("/admin/posts", web::get().to(routes::posts::list_admin_posts))
+            .route(
+                "/admin/posts",
+                web::get().to(routes::posts::list_admin_posts),
+            )
             .route("/admin/posts", web::post().to(routes::posts::create_post))
             .route(
                 "/admin/posts/{id}",
                 web::get().to(routes::posts::get_admin_post),
             )
-            .route("/admin/posts/{id}", web::put().to(routes::posts::update_post))
+            .route(
+                "/admin/posts/{id}",
+                web::put().to(routes::posts::update_post),
+            )
             .route(
                 "/admin/posts/{id}",
                 web::delete().to(routes::posts::delete_post),
@@ -90,7 +94,10 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
 pub fn build_cors(allowed_origins: &[String]) -> Cors {
     let mut cors = Cors::default()
         .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-        .allowed_headers(vec![http::header::AUTHORIZATION, http::header::CONTENT_TYPE])
+        .allowed_headers(vec![
+            http::header::AUTHORIZATION,
+            http::header::CONTENT_TYPE,
+        ])
         .max_age(3600);
 
     for origin in allowed_origins {

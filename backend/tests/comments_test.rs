@@ -44,7 +44,9 @@ async fn seed_comment_return_id(pool: &common::PgPool, post_id: Uuid) -> Uuid {
     row.get::<_, Uuid>("id")
 }
 
-async fn build_app(pool: common::PgPool) -> impl actix_web::dev::Service<
+async fn build_app(
+    pool: common::PgPool,
+) -> impl actix_web::dev::Service<
     actix_http::Request,
     Response = actix_web::dev::ServiceResponse,
     Error = actix_web::Error,

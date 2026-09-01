@@ -42,7 +42,10 @@ async fn list_projects_returns_only_published() {
 
     // The 0005 seed migration preloads published projects, so assert the
     // semantics (unpublished excluded) rather than an exact count or order.
-    let live = projects.iter().find(|p| p.title == "Live").expect("Live project");
+    let live = projects
+        .iter()
+        .find(|p| p.title == "Live")
+        .expect("Live project");
     assert_eq!(live.tags, vec!["Rust".to_string()]);
     assert!(projects.iter().all(|p| p.published));
     assert!(!projects.iter().any(|p| p.title == "Hidden"));

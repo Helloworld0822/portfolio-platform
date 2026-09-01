@@ -5,7 +5,8 @@ use bb8_postgres::PostgresConnectionManager;
 use tokio_postgres::NoTls;
 
 use portfolio_blog_api::auth::jwt::issue_jwt;
-use portfolio_blog_api::config::Config;pub const ADMIN_USERNAME: &str = "Helloworld0822";
+use portfolio_blog_api::config::Config;
+pub const ADMIN_USERNAME: &str = "Helloworld0822";
 pub const JWT_SECRET: &str = "test-secret";
 
 /// A config with no reachable GitHub host. Port 0 is never listening, so any
@@ -54,8 +55,8 @@ pub type PgPool = Pool<PostgresConnectionManager<NoTls>>;
 /// database is left in place (like sqlx::test does); tests should not rely on
 /// cross-test state.
 pub async fn setup() -> (PgPool, String) {
-    let base_url = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set to run integration tests");
+    let base_url =
+        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set to run integration tests");
 
     // Parse the connection info so we can connect to the "postgres" admin DB
     // to create a fresh test database.
@@ -63,7 +64,11 @@ pub async fn setup() -> (PgPool, String) {
     let db_name = format!("test_{}", uuid::Uuid::new_v4().simple());
 
     {
-        let (admin, conn) = config.clone().dbname("postgres").connect(NoTls).await
+        let (admin, conn) = config
+            .clone()
+            .dbname("postgres")
+            .connect(NoTls)
+            .await
             .expect("failed to connect to postgres admin database");
         let admin_conn = tokio::spawn(async move {
             let _ = conn.await;
@@ -80,7 +85,7 @@ pub async fn setup() -> (PgPool, String) {
     let mut mig_cfg = config.clone();
     mig_cfg.dbname(&db_name);
     let (mut client, conn) = mig_cfg.connect(NoTls).await.expect("test db connect");
-    let mig_conn = tokio::spawn(async move { conn.await });
+    let mig_conn = tokio::spawn(conn);
     run_files(&mut client, "migrations")
         .await
         .expect("failed to run migrations");

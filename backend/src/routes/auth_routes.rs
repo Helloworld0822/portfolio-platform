@@ -24,7 +24,10 @@ pub struct CallbackQuery {
     params(("state" = Option<String>, Query, description = "Path to return to after login")),
     responses((status = 302, description = "Redirect to GitHub authorize URL"))
 )]
-pub async fn github_login(config: web::Data<Config>, query: web::Query<LoginQuery>) -> HttpResponse {
+pub async fn github_login(
+    config: web::Data<Config>,
+    query: web::Query<LoginQuery>,
+) -> HttpResponse {
     HttpResponse::Found()
         .append_header((
             "Location",
@@ -55,7 +58,10 @@ pub async fn github_callback(
         HttpResponse::Found()
             .append_header((
                 "Location",
-                format!("{}/?error=unauthorized", config.frontend_url.trim_end_matches('/')),
+                format!(
+                    "{}/?error=unauthorized",
+                    config.frontend_url.trim_end_matches('/')
+                ),
             ))
             .finish()
     };
@@ -83,7 +89,12 @@ pub async fn github_callback(
     let is_admin = user.login == config.admin_github_username;
     let role = if is_admin { "admin" } else { "user" };
 
-    match issue_jwt(&user.login, role, user.avatar_url.clone(), &config.jwt_secret) {
+    match issue_jwt(
+        &user.login,
+        role,
+        user.avatar_url.clone(),
+        &config.jwt_secret,
+    ) {
         Ok(token) => {
             let frontend_url = config.frontend_url.trim_end_matches('/');
             let path = if is_admin {

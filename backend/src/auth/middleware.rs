@@ -16,7 +16,9 @@ fn extract_claims(req: &HttpRequest) -> Result<Claims, AppError> {
         .and_then(|h| h.to_str().ok())
         .ok_or(AppError::Unauthorized)?;
 
-    let token = header.strip_prefix("Bearer ").ok_or(AppError::Unauthorized)?;
+    let token = header
+        .strip_prefix("Bearer ")
+        .ok_or(AppError::Unauthorized)?;
 
     validate_jwt(token, &config.jwt_secret).map_err(|_| AppError::Unauthorized)
 }

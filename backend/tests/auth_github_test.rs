@@ -26,11 +26,9 @@ fn config_pointing_at(server: &MockServer) -> Config {
 async fn mock_token_endpoint(server: &MockServer, token: &str) {
     Mock::given(method("POST"))
         .and(path("/login/oauth/access_token"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "access_token": token
-            })),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "access_token": token
+        })))
         .mount(server)
         .await;
 }

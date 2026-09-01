@@ -29,7 +29,10 @@ pub async fn unique_slug(pool: &PgPool, title: &str) -> Result<String, anyhow::E
     let base = slugify(title);
 
     let base_taken: bool = conn
-        .query_one("SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1)", &[&base])
+        .query_one(
+            "SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1)",
+            &[&base],
+        )
         .await?
         .get(0);
 
