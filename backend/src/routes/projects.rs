@@ -83,8 +83,8 @@ pub async fn create_project(
     let conn = pool.get().await?;
     let row = conn
         .query_one(
-            "INSERT INTO projects (title, description, details, tags, status, period, role, url, published)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            "INSERT INTO projects (title, description, details, tags, status, period, role, url, demo_url, published)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
              RETURNING *",
             &[
                 &body.title,
@@ -95,6 +95,7 @@ pub async fn create_project(
                 &body.period,
                 &body.role,
                 &body.url,
+                &body.demo_url,
                 &body.published,
             ],
         )
@@ -141,14 +142,15 @@ pub async fn update_project(
     let period = body.period.clone().or(existing.period);
     let role = body.role.clone().or(existing.role);
     let url = body.url.clone().or(existing.url);
+    let demo_url = body.demo_url.clone().or(existing.demo_url);
     let published = body.published.unwrap_or(existing.published);
 
     let row = conn
         .query_one(
             "UPDATE projects
              SET title = $1, description = $2, details = $3, tags = $4, status = $5,
-                 period = $6, role = $7, url = $8, published = $9, updated_at = now()
-             WHERE id = $10
+                 period = $6, role = $7, url = $8, demo_url = $9, published = $10, updated_at = now()
+             WHERE id = $11
              RETURNING *",
             &[
                 &title,
@@ -159,6 +161,7 @@ pub async fn update_project(
                 &period,
                 &role,
                 &url,
+                &demo_url,
                 &published,
                 &id,
             ],

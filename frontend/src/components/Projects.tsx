@@ -13,6 +13,7 @@ interface ApiProject {
   period: string | null;
   role: string | null;
   url: string | null;
+  demo_url: string | null;
   created_at: string;
 }
 
@@ -26,6 +27,7 @@ function toProject(api: ApiProject): Project {
     period: api.period ?? undefined,
     role: api.role ?? undefined,
     url: api.url ?? undefined,
+    demo_url: api.demo_url ?? undefined,
   };
 }
 

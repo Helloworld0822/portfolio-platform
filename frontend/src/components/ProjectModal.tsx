@@ -9,6 +9,7 @@ export type Project = {
   period?: string;
   role?: string;
   url?: string;
+  demo_url?: string;
 };
 
 type ProjectModalProps = {
@@ -118,16 +119,33 @@ const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
             ))}
           </div>
 
-          {project.url && (
-            <a
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover"
-            >
-              GitHub 보기
-            </a>
-          )}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {project.url && (
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover"
+              >
+                GitHub 보기
+              </a>
+            )}
+
+            {project.demo_url && (
+              <a
+                href={project.demo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={
+                  project.url
+                    ? "inline-block rounded-md border border-primary px-6 py-2.5 text-sm font-medium text-primary transition-colors duration-[120ms] hover:bg-primary/5"
+                    : "inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover"
+                }
+              >
+                배포 사이트 보기
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

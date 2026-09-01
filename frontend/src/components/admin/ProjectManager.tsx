@@ -11,6 +11,7 @@ interface Project {
   period: string | null;
   role: string | null;
   url: string | null;
+  demo_url: string | null;
   published: boolean;
 }
 
@@ -23,6 +24,7 @@ type ProjectDraft = {
   period: string;
   role: string;
   url: string;
+  demo_url: string;
   published: boolean;
 };
 
@@ -35,6 +37,7 @@ const emptyDraft: ProjectDraft = {
   period: "",
   role: "",
   url: "",
+  demo_url: "",
   published: true,
 };
 
@@ -47,6 +50,7 @@ const toDraft = (project: Project): ProjectDraft => ({
   period: project.period ?? "",
   role: project.role ?? "",
   url: project.url ?? "",
+  demo_url: project.demo_url ?? "",
   published: project.published,
 });
 
@@ -129,6 +133,7 @@ const ProjectManager = () => {
       period: editing.period || null,
       role: editing.role || null,
       url: editing.url || null,
+      demo_url: editing.demo_url || null,
       published: editing.published,
     };
 
@@ -256,7 +261,7 @@ const ProjectManager = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="project-period" className={editorLabelClass}>
                 기간
@@ -285,7 +290,7 @@ const ProjectManager = () => {
             </div>
             <div>
               <label htmlFor="project-url" className={editorLabelClass}>
-                URL
+                GitHub 레포 URL
               </label>
               <input
                 id="project-url"
@@ -293,6 +298,19 @@ const ProjectManager = () => {
                 value={editing.url}
                 onChange={(e) => setEditing({ ...editing, url: e.target.value })}
                 placeholder="https://github.com/..."
+                className={editorInputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="project-demo-url" className={editorLabelClass}>
+                배포/데모 URL
+              </label>
+              <input
+                id="project-demo-url"
+                type="text"
+                value={editing.demo_url}
+                onChange={(e) => setEditing({ ...editing, demo_url: e.target.value })}
+                placeholder="https://... (선택)"
                 className={editorInputClass}
               />
             </div>

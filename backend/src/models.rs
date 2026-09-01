@@ -93,6 +93,7 @@ pub struct Project {
     pub period: Option<String>,
     pub role: Option<String>,
     pub url: Option<String>,
+    pub demo_url: Option<String>,
     pub published: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -107,12 +108,25 @@ impl TryFrom<&Row> for Project {
             description: row
                 .try_get::<_, String>("description")
                 .map_err(|_| row_err())?,
-            details: row.try_get::<_, Vec<String>>("details").map_err(|_| row_err())?,
-            tags: row.try_get::<_, Vec<String>>("tags").map_err(|_| row_err())?,
+            details: row
+                .try_get::<_, Vec<String>>("details")
+                .map_err(|_| row_err())?,
+            tags: row
+                .try_get::<_, Vec<String>>("tags")
+                .map_err(|_| row_err())?,
             status: row.try_get::<_, String>("status").map_err(|_| row_err())?,
-            period: row.try_get::<_, Option<String>>("period").map_err(|_| row_err())?,
-            role: row.try_get::<_, Option<String>>("role").map_err(|_| row_err())?,
-            url: row.try_get::<_, Option<String>>("url").map_err(|_| row_err())?,
+            period: row
+                .try_get::<_, Option<String>>("period")
+                .map_err(|_| row_err())?,
+            role: row
+                .try_get::<_, Option<String>>("role")
+                .map_err(|_| row_err())?,
+            url: row
+                .try_get::<_, Option<String>>("url")
+                .map_err(|_| row_err())?,
+            demo_url: row
+                .try_get::<_, Option<String>>("demo_url")
+                .map_err(|_| row_err())?,
             published: row.try_get::<_, bool>("published").map_err(|_| row_err())?,
             created_at: row
                 .try_get::<_, DateTime<Utc>>("created_at")
@@ -134,6 +148,7 @@ pub struct CreateProjectRequest {
     pub period: Option<String>,
     pub role: Option<String>,
     pub url: Option<String>,
+    pub demo_url: Option<String>,
     pub published: bool,
 }
 
@@ -147,6 +162,7 @@ pub struct UpdateProjectRequest {
     pub period: Option<String>,
     pub role: Option<String>,
     pub url: Option<String>,
+    pub demo_url: Option<String>,
     pub published: Option<bool>,
 }
 
