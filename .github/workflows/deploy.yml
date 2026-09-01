@@ -1,0 +1,84 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'main')
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            DEPLOY_PATH="${{ vars.DEPLOY_PATH }}"
+            if [ -z "$DEPLOY_PATH" ]; then
+              echo "DEPLOY_PATH repository variable is not set" >&2
+              exit 1
+            fi
+
+            cd "$DEPLOY_PATH"
+
+            # 1. Pull latest code (deploy only checked-in state)
+            git fetch --prune origin main
+            git reset --hard origin/main
+
+            # 2. Ensure .env exists; never overwrite existing secrets
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo "WARNING: .env did not exist; copied from .env.example. Fill in real secrets and redeploy." >&2
+            fi
+
+            # 3. Pick compose implementation (docker compose, else podman-compose)
+            if command -v docker >/dev/null 2>&1; then
+              COMPOSE=(docker compose)
+            elif command -v podman-compose >/dev/null 2>&1; then
+              COMPOSE=(podman-compose)
+            else
+              echo "Neither 'docker compose' nor 'podman-compose' found on server" >&2
+              exit 1
+            fi
+
+            echo "Using: ${COMPOSE[*]}"
+
+            # 4. Rebuild and restart the stack
+            "${COMPOSE[@]}" up -d --build
+
+            # 5. Healthcheck through nginx
+            PORT="$(sed -n 's/^HOST_HTTP_PORT=//p' .env)"
+            PORT="${PORT:-80}"
+            echo "Waiting for health at http://127.0.0.1:${PORT}/api/health ..."
+            for i in $(seq 1 12); do
+              if curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
+                echo "Deploy OK: /api/health returned 200"
+                exit 0
+              fi
+              sleep 5
+            done
+
+            echo "Healthcheck failed after deploy" >&2
+            "${COMPOSE[@]}" ps
+            exit 1

@@ -145,3 +145,49 @@ cd frontend
 npm run lint
 npm run build
 ```
+
+## CI/CD (GitHub Actions)
+
+`.github/workflows/` 에 정의되어 있으며, main 푸시/PR 시 자동으로 실행된다.
+
+### CI (.github/workflows/ci.yml)
+
+`main` 브랜치 푸시와 모든 PR에서 3개 잡이 병렬 실행된다.
+
+| 잡 | 내용 |
+| --- | --- |
+| `backend` | `cargo fmt --check` / `cargo clippy -- -D warnings` / `cargo test` (Postgres 16 서비스 컨테이너 포함, 통합 테스트까지) |
+| `frontend` | `npm ci` → `npm run lint` → `npm run build` |
+| `docker-images` | `.env.example` 복사 → `docker compose config --quiet` 검증 → 전체 이미지 빌드 |
+
+배포는 이 CI가 `main`에서 성공한 경우에만 트리거되므로, CI가 빨간불이면 배포되지 않는다.
+
+### CD (.github/workflows/deploy.yml)
+
+`main` 브랜치에서 CI가 성공한 뒤, 또는 수동 디스패치(GitHub → Actions → Deploy → Run workflow)로 실행된다.
+SSH로 배포 서버에 접속해 다음을 수행한다:
+
+1. `git fetch` + `git reset --hard origin/main` (배포는 커밋된 상태만 반영)
+2. `.env` 가 없으면 `.env.example` 에서 복사 (기존 `.env` 는 절대 덮어쓰지 않음)
+3. `docker compose up -d --build` (서버에 docker 가 없으면 `podman-compose` 자동 사용)
+4. `HOST_HTTP_PORT` 기준 `/api/health` 헬스체크 → 실패하면 실패 종료
+
+#### 서버 사전 준비 (1회)
+
+- 배포 서버에 이 저장소를 클론해 두고, `git remote` 가 GitHub 과 연결되어 있어야 한다.
+- `.env` 에 실제 시크릿(`JWT_SECRET`, `GITHUB_CLIENT_*` 등)을 채워 둔다.
+- GitHub Actions 러너에서 접속 가능한 SSH 키를 서버의 `authorized_keys` 에 등록한다.
+
+#### 필수 시크릿/변수 설정
+
+GitHub 저장소 → Settings → Secrets and variables → Actions 에서 설정한다.
+
+| 종류 | 이름 | 설명 |
+| --- | --- | --- |
+| Secret | `DEPLOY_HOST` | 배포 서버 IP/도메인 |
+| Secret | `DEPLOY_USER` | SSH 접속 사용자 |
+| Secret | `DEPLOY_SSH_KEY` | SSH private key (서버 `authorized_keys` 에 등록된 키) |
+| Secret | `DEPLOY_PORT` | SSH 포트 (기본 22, 미설정 시 22 사용) |
+| Variable | `DEPLOY_PATH` | 서버에서 저장소가 클론된 절대 경로 (예: `/home/pi/portfolio-platform`) |
+
+GitHub OAuth 콜백 URL 등 운영 설정은 코드에 커밋하지 말고 서버 `.env` 에만 둔다.
