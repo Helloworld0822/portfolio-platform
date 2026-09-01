@@ -6,6 +6,18 @@ use crate::db::PgPool;
 use crate::error::AppError;
 use crate::models::{CreateProjectRequest, Project, UpdateProjectRequest};
 
+/// Reject non-http(s) URL schemes (e.g. `javascript:`) that would become
+/// script-execution vectors when rendered in an `<a href>` on the public site.
+fn validate_url_scheme(url: Option<&str>) -> Result<(), AppError> {
+    if let Some(url) = url {
+        let scheme = url.split_once(':').map_or("", |(s, _)| s);
+        if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
+            return Err(AppError::Validation("url must use http(s)".into()));
+        }
+    }
+    Ok(())
+}
+
 /// List every published portfolio project, newest first.
 #[utoipa::path(
     get,
@@ -79,6 +91,8 @@ pub async fn create_project(
     if body.title.trim().is_empty() {
         return Err(AppError::Validation("title must not be empty".into()));
     }
+    validate_url_scheme(body.url.as_deref())?;
+    validate_url_scheme(body.demo_url.as_deref())?;
 
     let conn = pool.get().await?;
     let row = conn
@@ -144,6 +158,9 @@ pub async fn update_project(
     let url = body.url.clone().or(existing.url);
     let demo_url = body.demo_url.clone().or(existing.demo_url);
     let published = body.published.unwrap_or(existing.published);
+
+    validate_url_scheme(url.as_deref())?;
+    validate_url_scheme(demo_url.as_deref())?;
 
     let row = conn
         .query_one(

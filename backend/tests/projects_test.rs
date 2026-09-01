@@ -103,6 +103,53 @@ async fn create_project_stores_arrays_and_optional_fields() {
 }
 
 #[tokio::test]
+async fn create_project_stores_demo_url_and_rejects_bad_scheme() {
+    let (pool, _db) = common::setup().await;
+
+    let app = build_app(pool).await;
+    let ok = test::TestRequest::post()
+        .uri("/api/admin/projects")
+        .insert_header(common::auth_header())
+        .set_json(json!({
+            "title": "With Demo",
+            "description": "",
+            "details": [],
+            "tags": [],
+            "status": "완료",
+            "url": "https://github.com/me/demo",
+            "demo_url": "https://demo.example.com",
+            "published": true
+        }))
+        .to_request();
+
+    let resp = test::call_service(&app, ok).await;
+    assert_eq!(resp.status(), 201);
+    let project: Project = test::read_body_json(resp).await;
+    assert_eq!(
+        project.demo_url.as_deref(),
+        Some("https://demo.example.com")
+    );
+    assert_eq!(project.url.as_deref(), Some("https://github.com/me/demo"));
+
+    let bad = test::TestRequest::post()
+        .uri("/api/admin/projects")
+        .insert_header(common::auth_header())
+        .set_json(json!({
+            "title": "Bad Scheme",
+            "description": "",
+            "details": [],
+            "tags": [],
+            "status": "완료",
+            "demo_url": "javascript:alert(1)",
+            "published": true
+        }))
+        .to_request();
+
+    let resp = test::call_service(&app, bad).await;
+    assert_eq!(resp.status(), 400);
+}
+
+#[tokio::test]
 async fn update_project_patches_only_the_given_fields() {
     let (pool, _db) = common::setup().await;
     let original = {
@@ -135,4 +182,46 @@ async fn update_project_patches_only_the_given_fields() {
     assert_eq!(updated.title, "Original");
     assert_eq!(updated.details, vec!["d1".to_string()]);
     assert_eq!(updated.period.as_deref(), Some("2026.01"));
+}
+
+#[tokio::test]
+async fn update_project_sets_demo_url_and_rejects_bad_scheme() {
+    let (pool, _db) = common::setup().await;
+    let original = {
+        let conn = pool.get().await.expect("get connection");
+        let row = conn
+            .query_one(
+                "INSERT INTO projects (title, description, details, tags, status, published)
+                 VALUES ('DemoBase', 'desc', ARRAY['d1'], ARRAY['t1'], '진행 중', false)
+                 RETURNING *",
+                &[],
+            )
+            .await
+            .unwrap();
+        Project::try_from(&row).unwrap()
+    };
+
+    let app = build_app(pool).await;
+    let ok = test::TestRequest::put()
+        .uri(&format!("/api/admin/projects/{}", original.id))
+        .insert_header(common::auth_header())
+        .set_json(json!({ "demo_url": "https://demo.example.com" }))
+        .to_request();
+
+    let resp = test::call_service(&app, ok).await;
+    assert_eq!(resp.status(), 200);
+    let updated: Project = test::read_body_json(resp).await;
+    assert_eq!(
+        updated.demo_url.as_deref(),
+        Some("https://demo.example.com")
+    );
+
+    let bad = test::TestRequest::put()
+        .uri(&format!("/api/admin/projects/{}", original.id))
+        .insert_header(common::auth_header())
+        .set_json(json!({ "demo_url": "data:text/html,x" }))
+        .to_request();
+
+    let resp = test::call_service(&app, bad).await;
+    assert_eq!(resp.status(), 400);
 }
