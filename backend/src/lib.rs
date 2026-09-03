@@ -33,18 +33,15 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
             // executing scripts in the site origin when opened directly.
             .service(
                 web::scope("/uploads")
-                    .wrap(actix_web::middleware::DefaultHeaders::new().add((
-                        "Content-Security-Policy",
-                        "sandbox",
-                    )))
-                    .wrap(actix_web::middleware::DefaultHeaders::new().add((
-                        "X-Content-Type-Options",
-                        "nosniff",
-                    )))
-                    .service(actix_files::Files::new(
-                        "",
-                        config_data.upload_dir.clone(),
-                    )),
+                    .wrap(
+                        actix_web::middleware::DefaultHeaders::new()
+                            .add(("Content-Security-Policy", "sandbox")),
+                    )
+                    .wrap(
+                        actix_web::middleware::DefaultHeaders::new()
+                            .add(("X-Content-Type-Options", "nosniff")),
+                    )
+                    .service(actix_files::Files::new("", config_data.upload_dir.clone())),
             )
             .wrap(app::build_cors(&cors_origins))
             .wrap(tracing_actix_web::TracingLogger::default())
