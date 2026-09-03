@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authFetch } from "../../lib/api";
+import GithubImportModal, { type GithubRepo } from "./GithubImportModal";
 
 interface ProjectAttachment {
   name: string;
@@ -77,6 +78,7 @@ const ProjectManager = () => {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const loadProjects = useCallback(() => {
     setProjects(null);
@@ -100,6 +102,31 @@ const ProjectManager = () => {
     setEditingId(null);
     setSaveError(null);
     setEditing(emptyDraft);
+  };
+
+  const addedUrls = new Set(
+    (projects ?? [])
+      .map((p) => p.url?.replace(/\/+$/, ""))
+      .filter((url): url is string => Boolean(url)),
+  );
+
+  const importRepo = (repo: GithubRepo) => {
+    setEditingId(null);
+    setSaveError(null);
+    setEditing({
+      title: repo.name,
+      description: repo.description ?? "",
+      details: "",
+      tags: repo.language ?? "",
+      status: "진행 중",
+      period: "",
+      role: "",
+      url: repo.html_url,
+      demo_url: "",
+      attachments: [],
+      published: true,
+    });
+    setImportOpen(false);
   };
 
   const startEdit = (project: Project) => {
@@ -453,13 +480,22 @@ const ProjectManager = () => {
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-navy">프로젝트 목록</h2>
-        <button
-          type="button"
-          onClick={startCreate}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
-        >
-          새 프로젝트
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-ink transition-colors duration-[120ms] hover:bg-surface-1"
+          >
+            GitHub에서 가져오기
+          </button>
+          <button
+            type="button"
+            onClick={startCreate}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
+          >
+            새 프로젝트
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 space-y-3">
@@ -514,6 +550,14 @@ const ProjectManager = () => {
           </div>
         ))}
       </div>
+
+      {importOpen && (
+        <GithubImportModal
+          addedUrls={addedUrls}
+          onImport={importRepo}
+          onClose={() => setImportOpen(false)}
+        />
+      )}
     </div>
   );
 };
