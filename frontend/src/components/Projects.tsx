@@ -14,6 +14,9 @@ interface ApiProject {
   role: string | null;
   url: string | null;
   demo_url: string | null;
+  repo_languages: Record<string, number>;
+  repo_private: boolean;
+  attachments: { name: string; url: string; kind: string }[];
   created_at: string;
 }
 
@@ -28,6 +31,9 @@ function toProject(api: ApiProject): Project {
     role: api.role ?? undefined,
     url: api.url ?? undefined,
     demo_url: api.demo_url ?? undefined,
+    repo_languages: api.repo_languages ?? {},
+    repo_private: api.repo_private ?? false,
+    attachments: api.attachments ?? [],
   };
 }
 
