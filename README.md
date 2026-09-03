@@ -77,6 +77,7 @@ GitHub OAuth App 의 Authorization callback URL 은
 | GET | `/api/posts` | 발행된 글 목록 |
 | GET | `/api/posts/{slug}` | 글 상세 (미발행은 404) |
 | GET | `/api/projects` | 발행된 프로젝트 목록 |
+| GET | `/api/timeline` | 경력/타임라인 항목 목록 |
 | POST | `/api/contact` | 문의 폼 저장 |
 | GET | `/api/auth/github/login` | GitHub 로그인 시작 |
 | GET | `/api/auth/github/callback` | OAuth 콜백 |
@@ -84,6 +85,10 @@ GitHub OAuth App 의 Authorization callback URL 은
 | PUT/DELETE | `/api/admin/posts/{id}` | 수정 / 삭제 |
 | GET/POST | `/api/admin/projects` | 전체 프로젝트 조회 / 생성 |
 | PUT/DELETE | `/api/admin/projects/{id}` | 수정 / 삭제 |
+| GET | `/api/admin/github/repos` | GitHub 저장소 목록 (프로젝트로 가져오기용) |
+| GET/POST | `/api/admin/timeline` | 경력 목록 / 생성 |
+| PUT/DELETE | `/api/admin/timeline/{id}` | 경력 수정 / 삭제 |
+| POST | `/api/admin/timeline/reorder` | 경력 순서 재배치 (전체 id 목록) |
 | POST | `/api/admin/uploads` | 이미지/PDF 업로드 (multipart `file`, 20MB 제한) |
 | GET | `/uploads/{file}` | 업로드된 파일 (nginx가 api로 프록시) |
 | GET | `/api/admin/contact` | 받은 문의 목록 |

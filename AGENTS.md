@@ -110,13 +110,19 @@ Production host uses **podman-compose** (NOT docker). Key gotchas:
 - Frontend styles are Tailwind 4 (`@theme` tokens in `src/index.css`); no
   tailwind.config file.
 
-## Repo metadata enrichment & uploads (recent feature)
+## Repo metadata enrichment, uploads & admin extras (recent features)
 
 - `backend/src/github_repo.rs`: `fetch_repo_meta()` best-effort calls the GitHub
   API (languages + `private`) for a project's `url`. Uses
   `GITHUB_TOKEN` when set; never fails the request — falls back to defaults.
+  `fetch_user_repos()` lists the admin's repos (org-owned included) for the
+  project importer; `github_client()` builds the shared reqwest client with the
+  GitHub-mandated User-Agent.
 - `backend/src/routes/uploads.rs`: `POST /api/admin/uploads` multipart upload
   (png/jpg/jpeg/gif/webp/svg/pdf, 20MB cap) → `/uploads/{uuid}.{ext}`,
   served by actix-files. Requires admin JWT.
+- `backend/src/routes/timeline.rs`: timeline ("경력") CRUD +
+  `POST /api/admin/timeline/reorder` (full `ids` list in desired order).
+  Seeded by `migrations/0008_timeline.sql`.
 - DB columns added by `migrations/0007_*`: `repo_languages JSONB`,
   `repo_private BOOLEAN`, `attachments JSONB`.
