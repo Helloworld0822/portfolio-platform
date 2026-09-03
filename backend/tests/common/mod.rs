@@ -25,6 +25,8 @@ pub fn test_config() -> Config {
         port: 8080,
         github_oauth_base_url: "http://localhost:0".to_string(),
         github_api_base_url: "http://localhost:0".to_string(),
+        github_token: None,
+        upload_dir: "./test-uploads".to_string(),
     }
 }
 

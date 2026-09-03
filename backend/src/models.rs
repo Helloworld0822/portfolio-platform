@@ -82,6 +82,13 @@ pub struct UpdatePostRequest {
     pub published: Option<bool>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct ProjectAttachment {
+    pub name: String,
+    pub url: String,
+    pub kind: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Project {
     pub id: Uuid,
@@ -94,6 +101,9 @@ pub struct Project {
     pub role: Option<String>,
     pub url: Option<String>,
     pub demo_url: Option<String>,
+    pub repo_languages: serde_json::Value,
+    pub repo_private: bool,
+    pub attachments: Vec<ProjectAttachment>,
     pub published: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -127,6 +137,16 @@ impl TryFrom<&Row> for Project {
             demo_url: row
                 .try_get::<_, Option<String>>("demo_url")
                 .map_err(|_| row_err())?,
+            repo_languages: row
+                .try_get::<_, serde_json::Value>("repo_languages")
+                .unwrap_or_else(|_| serde_json::json!({})),
+            repo_private: row
+                .try_get::<_, bool>("repo_private")
+                .map_err(|_| row_err())?,
+            attachments: row
+                .try_get::<_, serde_json::Value>("attachments")
+                .map_err(|_| row_err())
+                .and_then(|v| serde_json::from_value(v).map_err(|_| row_err()))?,
             published: row.try_get::<_, bool>("published").map_err(|_| row_err())?,
             created_at: row
                 .try_get::<_, DateTime<Utc>>("created_at")
@@ -149,6 +169,8 @@ pub struct CreateProjectRequest {
     pub role: Option<String>,
     pub url: Option<String>,
     pub demo_url: Option<String>,
+    #[serde(default)]
+    pub attachments: Vec<ProjectAttachment>,
     pub published: bool,
 }
 
@@ -163,6 +185,7 @@ pub struct UpdateProjectRequest {
     pub role: Option<String>,
     pub url: Option<String>,
     pub demo_url: Option<String>,
+    pub attachments: Option<Vec<ProjectAttachment>>,
     pub published: Option<bool>,
 }
 

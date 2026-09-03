@@ -87,6 +87,11 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             .route(
                 "/admin/comments/{id}",
                 web::delete().to(routes::comments::delete_comment),
+            )
+            // Admin uploads (images / PDFs)
+            .route(
+                "/admin/uploads",
+                web::post().to(routes::uploads::upload_file),
             ),
     );
 }

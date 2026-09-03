@@ -4,3 +4,4 @@ pub mod contact;
 pub mod health;
 pub mod posts;
 pub mod projects;
+pub mod uploads;

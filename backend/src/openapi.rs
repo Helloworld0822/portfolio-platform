@@ -70,6 +70,7 @@ impl Modify for SecurityAddon {
         routes::contact::list_contact_messages,
         routes::auth_routes::github_login,
         routes::auth_routes::github_callback,
+        routes::uploads::upload_file,
     ),
     components(schemas(
         models::Post,
@@ -83,6 +84,8 @@ impl Modify for SecurityAddon {
         models::UpdateProjectRequest,
         models::ContactMessage,
         models::CreateContactRequest,
+        models::ProjectAttachment,
+        routes::uploads::UploadResponse,
     ))
 )]
 pub struct ApiDoc;
@@ -111,6 +114,7 @@ mod tests {
             "/api/admin/projects",
             "/api/admin/projects/{id}",
             "/api/admin/contact",
+            "/api/admin/uploads",
         ] {
             assert!(
                 spec.paths.paths.contains_key(path),
