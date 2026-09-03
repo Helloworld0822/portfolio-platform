@@ -24,6 +24,25 @@ jobs:
       || (github.event.workflow_run.conclusion == 'success'
           && github.event.workflow_run.head_branch == 'main')
     steps:
+      - name: Verify deployment secrets are configured
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          missing=()
+          [ -n "$DEPLOY_HOST" ] || missing+=("DEPLOY_HOST secret")
+          [ -n "$DEPLOY_USER" ] || missing+=("DEPLOY_USER secret")
+          [ -n "$DEPLOY_SSH_KEY" ] || missing+=("DEPLOY_SSH_KEY secret")
+          [ -n "$DEPLOY_PATH" ] || missing+=("DEPLOY_PATH variable")
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "Missing deployment configuration:" >&2
+            printf '  - %s\n' "${missing[@]}" >&2
+            echo "Set them in GitHub -> Settings -> Secrets and variables -> Actions, then re-run this workflow." >&2
+            exit 1
+          fi
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
