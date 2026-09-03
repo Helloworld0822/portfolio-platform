@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useAuth } from "../../lib/auth";
 import PostManager from "./PostManager";
 import ProjectManager from "./ProjectManager";
+import TimelineManager from "./TimelineManager";
 import Inbox from "./Inbox";
 
-type Tab = "posts" | "projects" | "inbox";
+type Tab = "posts" | "projects" | "timeline" | "inbox";
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "posts", label: "글" },
   { id: "projects", label: "프로젝트" },
+  { id: "timeline", label: "경력" },
   { id: "inbox", label: "문의" },
 ];
 
@@ -90,6 +92,7 @@ const Admin = () => {
         <div className="mt-8">
           {tab === "posts" && <PostManager />}
           {tab === "projects" && <ProjectManager />}
+          {tab === "timeline" && <TimelineManager />}
           {tab === "inbox" && <Inbox />}
         </div>
       </div>
