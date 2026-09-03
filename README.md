@@ -41,6 +41,8 @@ docker compose up -d --build
 | `FRONTEND_URL` | OAuth 성공 후 돌아갈 프론트엔드 주소 |
 | `BACKEND_BASE_URL` | OAuth `redirect_uri` 를 만들 때 쓰는 백엔드 주소 |
 | `CORS_ALLOWED_ORIGINS` | 콤마로 구분된 허용 오리진 |
+| `GITHUB_TOKEN` | (선택) GitHub API 토큰. 없으면 언어/비공개 메타데이터를 익명으로 조회 |
+| `UPLOAD_DIR` | 업로드 파일 저장 경로 (기본 `./uploads`, compose에서 `/app/uploads` 볼륨) |
 | `POSTGRES_*` | postgres 컨테이너 초기화 값 |
 | `HOST_HTTP_PORT` | nginx 를 노출할 호스트 포트 |
 
@@ -82,6 +84,8 @@ GitHub OAuth App 의 Authorization callback URL 은
 | PUT/DELETE | `/api/admin/posts/{id}` | 수정 / 삭제 |
 | GET/POST | `/api/admin/projects` | 전체 프로젝트 조회 / 생성 |
 | PUT/DELETE | `/api/admin/projects/{id}` | 수정 / 삭제 |
+| POST | `/api/admin/uploads` | 이미지/PDF 업로드 (multipart `file`, 20MB 제한) |
+| GET | `/uploads/{file}` | 업로드된 파일 (nginx가 api로 프록시) |
 | GET | `/api/admin/contact` | 받은 문의 목록 |
 
 전체 스키마와 요청 예시는 Swagger UI(`/api/docs/`)에서 확인한다.

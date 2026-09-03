@@ -40,6 +40,9 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: "8080"
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads-data:/app/uploads
     expose:
       - "8080"
     depends_on:
@@ -71,3 +74,4 @@ services:
 
 volumes:
   postgres-data:
+  uploads-data:
