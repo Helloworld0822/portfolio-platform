@@ -10,6 +10,7 @@ import Skills from "./components/Skills";
 import Projects from "./components/Projects";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import ScrollControls from "./components/ScrollControls";
 import BlogList from "./components/blog/BlogList";
 import BlogPost from "./components/blog/BlogPost";
 import Admin from "./components/admin/Admin";
@@ -23,6 +24,7 @@ function Home() {
       <Skills />
       <Projects />
       <Contact />
+      <ScrollControls />
     </main>
   );
 }

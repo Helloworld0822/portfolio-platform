@@ -29,6 +29,15 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+}
+
+/* Named portfolio sections land below the sticky header and snap when the
+   user stops near one (proximity: tall sections like Projects stay freely
+   scrollable inside). */
+section[id] {
+  scroll-margin-top: 4rem;
+  scroll-snap-align: start;
 }
 
 body {
