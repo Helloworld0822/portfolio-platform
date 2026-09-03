@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { authFetch } from "../../lib/api";
+import { markdownComponents } from "../../lib/markdown";
 
 interface PostSummary {
   id: string;
@@ -152,6 +153,52 @@ const PostManager = () => {
     }
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const insertMarkdown = (markdown: string) => {
+    if (!editing) return;
+    const el = document.getElementById("post-content") as HTMLTextAreaElement | null;
+    const start = el?.selectionStart ?? editing.content_markdown.length;
+    const end = el?.selectionEnd ?? editing.content_markdown.length;
+    const next =
+      editing.content_markdown.slice(0, start) +
+      `\n${markdown}\n` +
+      editing.content_markdown.slice(end);
+    setEditing({ ...editing, content_markdown: next });
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setUploading(true);
+    setSaveError(null);
+    try {
+      const res = await authFetch("/api/admin/uploads", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error("upload failed");
+      }
+      const data = (await res.json()) as { url: string };
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      const markdown = isPdf
+        ? `[${file.name}](${data.url})`
+        : `![${file.name.replace(/\.[^.]+$/, "")}](${data.url})`;
+      insertMarkdown(markdown);
+    } catch {
+      setSaveError("파일 업로드에 실패했습니다.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (editing) {
     return (
       <div>
@@ -191,17 +238,36 @@ const PostManager = () => {
               <label htmlFor="post-content" className={editorLabelClass}>
                 본문 (Markdown)
               </label>
-              <button
-                type="button"
-                onClick={() => setPreview((v) => !v)}
-                className="rounded-md border border-border px-3 py-1 text-xs font-medium text-ink-muted transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink"
-              >
-                미리보기
-              </button>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,application/pdf,.pdf"
+                  onChange={handleUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || preview}
+                  className="rounded-md border border-border px-3 py-1 text-xs font-medium text-ink-muted transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {uploading ? "업로드 중..." : "이미지/PDF 업로드"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreview((v) => !v)}
+                  className="rounded-md border border-border px-3 py-1 text-xs font-medium text-ink-muted transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink"
+                >
+                  미리보기
+                </button>
+              </div>
             </div>
             {preview ? (
               <div className={`rounded-md border border-border bg-canvas p-4 ${markdownPreviewClass}`}>
-                <ReactMarkdown>{editing.content_markdown || "*본문이 비어 있습니다.*"}</ReactMarkdown>
+                <ReactMarkdown components={markdownComponents}>
+                  {editing.content_markdown || "*본문이 비어 있습니다.*"}
+                </ReactMarkdown>
               </div>
             ) : (
               <textarea

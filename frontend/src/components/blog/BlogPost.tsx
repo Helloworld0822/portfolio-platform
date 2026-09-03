@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import CommentSection from "./CommentSection";
+import { markdownComponents } from "../../lib/markdown";
 
 interface Post {
   id: string;
@@ -86,7 +87,7 @@ const BlogPost = () => {
           [&_p]:mt-4 [&_p]:leading-relaxed [&_pre]:mt-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-navy [&_pre]:p-4 [&_pre]:text-white
           [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6"
         >
-          <ReactMarkdown>{post.content_markdown}</ReactMarkdown>
+          <ReactMarkdown components={markdownComponents}>{post.content_markdown}</ReactMarkdown>
         </div>
 
         <div className="mt-16 border-t border-border pt-10">
