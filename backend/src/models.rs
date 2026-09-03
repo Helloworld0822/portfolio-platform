@@ -254,3 +254,59 @@ impl TryFrom<&Row> for Comment {
 pub struct CreateCommentRequest {
     pub body: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct TimelineEntry {
+    pub id: Uuid,
+    pub period: String,
+    pub title: String,
+    pub org: String,
+    pub description: String,
+    pub sort_order: i32,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl TryFrom<&Row> for TimelineEntry {
+    type Error = anyhow::Error;
+    fn try_from(row: &Row) -> Result<Self, Self::Error> {
+        Ok(TimelineEntry {
+            id: row.try_get::<_, Uuid>("id").map_err(|_| row_err())?,
+            period: row.try_get::<_, String>("period").map_err(|_| row_err())?,
+            title: row.try_get::<_, String>("title").map_err(|_| row_err())?,
+            org: row.try_get::<_, String>("org").map_err(|_| row_err())?,
+            description: row
+                .try_get::<_, String>("description")
+                .map_err(|_| row_err())?,
+            sort_order: row.try_get::<_, i32>("sort_order").map_err(|_| row_err())?,
+            created_at: row
+                .try_get::<_, DateTime<Utc>>("created_at")
+                .map_err(|_| row_err())?,
+            updated_at: row
+                .try_get::<_, DateTime<Utc>>("updated_at")
+                .map_err(|_| row_err())?,
+        })
+    }
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct CreateTimelineRequest {
+    pub period: String,
+    pub title: String,
+    pub org: String,
+    pub description: String,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct UpdateTimelineRequest {
+    pub period: Option<String>,
+    pub title: Option<String>,
+    pub org: Option<String>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ReorderTimelineRequest {
+    /// The full set of timeline ids in their desired display order.
+    pub ids: Vec<Uuid>,
+}

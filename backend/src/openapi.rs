@@ -1,6 +1,7 @@
 use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
+use crate::github_repo;
 use crate::models;
 use crate::routes;
 
@@ -43,10 +44,13 @@ impl Modify for SecurityAddon {
         (name = "posts", description = "Public blog posts"),
         (name = "comments", description = "Blog post comments"),
         (name = "projects", description = "Public portfolio projects"),
+        (name = "timeline", description = "Public timeline entries"),
         (name = "contact", description = "Contact form submissions"),
         (name = "auth", description = "GitHub OAuth login for the single admin"),
         (name = "admin/posts", description = "Post management"),
         (name = "admin/projects", description = "Project management"),
+        (name = "admin/timeline", description = "Timeline management"),
+        (name = "admin/github", description = "GitHub repository import"),
         (name = "admin/contact", description = "Received contact messages")
     ),
     paths(
@@ -66,6 +70,13 @@ impl Modify for SecurityAddon {
         routes::projects::create_project,
         routes::projects::update_project,
         routes::projects::delete_project,
+        routes::timeline::list_timeline,
+        routes::timeline::list_admin_timeline,
+        routes::timeline::create_timeline,
+        routes::timeline::update_timeline,
+        routes::timeline::delete_timeline,
+        routes::timeline::reorder_timeline,
+        routes::github_repos::list_github_repos,
         routes::contact::create_contact_message,
         routes::contact::list_contact_messages,
         routes::auth_routes::github_login,
@@ -85,6 +96,11 @@ impl Modify for SecurityAddon {
         models::ContactMessage,
         models::CreateContactRequest,
         models::ProjectAttachment,
+        models::TimelineEntry,
+        models::CreateTimelineRequest,
+        models::UpdateTimelineRequest,
+        models::ReorderTimelineRequest,
+        github_repo::GithubRepo,
         routes::uploads::UploadResponse,
     ))
 )]
@@ -115,6 +131,11 @@ mod tests {
             "/api/admin/projects/{id}",
             "/api/admin/contact",
             "/api/admin/uploads",
+            "/api/timeline",
+            "/api/admin/timeline",
+            "/api/admin/timeline/{id}",
+            "/api/admin/timeline/reorder",
+            "/api/admin/github/repos",
         ] {
             assert!(
                 spec.paths.paths.contains_key(path),

@@ -29,6 +29,8 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             )
             // Public portfolio content
             .route("/projects", web::get().to(routes::projects::list_projects))
+            // Public timeline ("경력")
+            .route("/timeline", web::get().to(routes::timeline::list_timeline))
             // Public contact form
             .route(
                 "/contact",
@@ -82,6 +84,32 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             .route(
                 "/admin/contact",
                 web::get().to(routes::contact::list_contact_messages),
+            )
+            // Admin timeline
+            .route(
+                "/admin/timeline",
+                web::get().to(routes::timeline::list_admin_timeline),
+            )
+            .route(
+                "/admin/timeline",
+                web::post().to(routes::timeline::create_timeline),
+            )
+            .route(
+                "/admin/timeline/reorder",
+                web::post().to(routes::timeline::reorder_timeline),
+            )
+            .route(
+                "/admin/timeline/{id}",
+                web::put().to(routes::timeline::update_timeline),
+            )
+            .route(
+                "/admin/timeline/{id}",
+                web::delete().to(routes::timeline::delete_timeline),
+            )
+            // Admin GitHub repository import
+            .route(
+                "/admin/github/repos",
+                web::get().to(routes::github_repos::list_github_repos),
             )
             // Admin comment moderation
             .route(
