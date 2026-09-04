@@ -10,14 +10,7 @@ use crate::models::{
 
 const DEFAULT_ORDER: &str = "ORDER BY sort_order ASC, created_at ASC";
 
-/// List timeline entries in display order. Public.
-#[utoipa::path(
-    get,
-    path = "/api/timeline",
-    tag = "timeline",
-    responses((status = 200, description = "Timeline entries", body = Vec<TimelineEntry>))
-)]
-pub async fn list_timeline(pool: web::Data<PgPool>) -> Result<HttpResponse, AppError> {
+async fn fetch_timeline(pool: &PgPool) -> Result<Vec<TimelineEntry>, AppError> {
     let conn = pool.get().await?;
     let rows = conn
         .query(
@@ -26,11 +19,21 @@ pub async fn list_timeline(pool: web::Data<PgPool>) -> Result<HttpResponse, AppE
         )
         .await?;
 
-    let entries = rows
-        .iter()
+    rows.iter()
         .map(TimelineEntry::try_from)
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<_>, anyhow::Error>>()
+        .map_err(AppError::from)
+}
 
+/// List timeline entries in display order. Public.
+#[utoipa::path(
+    get,
+    path = "/api/timeline",
+    tag = "timeline",
+    responses((status = 200, description = "Timeline entries", body = Vec<TimelineEntry>))
+)]
+pub async fn list_timeline(pool: web::Data<PgPool>) -> Result<HttpResponse, AppError> {
+    let entries = fetch_timeline(&pool).await?;
     Ok(HttpResponse::Ok().json(entries))
 }
 
@@ -49,19 +52,7 @@ pub async fn list_admin_timeline(
     pool: web::Data<PgPool>,
     _user: AdminUser,
 ) -> Result<HttpResponse, AppError> {
-    let conn = pool.get().await?;
-    let rows = conn
-        .query(
-            &format!("SELECT * FROM timeline_entries {DEFAULT_ORDER}"),
-            &[],
-        )
-        .await?;
-
-    let entries = rows
-        .iter()
-        .map(TimelineEntry::try_from)
-        .collect::<Result<Vec<_>, _>>()?;
-
+    let entries = fetch_timeline(&pool).await?;
     Ok(HttpResponse::Ok().json(entries))
 }
 
