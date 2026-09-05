@@ -169,3 +169,80 @@ async fn duplicate_contact_message_is_rejected() {
         .to_request();
     assert_eq!(test::call_service(&app, dup).await.status(), 400);
 }
+
+#[tokio::test]
+async fn delete_contact_message_requires_auth_and_removes_it() {
+    let (pool, _db) = common::setup().await;
+    let inserted = {
+        let conn = pool.get().await.expect("get connection");
+        let row = conn
+            .query_one(
+                "INSERT INTO contact_messages (name, email, message)
+                 VALUES ('방문자', 'visitor@example.com', '삭제 대상')
+                 RETURNING *",
+                &[],
+            )
+            .await
+            .unwrap();
+        ContactMessage::try_from(&row).unwrap()
+    };
+
+    let app = build_app(pool.clone()).await;
+    let anonymous = test::TestRequest::delete()
+        .uri(&format!("/api/admin/contact/{}", inserted.id))
+        .to_request();
+    assert_eq!(test::call_service(&app, anonymous).await.status(), 401);
+
+    let ok = test::TestRequest::delete()
+        .uri(&format!("/api/admin/contact/{}", inserted.id))
+        .insert_header(common::auth_header())
+        .to_request();
+    assert_eq!(test::call_service(&app, ok).await.status(), 204);
+
+    let missing = test::TestRequest::delete()
+        .uri(&format!("/api/admin/contact/{}", inserted.id))
+        .insert_header(common::auth_header())
+        .to_request();
+    assert_eq!(test::call_service(&app, missing).await.status(), 404);
+
+    let conn = pool.get().await.expect("get connection");
+    let row = conn
+        .query_one("SELECT count(*) FROM contact_messages", &[])
+        .await
+        .unwrap();
+    let count: i64 = row.get(0);
+    assert_eq!(count, 0);
+}
+
+#[tokio::test]
+async fn dedupe_keeps_the_earliest_copy() {
+    let (pool, _db) = common::setup().await;
+    {
+        let conn = pool.get().await.expect("get connection");
+        conn.batch_execute(
+            "INSERT INTO contact_messages (name, email, message) VALUES
+               ('A', 'dup@example.com', '중복'),
+               ('B', 'dup@example.com', '중복'),
+               ('C', 'other@example.com', '다른 내용')",
+        )
+        .await
+        .unwrap();
+    }
+
+    let app = build_app(pool.clone()).await;
+    let dedupe = test::TestRequest::post()
+        .uri("/api/admin/contact/dedupe")
+        .insert_header(common::auth_header())
+        .to_request();
+    let resp = test::call_service(&app, dedupe).await;
+    assert_eq!(resp.status(), 200);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["removed"].as_i64(), Some(1));
+
+    let list = test::TestRequest::get()
+        .uri("/api/admin/contact")
+        .insert_header(common::auth_header())
+        .to_request();
+    let messages: Vec<ContactMessage> = test::call_and_read_body_json(&app, list).await;
+    assert_eq!(messages.len(), 2);
+}

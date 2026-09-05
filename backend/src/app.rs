@@ -94,6 +94,14 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 "/admin/contact",
                 web::get().to(routes::contact::list_contact_messages),
             )
+            .route(
+                "/admin/contact/dedupe",
+                web::post().to(routes::contact::dedupe_contact_messages),
+            )
+            .route(
+                "/admin/contact/{id}",
+                web::delete().to(routes::contact::delete_contact_message),
+            )
             // Admin timeline
             .route(
                 "/admin/timeline",

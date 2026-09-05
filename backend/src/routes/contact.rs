@@ -1,4 +1,5 @@
 use actix_web::{web, HttpRequest, HttpResponse};
+use uuid::Uuid;
 
 use crate::auth::middleware::AdminUser;
 use crate::db::PgPool;
@@ -105,6 +106,77 @@ pub async fn list_contact_messages(
         .collect::<Result<_, _>>()?;
 
     Ok(HttpResponse::Ok().json(messages))
+}
+
+/// Delete a single contact message.
+#[utoipa::path(
+    delete,
+    path = "/api/admin/contact/{id}",
+    tag = "admin/contact",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Contact message id")),
+    responses(
+        (status = 204, description = "Deleted"),
+        (status = 401, description = "Missing or invalid token"),
+        (status = 404, description = "No message with that id")
+    )
+)]
+pub async fn delete_contact_message(
+    pool: web::Data<PgPool>,
+    _user: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let id = path.into_inner();
+    let conn = pool.get().await?;
+
+    let affected = conn
+        .execute("DELETE FROM contact_messages WHERE id = $1", &[&id])
+        .await?;
+
+    if affected == 0 {
+        return Err(AppError::NotFound);
+    }
+
+    Ok(HttpResponse::NoContent().finish())
+}
+
+/// Drop duplicate contact messages, keeping the earliest copy of each
+/// (normalized email, message) pair.
+#[utoipa::path(
+    post,
+    path = "/api/admin/contact/dedupe",
+    tag = "admin/contact",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Removed count", body = DedupResult),
+        (status = 401, description = "Missing or invalid token")
+    )
+)]
+pub async fn dedupe_contact_messages(
+    pool: web::Data<PgPool>,
+    _user: AdminUser,
+) -> Result<HttpResponse, AppError> {
+    let conn = pool.get().await?;
+    let affected = conn
+        .execute(
+            "DELETE FROM contact_messages
+             WHERE id NOT IN (
+                 SELECT DISTINCT ON (lower(email), message) id
+                 FROM contact_messages
+                 ORDER BY lower(email), message, created_at ASC, id ASC
+             )",
+            &[],
+        )
+        .await?;
+
+    Ok(HttpResponse::Ok().json(DedupResult {
+        removed: affected as i64,
+    }))
+}
+
+#[derive(utoipa::ToSchema, serde::Serialize)]
+pub struct DedupResult {
+    pub removed: i64,
 }
 
 /// The proxy in front of this stack sets X-Real-IP, falling back to the direct
