@@ -1,12 +1,21 @@
 use actix_cors::Cors;
 use actix_web::{http, web};
+use std::time::Duration;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::openapi::ApiDoc;
+use crate::rate_limit::RateLimiter;
 use crate::routes;
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
+    // One limiter instance per app. Each test builds its own app, so tests get
+    // an isolated limiter and never interfere with each other.
+    cfg.app_data(web::Data::new(RateLimiter::new(
+        Duration::from_secs(600),
+        5,
+    )));
+
     // Mounted under /api so the nginx gateway's existing `location /api/` rule
     // proxies the docs without extra configuration. Registered BEFORE the
     // `/api` scope so the docs routes are not swallowed by the scope's 404 for

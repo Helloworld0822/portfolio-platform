@@ -112,3 +112,60 @@ async fn the_inbox_is_admin_only() {
     let messages: Vec<ContactMessage> = test::call_and_read_body_json(&app, authenticated).await;
     assert_eq!(messages.len(), 1);
 }
+
+#[tokio::test]
+async fn contact_form_is_rate_limited_per_email() {
+    let (pool, _db) = common::setup().await;
+    let app = build_app(pool).await;
+
+    // The limiter allows 5 submissions per 10 minutes. Send five distinct
+    // messages from the same email, then a sixth must be rejected.
+    for i in 1..=5 {
+        let req = test::TestRequest::post()
+            .uri("/api/contact")
+            .set_json(json!({
+                "name": "방문자",
+                "email": "spam@example.com",
+                "message": format!("메시지 {i}")
+            }))
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), 201, "attempt {i} should be allowed");
+    }
+
+    let blocked = test::TestRequest::post()
+        .uri("/api/contact")
+        .set_json(json!({
+            "name": "방문자",
+            "email": "spam@example.com",
+            "message": "메시지 6"
+        }))
+        .to_request();
+    assert_eq!(test::call_service(&app, blocked).await.status(), 429);
+}
+
+#[tokio::test]
+async fn duplicate_contact_message_is_rejected() {
+    let (pool, _db) = common::setup().await;
+    let app = build_app(pool).await;
+
+    let first = test::TestRequest::post()
+        .uri("/api/contact")
+        .set_json(json!({
+            "name": "방문자",
+            "email": "visitor@example.com",
+            "message": "같은 내용"
+        }))
+        .to_request();
+    assert_eq!(test::call_service(&app, first).await.status(), 201);
+
+    let dup = test::TestRequest::post()
+        .uri("/api/contact")
+        .set_json(json!({
+            "name": "방문자",
+            "email": "visitor@example.com",
+            "message": "같은 내용"
+        }))
+        .to_request();
+    assert_eq!(test::call_service(&app, dup).await.status(), 400);
+}

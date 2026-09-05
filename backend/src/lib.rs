@@ -6,6 +6,7 @@ pub mod error;
 pub mod github_repo;
 pub mod models;
 pub mod openapi;
+pub mod rate_limit;
 pub mod routes;
 pub mod slug;
 

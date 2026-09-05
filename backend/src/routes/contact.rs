@@ -1,13 +1,16 @@
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 
 use crate::auth::middleware::AdminUser;
 use crate::db::PgPool;
 use crate::error::AppError;
 use crate::models::{ContactMessage, CreateContactRequest};
+use crate::rate_limit::RateLimiter;
 
 /// Store a message from the portfolio's contact form.
 ///
-/// Messages are persisted only — no email is sent from here.
+/// Messages are persisted only — no email is sent from here. Requests are
+/// rate-limited per IP+email and rejected when an identical message was
+/// submitted in the last 24h, to cut down on form spam and double-submits.
 #[utoipa::path(
     post,
     path = "/api/contact",
@@ -15,11 +18,14 @@ use crate::models::{ContactMessage, CreateContactRequest};
     request_body = CreateContactRequest,
     responses(
         (status = 201, description = "Stored", body = ContactMessage),
-        (status = 400, description = "Validation error")
+        (status = 400, description = "Validation error or duplicate message within 24h"),
+        (status = 429, description = "Rate limited")
     )
 )]
 pub async fn create_contact_message(
+    req: HttpRequest,
     pool: web::Data<PgPool>,
+    limiter: web::Data<RateLimiter>,
     body: web::Json<CreateContactRequest>,
 ) -> Result<HttpResponse, AppError> {
     let name = body.name.trim();
@@ -36,7 +42,27 @@ pub async fn create_contact_message(
         return Err(AppError::Validation("email is not a valid address".into()));
     }
 
+    let key = format!("{}|{}", client_ip(&req), email.to_lowercase());
+    if !limiter.check(&key) {
+        return Err(AppError::TooManyRequests);
+    }
+
     let conn = pool.get().await?;
+    let dup = conn
+        .query_opt(
+            "SELECT 1 FROM contact_messages
+             WHERE lower(email) = lower($1) AND message = $2
+               AND created_at > now() - interval '24 hours'
+             LIMIT 1",
+            &[&email, &message],
+        )
+        .await?;
+    if dup.is_some() {
+        return Err(AppError::Validation(
+            "이미 동일한 내용의 문의가 접수되었습니다. 잠시 후 다시 시도해주세요.".into(),
+        ));
+    }
+
     let row = conn
         .query_one(
             "INSERT INTO contact_messages (name, email, message)
@@ -79,6 +105,17 @@ pub async fn list_contact_messages(
         .collect::<Result<_, _>>()?;
 
     Ok(HttpResponse::Ok().json(messages))
+}
+
+/// The proxy in front of this stack sets X-Real-IP, falling back to the direct
+/// peer address for local runs.
+fn client_ip(req: &HttpRequest) -> String {
+    if let Some(ip) = req.headers().get("x-real-ip").and_then(|v| v.to_str().ok()) {
+        return ip.to_string();
+    }
+    req.peer_addr()
+        .map(|addr| addr.ip().to_string())
+        .unwrap_or_else(|| "unknown".to_string())
 }
 
 /// Deliberately loose check: one `@` with something before it, and a `.`

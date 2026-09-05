@@ -9,6 +9,8 @@ pub enum AppError {
     Unauthorized,
     #[error("validation error: {0}")]
     Validation(String),
+    #[error("too many requests")]
+    TooManyRequests,
     #[error("internal error")]
     Internal(#[from] anyhow::Error),
 }
@@ -23,6 +25,9 @@ impl ResponseError for AppError {
             AppError::Validation(message) => HttpResponse::BadRequest().json(json!({
                 "error": "validation",
                 "message": message
+            })),
+            AppError::TooManyRequests => HttpResponse::TooManyRequests().json(json!({
+                "error": "too_many_requests"
             })),
             AppError::Internal(err) => {
                 tracing::error!(error = %err, "internal error");
