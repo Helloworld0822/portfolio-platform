@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useReveal } from "../lib/useReveal";
 
 const links = [
   { label: "GitHub", href: "https://github.com/Helloworld0822" },
@@ -50,9 +51,11 @@ const Contact = () => {
     }
   };
 
+  const { ref, className } = useReveal<HTMLDivElement>();
+
   return (
     <section id="contact" className="px-4 py-20 md:px-8 md:py-24">
-      <div className="mx-auto max-w-5xl">
+      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
         <div className="rounded-lg bg-navy px-8 py-16 text-center md:px-16">
           <h2 className="text-3xl font-semibold tracking-tight text-white">연락하기</h2>
           <p className="mx-auto mt-4 max-w-md text-ink-on-navy-muted">

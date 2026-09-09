@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useReveal } from "../lib/useReveal";
 import ProjectModal, { type Project } from "./ProjectModal";
 
 const PROJECTS_PER_PAGE = 6;
@@ -74,9 +75,11 @@ const Projects = () => {
     page * PROJECTS_PER_PAGE + PROJECTS_PER_PAGE,
   );
 
+  const { ref, className } = useReveal<HTMLDivElement>();
+
   return (
     <section id="projects" className="bg-canvas px-4 py-20 md:px-8 md:py-24">
-      <div className="mx-auto max-w-5xl">
+      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
         <h2 className="text-3xl font-semibold tracking-tight text-navy">프로젝트</h2>
         <p className="mt-2 text-ink-muted">GitHub에서 진행한 주요 프로젝트.</p>
 

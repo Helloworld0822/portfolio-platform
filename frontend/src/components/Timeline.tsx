@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useReveal } from "../lib/useReveal";
 
 interface TimelineEntry {
   id: string;
@@ -27,9 +28,11 @@ const Timeline = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const { ref, className } = useReveal<HTMLDivElement>();
+
   return (
     <section id="timeline" className="bg-canvas px-4 py-20 md:px-8 md:py-24">
-      <div className="mx-auto max-w-5xl">
+      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
         <h2 className="text-3xl font-semibold tracking-tight text-navy">경력</h2>
         <p className="mt-2 text-ink-muted">활동 경험과 주요 이정표.</p>
 

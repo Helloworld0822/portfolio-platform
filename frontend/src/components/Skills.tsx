@@ -1,4 +1,5 @@
 import { CategoryIcon, SkillIcon } from "../lib/skillIcons";
+import { useReveal } from "../lib/useReveal";
 
 type SkillItem = {
   name: string;
@@ -58,9 +59,11 @@ const skillGroups: SkillGroup[] = [
 ];
 
 const Skills = () => {
+  const { ref, className } = useReveal<HTMLDivElement>();
+
   return (
     <section id="skills" className="px-4 py-20 md:px-8 md:py-24">
-      <div className="mx-auto max-w-5xl">
+      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
         <h2 className="text-3xl font-semibold tracking-tight text-navy">기술</h2>
         <p className="mt-2 text-ink-muted">사용하는 도구와 기술 스택.</p>
       </div>
