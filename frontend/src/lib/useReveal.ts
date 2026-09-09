@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-const HIDDEN = "opacity-0 translate-y-6";
-const SHOWN = "opacity-100 translate-y-0";
+const HIDDEN = "opacity-0 translate-y-12 scale-95";
+const SHOWN = "opacity-100 translate-y-0 scale-100";
 const BASE = "transition-all duration-700 ease-out";
 
 /**
