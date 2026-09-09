@@ -1,11 +1,9 @@
 use actix_web::{web, HttpResponse};
-use uuid::Uuid;
 
 use crate::auth::middleware::AdminUser;
 use crate::db::PgPool;
 use crate::error::AppError;
 use crate::models::{CreatePostRequest, Post, PostSummary, UpdatePostRequest};
-use crate::slug::unique_slug;
 
 /// List every published post, newest first.
 #[utoipa::path(
@@ -18,7 +16,7 @@ pub async fn list_posts(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
     let conn = pool.get().await?;
     let rows = conn
         .query(
-            "SELECT id, slug, title, excerpt, created_at FROM posts
+            "SELECT id, title, excerpt, created_at FROM posts
              WHERE published = true
              ORDER BY created_at DESC",
             &[],
@@ -33,28 +31,28 @@ pub async fn list_posts(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
     Ok(HttpResponse::Ok().json(posts))
 }
 
-/// Fetch one published post by its slug.
+/// Fetch one published post by its id.
 #[utoipa::path(
     get,
-    path = "/api/posts/{slug}",
+    path = "/api/posts/{id}",
     tag = "posts",
-    params(("slug" = String, Path, description = "Post slug")),
+    params(("id" = i64, Path, description = "Post id")),
     responses(
         (status = 200, description = "The post", body = Post),
-        (status = 404, description = "No published post with that slug")
+        (status = 404, description = "No published post with that id")
     )
 )]
 pub async fn get_post(
     pool: web::Data<PgPool>,
-    path: web::Path<String>,
+    path: web::Path<i64>,
 ) -> Result<HttpResponse, AppError> {
-    let slug = path.into_inner();
+    let id = path.into_inner();
     let conn = pool.get().await?;
 
     let row = conn
         .query_opt(
-            "SELECT * FROM posts WHERE slug = $1 AND published = true",
-            &[&slug],
+            "SELECT * FROM posts WHERE id = $1 AND published = true",
+            &[&id],
         )
         .await?
         .ok_or(AppError::NotFound)?;
@@ -70,7 +68,7 @@ pub async fn get_post(
     path = "/api/admin/posts/{id}",
     tag = "admin/posts",
     security(("bearer_auth" = [])),
-    params(("id" = Uuid, Path, description = "Post id")),
+    params(("id" = i64, Path, description = "Post id")),
     responses(
         (status = 200, description = "The post", body = Post),
         (status = 401, description = "Missing or invalid token"),
@@ -80,7 +78,7 @@ pub async fn get_post(
 pub async fn get_admin_post(
     pool: web::Data<PgPool>,
     _user: AdminUser,
-    path: web::Path<Uuid>,
+    path: web::Path<i64>,
 ) -> Result<HttpResponse, AppError> {
     let id = path.into_inner();
     let conn = pool.get().await?;
@@ -112,7 +110,7 @@ pub async fn list_admin_posts(
     let conn = pool.get().await?;
     let rows = conn
         .query(
-            "SELECT id, slug, title, excerpt, created_at FROM posts ORDER BY created_at DESC",
+            "SELECT id, title, excerpt, created_at FROM posts ORDER BY created_at DESC",
             &[],
         )
         .await?;
@@ -125,7 +123,7 @@ pub async fn list_admin_posts(
     Ok(HttpResponse::Ok().json(posts))
 }
 
-/// Create a post. The slug is derived from the title and never changes afterwards.
+/// Create a post.
 #[utoipa::path(
     post,
     path = "/api/admin/posts",
@@ -147,16 +145,14 @@ pub async fn create_post(
         return Err(AppError::Validation("title must not be empty".into()));
     }
 
-    let slug = unique_slug(pool.get_ref(), &body.title).await?;
     let conn = pool.get().await?;
 
     let row = conn
         .query_one(
-            "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-             VALUES ($1, $2, $3, $4, $5)
+            "INSERT INTO posts (title, excerpt, content_markdown, published)
+             VALUES ($1, $2, $3, $4)
              RETURNING *",
             &[
-                &slug,
                 &body.title,
                 &body.excerpt,
                 &body.content_markdown,
@@ -169,13 +165,13 @@ pub async fn create_post(
     Ok(HttpResponse::Created().json(post))
 }
 
-/// Patch a post. Omitted fields keep their current value; the slug is immutable.
+/// Patch a post. Omitted fields keep their current value.
 #[utoipa::path(
     put,
     path = "/api/admin/posts/{id}",
     tag = "admin/posts",
     security(("bearer_auth" = [])),
-    params(("id" = Uuid, Path, description = "Post id")),
+    params(("id" = i64, Path, description = "Post id")),
     request_body = UpdatePostRequest,
     responses(
         (status = 200, description = "Updated", body = Post),
@@ -186,7 +182,7 @@ pub async fn create_post(
 pub async fn update_post(
     pool: web::Data<PgPool>,
     _user: AdminUser,
-    path: web::Path<Uuid>,
+    path: web::Path<i64>,
     body: web::Json<UpdatePostRequest>,
 ) -> Result<HttpResponse, AppError> {
     let id = path.into_inner();
@@ -226,7 +222,7 @@ pub async fn update_post(
     path = "/api/admin/posts/{id}",
     tag = "admin/posts",
     security(("bearer_auth" = [])),
-    params(("id" = Uuid, Path, description = "Post id")),
+    params(("id" = i64, Path, description = "Post id")),
     responses(
         (status = 204, description = "Deleted"),
         (status = 401, description = "Missing or invalid token"),
@@ -236,7 +232,7 @@ pub async fn update_post(
 pub async fn delete_post(
     pool: web::Data<PgPool>,
     _user: AdminUser,
-    path: web::Path<Uuid>,
+    path: web::Path<i64>,
 ) -> Result<HttpResponse, AppError> {
     let id = path.into_inner();
     let conn = pool.get().await?;

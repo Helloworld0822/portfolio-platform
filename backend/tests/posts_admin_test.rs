@@ -4,7 +4,6 @@ use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
 use portfolio_blog_api::models::Post;
 use serde_json::json;
-use uuid::Uuid;
 
 async fn build_app(
     pool: common::PgPool,
@@ -23,7 +22,7 @@ async fn build_app(
 }
 
 #[tokio::test]
-async fn create_post_derives_a_slug_and_returns_201() {
+async fn create_post_returns_201() {
     let (pool, _db) = common::setup().await;
 
     let app = build_app(pool).await;
@@ -42,7 +41,7 @@ async fn create_post_derives_a_slug_and_returns_201() {
     assert_eq!(resp.status(), 201);
 
     let post: Post = test::read_body_json(resp).await;
-    assert_eq!(post.slug, "hello-actix");
+    assert_eq!(post.title, "Hello Actix");
     assert!(post.published);
 }
 
@@ -67,14 +66,14 @@ async fn create_post_rejects_an_empty_title() {
 }
 
 #[tokio::test]
-async fn update_post_patches_only_the_given_fields_and_keeps_the_slug() {
+async fn update_post_patches_only_the_given_fields() {
     let (pool, _db) = common::setup().await;
     let original = {
         let conn = pool.get().await.expect("get connection");
         let row = conn
             .query_one(
-                "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-                 VALUES ('original-slug', 'Original', 'excerpt', 'body', false)
+                "INSERT INTO posts (title, excerpt, content_markdown, published)
+                 VALUES ('Original', 'excerpt', 'body', false)
                  RETURNING *",
                 &[],
             )
@@ -94,7 +93,6 @@ async fn update_post_patches_only_the_given_fields_and_keeps_the_slug() {
     assert_eq!(resp.status(), 200);
 
     let updated: Post = test::read_body_json(resp).await;
-    assert_eq!(updated.slug, "original-slug");
     assert_eq!(updated.title, "Original");
     assert_eq!(updated.excerpt, "excerpt");
     assert!(updated.published);
@@ -107,14 +105,14 @@ async fn delete_post_returns_204_then_404() {
         let conn = pool.get().await.expect("get connection");
         let row = conn
             .query_one(
-                "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-                 VALUES ('doomed', 'Doomed', '', '', true)
+                "INSERT INTO posts (title, excerpt, content_markdown, published)
+                 VALUES ('Doomed', '', '', true)
                  RETURNING id",
                 &[],
             )
             .await
             .unwrap();
-        row.get::<_, Uuid>("id")
+        row.get::<_, i64>("id")
     };
 
     let app = build_app(pool).await;
@@ -138,14 +136,14 @@ async fn get_admin_post_returns_the_full_body_including_content_markdown() {
         let conn = pool.get().await.expect("get connection");
         let row = conn
             .query_one(
-                "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-                 VALUES ('draft-post', 'Draft', 'short excerpt', '# body markdown', false)
+                "INSERT INTO posts (title, excerpt, content_markdown, published)
+                 VALUES ('Draft', 'short excerpt', '# body markdown', false)
                  RETURNING id",
                 &[],
             )
             .await
             .unwrap();
-        row.get::<_, Uuid>("id")
+        row.get::<_, i64>("id")
     };
 
     let app = build_app(pool).await;
@@ -158,7 +156,7 @@ async fn get_admin_post_returns_the_full_body_including_content_markdown() {
     assert_eq!(resp.status(), 200);
 
     let post: Post = test::read_body_json(resp).await;
-    assert_eq!(post.slug, "draft-post");
+    assert_eq!(post.title, "Draft");
     assert_eq!(post.content_markdown, "# body markdown");
     assert!(!post.published);
 }
@@ -169,7 +167,7 @@ async fn get_admin_post_returns_404_for_an_unknown_id() {
 
     let app = build_app(pool).await;
     let req = test::TestRequest::get()
-        .uri("/api/admin/posts/00000000-0000-0000-0000-000000000000")
+        .uri("/api/admin/posts/999999")
         .insert_header(common::auth_header())
         .to_request();
 
@@ -183,7 +181,7 @@ async fn get_admin_post_returns_401_without_a_token() {
 
     let app = build_app(pool).await;
     let req = test::TestRequest::get()
-        .uri("/api/admin/posts/00000000-0000-0000-0000-000000000000")
+        .uri("/api/admin/posts/999999")
         .to_request();
 
     let resp = test::call_service(&app, req).await;

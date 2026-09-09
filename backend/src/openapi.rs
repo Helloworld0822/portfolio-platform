@@ -121,8 +121,8 @@ mod tests {
         for path in [
             "/api/health",
             "/api/posts",
-            "/api/posts/{slug}",
-            "/api/posts/{slug}/comments",
+            "/api/posts/{id}",
+            "/api/posts/{id}/comments",
             "/api/admin/comments/{id}",
             "/api/projects",
             "/api/contact",

@@ -11,10 +11,10 @@ interface Comment {
 }
 
 interface CommentSectionProps {
-  postSlug: string;
+  postId: number;
 }
 
-const CommentSection = ({ postSlug }: CommentSectionProps) => {
+const CommentSection = ({ postId }: CommentSectionProps) => {
   const { user, login } = useAuth();
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [draft, setDraft] = useState("");
@@ -22,7 +22,7 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const loadComments = () => {
-    fetch(`/api/posts/${postSlug}/comments`)
+    fetch(`/api/posts/${postId}/comments`)
       .then((res) => {
         if (!res.ok) {
           throw new Error("failed to load comments");
@@ -36,7 +36,7 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
   useEffect(() => {
     loadComments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postSlug]);
+  }, [postId]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -48,7 +48,7 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
     setError(null);
 
     try {
-      const res = await authFetch(`/api/posts/${postSlug}/comments`, {
+      const res = await authFetch(`/api/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body: draft.trim() }),
@@ -156,7 +156,7 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
         ) : (
           <button
             type="button"
-            onClick={() => login(`/blog/${postSlug}`)}
+            onClick={() => login(`/blog/${postId}`)}
             className="rounded-md border border-border px-4 py-2 text-sm font-medium text-ink transition-colors duration-[240ms] hover:bg-surface-1"
           >
             GitHub으로 로그인하고 댓글 남기기

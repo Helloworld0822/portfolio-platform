@@ -5,8 +5,7 @@ import CommentSection from "./CommentSection";
 import { markdownComponents } from "../../lib/markdown";
 
 interface Post {
-  id: string;
-  slug: string;
+  id: number;
   title: string;
   excerpt: string;
   content_markdown: string;
@@ -14,19 +13,19 @@ interface Post {
 }
 
 const BlogPost = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!slug) {
+    if (!id) {
       return;
     }
 
     setPost(null);
     setNotFound(false);
 
-    fetch(`/api/posts/${slug}`)
+    fetch(`/api/posts/${id}`)
       .then((res) => {
         if (res.status === 404) {
           setNotFound(true);
@@ -43,7 +42,7 @@ const BlogPost = () => {
         }
       })
       .catch(() => setNotFound(true));
-  }, [slug]);
+  }, [id]);
 
   if (notFound) {
     return (
@@ -91,7 +90,7 @@ const BlogPost = () => {
         </div>
 
         <div className="mt-16 border-t border-border pt-10">
-          <CommentSection postSlug={post.slug} />
+          <CommentSection postId={post.id} />
         </div>
       </article>
     </section>

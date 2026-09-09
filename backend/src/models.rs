@@ -10,8 +10,7 @@ fn row_err() -> anyhow::Error {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Post {
-    pub id: Uuid,
-    pub slug: String,
+    pub id: i64,
     pub title: String,
     pub excerpt: String,
     pub content_markdown: String,
@@ -24,8 +23,7 @@ impl TryFrom<&Row> for Post {
     type Error = anyhow::Error;
     fn try_from(row: &Row) -> Result<Self, Self::Error> {
         Ok(Post {
-            id: row.try_get::<_, Uuid>("id").map_err(|_| row_err())?,
-            slug: row.try_get::<_, String>("slug").map_err(|_| row_err())?,
+            id: row.try_get::<_, i64>("id").map_err(|_| row_err())?,
             title: row.try_get::<_, String>("title").map_err(|_| row_err())?,
             excerpt: row.try_get::<_, String>("excerpt").map_err(|_| row_err())?,
             content_markdown: row
@@ -44,8 +42,7 @@ impl TryFrom<&Row> for Post {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct PostSummary {
-    pub id: Uuid,
-    pub slug: String,
+    pub id: i64,
     pub title: String,
     pub excerpt: String,
     pub created_at: DateTime<Utc>,
@@ -55,8 +52,7 @@ impl TryFrom<&Row> for PostSummary {
     type Error = anyhow::Error;
     fn try_from(row: &Row) -> Result<Self, Self::Error> {
         Ok(PostSummary {
-            id: row.try_get::<_, Uuid>("id").map_err(|_| row_err())?,
-            slug: row.try_get::<_, String>("slug").map_err(|_| row_err())?,
+            id: row.try_get::<_, i64>("id").map_err(|_| row_err())?,
             title: row.try_get::<_, String>("title").map_err(|_| row_err())?,
             excerpt: row.try_get::<_, String>("excerpt").map_err(|_| row_err())?,
             created_at: row
@@ -223,7 +219,7 @@ pub struct CreateContactRequest {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Comment {
     pub id: Uuid,
-    pub post_id: Uuid,
+    pub post_id: i64,
     pub author_login: String,
     pub author_avatar_url: Option<String>,
     pub body: String,
@@ -235,7 +231,7 @@ impl TryFrom<&Row> for Comment {
     fn try_from(row: &Row) -> Result<Self, Self::Error> {
         Ok(Comment {
             id: row.try_get::<_, Uuid>("id").map_err(|_| row_err())?,
-            post_id: row.try_get::<_, Uuid>("post_id").map_err(|_| row_err())?,
+            post_id: row.try_get::<_, i64>("post_id").map_err(|_| row_err())?,
             author_login: row
                 .try_get::<_, String>("author_login")
                 .map_err(|_| row_err())?,

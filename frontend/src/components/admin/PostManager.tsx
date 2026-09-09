@@ -4,8 +4,7 @@ import { authFetch } from "../../lib/api";
 import { markdownComponents } from "../../lib/markdown";
 
 interface PostSummary {
-  id: string;
-  slug: string;
+  id: number;
   title: string;
   excerpt: string;
   created_at: string;
@@ -55,8 +54,7 @@ const PostManager = () => {
     setPreview(false);
     setSaveError(null);
     setEditing({
-      id: "",
-      slug: "",
+      id: 0,
       title: "",
       excerpt: "",
       content_markdown: "",
@@ -345,7 +343,7 @@ const PostManager = () => {
             <div className="min-w-0">
               <div className="truncate font-medium text-ink">{post.title}</div>
               <div className="mt-0.5 truncate text-xs text-ink-subdued">
-                /{post.slug} · {new Date(post.created_at).toLocaleDateString("ko-KR")}
+                #{post.id} · {new Date(post.created_at).toLocaleDateString("ko-KR")}
               </div>
             </div>
             <div className="flex shrink-0 gap-2">

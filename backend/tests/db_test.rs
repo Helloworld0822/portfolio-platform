@@ -22,8 +22,8 @@ async fn posts_table_round_trips_expected_columns() {
     {
         let conn = pool.get().await.expect("get connection");
         conn.execute(
-            "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-             VALUES ('test-slug', 'Test', 'Excerpt', 'Body', true)",
+            "INSERT INTO posts (title, excerpt, content_markdown, published)
+             VALUES ('Test', 'Excerpt', 'Body', true)",
             &[],
         )
         .await
@@ -33,13 +33,13 @@ async fn posts_table_round_trips_expected_columns() {
     let conn = pool.get().await.expect("get connection");
     let row = conn
         .query_one(
-            "SELECT slug, title, published FROM posts WHERE slug = 'test-slug'",
+            "SELECT id, title, published FROM posts WHERE title = 'Test'",
             &[],
         )
         .await
         .unwrap();
 
-    assert_eq!(row.get::<_, String>(0), "test-slug");
+    assert!(row.get::<_, i64>(0) > 0);
     assert_eq!(row.get::<_, String>(1), "Test");
     assert!(row.get::<_, bool>(2));
 }

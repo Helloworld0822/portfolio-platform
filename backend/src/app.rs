@@ -27,13 +27,13 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             .route("/health", web::get().to(routes::health::health))
             // Public blog
             .route("/posts", web::get().to(routes::posts::list_posts))
-            .route("/posts/{slug}", web::get().to(routes::posts::get_post))
+            .route("/posts/{id}", web::get().to(routes::posts::get_post))
             .route(
-                "/posts/{slug}/comments",
+                "/posts/{id}/comments",
                 web::get().to(routes::comments::list_comments),
             )
             .route(
-                "/posts/{slug}/comments",
+                "/posts/{id}/comments",
                 web::post().to(routes::comments::create_comment),
             )
             // Public portfolio content

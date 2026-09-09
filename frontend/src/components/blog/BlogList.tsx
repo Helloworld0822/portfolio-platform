@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 interface PostSummary {
-  id: string;
-  slug: string;
+  id: number;
   title: string;
   excerpt: string;
   created_at: string;
@@ -46,8 +45,8 @@ const BlogList = () => {
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {posts?.map((post) => (
             <Link
-              key={post.slug}
-              to={`/blog/${post.slug}`}
+              key={post.id}
+              to={`/blog/${post.id}`}
               className="group flex flex-col rounded-lg border border-border bg-canvas p-6 text-left shadow-card transition-shadow duration-[240ms] hover:shadow-elevated"
             >
               <h2 className="text-lg font-semibold text-ink transition-colors duration-[240ms] group-hover:text-primary">

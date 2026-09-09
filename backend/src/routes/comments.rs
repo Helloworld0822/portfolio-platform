@@ -8,36 +8,36 @@ use crate::models::{Comment, CreateCommentRequest};
 
 const MAX_COMMENT_LENGTH: usize = 2000;
 
-async fn published_post_id(pool: &PgPool, slug: &str) -> Result<Uuid, AppError> {
+async fn published_post_id(pool: &PgPool, id: i64) -> Result<i64, AppError> {
     let conn = pool.get().await?;
     let row = conn
         .query_opt(
-            "SELECT id FROM posts WHERE slug = $1 AND published = true",
-            &[&slug],
+            "SELECT id FROM posts WHERE id = $1 AND published = true",
+            &[&id],
         )
         .await?
         .ok_or(AppError::NotFound)?;
 
-    Ok(row.get::<_, Uuid>("id"))
+    Ok(row.get::<_, i64>("id"))
 }
 
 /// List every comment on a published post, oldest first.
 #[utoipa::path(
     get,
-    path = "/api/posts/{slug}/comments",
+    path = "/api/posts/{id}/comments",
     tag = "comments",
-    params(("slug" = String, Path, description = "Post slug")),
+    params(("id" = i64, Path, description = "Post id")),
     responses(
         (status = 200, description = "Comments on the post", body = Vec<Comment>),
-        (status = 404, description = "No published post with that slug")
+        (status = 404, description = "No published post with that id")
     )
 )]
 pub async fn list_comments(
     pool: web::Data<PgPool>,
-    path: web::Path<String>,
+    path: web::Path<i64>,
 ) -> Result<HttpResponse, AppError> {
-    let slug = path.into_inner();
-    let post_id = published_post_id(pool.get_ref(), &slug).await?;
+    let id = path.into_inner();
+    let post_id = published_post_id(pool.get_ref(), id).await?;
     let conn = pool.get().await?;
 
     let rows = conn
@@ -58,25 +58,25 @@ pub async fn list_comments(
 /// Post a comment on a published post as the authenticated GitHub user.
 #[utoipa::path(
     post,
-    path = "/api/posts/{slug}/comments",
+    path = "/api/posts/{id}/comments",
     tag = "comments",
     security(("bearer_auth" = [])),
-    params(("slug" = String, Path, description = "Post slug")),
+    params(("id" = i64, Path, description = "Post id")),
     request_body = CreateCommentRequest,
     responses(
         (status = 201, description = "Created", body = Comment),
         (status = 400, description = "Validation error"),
         (status = 401, description = "Missing or invalid token"),
-        (status = 404, description = "No published post with that slug")
+        (status = 404, description = "No published post with that id")
     )
 )]
 pub async fn create_comment(
     pool: web::Data<PgPool>,
     user: AuthUser,
-    path: web::Path<String>,
+    path: web::Path<i64>,
     body: web::Json<CreateCommentRequest>,
 ) -> Result<HttpResponse, AppError> {
-    let slug = path.into_inner();
+    let id = path.into_inner();
     let trimmed = body.body.trim();
 
     if trimmed.is_empty() {
@@ -88,7 +88,7 @@ pub async fn create_comment(
         )));
     }
 
-    let post_id = published_post_id(pool.get_ref(), &slug).await?;
+    let post_id = published_post_id(pool.get_ref(), id).await?;
     let conn = pool.get().await?;
 
     let row = conn

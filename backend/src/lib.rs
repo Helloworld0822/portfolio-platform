@@ -8,7 +8,6 @@ pub mod models;
 pub mod openapi;
 pub mod rate_limit;
 pub mod routes;
-pub mod slug;
 
 use actix_web::{web, App, HttpServer};
 

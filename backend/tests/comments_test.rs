@@ -6,22 +6,22 @@ use portfolio_blog_api::models::Comment;
 use serde_json::json;
 use uuid::Uuid;
 
-async fn seed_post(pool: &common::PgPool, slug: &str, published: bool) -> Uuid {
+async fn seed_post(pool: &common::PgPool, title: &str, published: bool) -> i64 {
     let conn = pool.get().await.expect("get connection");
     let row = conn
         .query_one(
-            "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-             VALUES ($1, $2, 'an excerpt', '# body', $3)
+            "INSERT INTO posts (title, excerpt, content_markdown, published)
+             VALUES ($1, 'an excerpt', '# body', $2)
              RETURNING id",
-            &[&slug, &slug, &published],
+            &[&title, &published],
         )
         .await
         .expect("seeding a post should succeed");
 
-    row.get::<_, Uuid>("id")
+    row.get::<_, i64>("id")
 }
 
-async fn seed_comment(pool: &common::PgPool, post_id: Uuid, author: &str, body: &str) {
+async fn seed_comment(pool: &common::PgPool, post_id: i64, author: &str, body: &str) {
     let conn = pool.get().await.expect("get connection");
     conn.execute(
         "INSERT INTO comments (post_id, author_login, body) VALUES ($1, $2, $3)",
@@ -31,7 +31,7 @@ async fn seed_comment(pool: &common::PgPool, post_id: Uuid, author: &str, body: 
     .expect("seeding a comment should succeed");
 }
 
-async fn seed_comment_return_id(pool: &common::PgPool, post_id: Uuid) -> Uuid {
+async fn seed_comment_return_id(pool: &common::PgPool, post_id: i64) -> Uuid {
     let conn = pool.get().await.expect("get connection");
     let row = conn
         .query_one(
@@ -63,11 +63,11 @@ async fn build_app(
 #[tokio::test]
 async fn list_comments_returns_an_empty_list_for_a_post_with_no_comments() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "quiet-post", true).await;
+    let post_id = seed_post(&pool, "Quiet Post", true).await;
 
     let app = build_app(pool).await;
     let req = test::TestRequest::get()
-        .uri("/api/posts/quiet-post/comments")
+        .uri(&format!("/api/posts/{post_id}/comments"))
         .to_request();
     let body: Vec<Comment> = test::call_and_read_body_json(&app, req).await;
 
@@ -77,13 +77,13 @@ async fn list_comments_returns_an_empty_list_for_a_post_with_no_comments() {
 #[tokio::test]
 async fn list_comments_returns_comments_oldest_first() {
     let (pool, _db) = common::setup().await;
-    let post_id = seed_post(&pool, "chatty-post", true).await;
+    let post_id = seed_post(&pool, "Chatty Post", true).await;
     seed_comment(&pool, post_id, "alice", "first!").await;
     seed_comment(&pool, post_id, "bob", "second").await;
 
     let app = build_app(pool).await;
     let req = test::TestRequest::get()
-        .uri("/api/posts/chatty-post/comments")
+        .uri(&format!("/api/posts/{post_id}/comments"))
         .to_request();
     let body: Vec<Comment> = test::call_and_read_body_json(&app, req).await;
 
@@ -93,12 +93,12 @@ async fn list_comments_returns_comments_oldest_first() {
 }
 
 #[tokio::test]
-async fn list_comments_404s_for_an_unknown_slug() {
+async fn list_comments_404s_for_an_unknown_id() {
     let (pool, _db) = common::setup().await;
     let app = build_app(pool).await;
 
     let req = test::TestRequest::get()
-        .uri("/api/posts/does-not-exist/comments")
+        .uri("/api/posts/999999/comments")
         .to_request();
     let resp = test::call_service(&app, req).await;
 
@@ -108,11 +108,11 @@ async fn list_comments_404s_for_an_unknown_slug() {
 #[tokio::test]
 async fn create_comment_requires_authentication() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "needs-auth", true).await;
+    let post_id = seed_post(&pool, "Needs Auth", true).await;
 
     let app = build_app(pool).await;
     let req = test::TestRequest::post()
-        .uri("/api/posts/needs-auth/comments")
+        .uri(&format!("/api/posts/{post_id}/comments"))
         .set_json(json!({ "body": "hello" }))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -123,11 +123,11 @@ async fn create_comment_requires_authentication() {
 #[tokio::test]
 async fn create_comment_saves_the_authenticated_users_login_and_returns_201() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "great-post", true).await;
+    let post_id = seed_post(&pool, "Great Post", true).await;
 
     let app = build_app(pool).await;
     let req = test::TestRequest::post()
-        .uri("/api/posts/great-post/comments")
+        .uri(&format!("/api/posts/{post_id}/comments"))
         .insert_header(common::user_auth_header("carol"))
         .set_json(json!({ "body": "nice write-up!" }))
         .to_request();
@@ -143,11 +143,11 @@ async fn create_comment_saves_the_authenticated_users_login_and_returns_201() {
 #[tokio::test]
 async fn create_comment_rejects_an_empty_body() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "empty-body-post", true).await;
+    let post_id = seed_post(&pool, "Empty Body Post", true).await;
 
     let app = build_app(pool).await;
     let req = test::TestRequest::post()
-        .uri("/api/posts/empty-body-post/comments")
+        .uri(&format!("/api/posts/{post_id}/comments"))
         .insert_header(common::user_auth_header("carol"))
         .set_json(json!({ "body": "   " }))
         .to_request();
@@ -159,11 +159,11 @@ async fn create_comment_rejects_an_empty_body() {
 #[tokio::test]
 async fn create_comment_404s_for_an_unpublished_post() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "still-a-draft", false).await;
+    let post_id = seed_post(&pool, "Still A Draft", false).await;
 
     let app = build_app(pool).await;
     let req = test::TestRequest::post()
-        .uri("/api/posts/still-a-draft/comments")
+        .uri(&format!("/api/posts/{post_id}/comments"))
         .insert_header(common::user_auth_header("carol"))
         .set_json(json!({ "body": "hello" }))
         .to_request();
@@ -175,7 +175,7 @@ async fn create_comment_404s_for_an_unpublished_post() {
 #[tokio::test]
 async fn delete_comment_requires_admin() {
     let (pool, _db) = common::setup().await;
-    let post_id = seed_post(&pool, "moderated-post", true).await;
+    let post_id = seed_post(&pool, "Moderated Post", true).await;
     let comment_id = seed_comment_return_id(&pool, post_id).await;
 
     let app = build_app(pool).await;
@@ -194,7 +194,7 @@ async fn delete_comment_requires_admin() {
 #[tokio::test]
 async fn delete_comment_returns_204_then_404() {
     let (pool, _db) = common::setup().await;
-    let post_id = seed_post(&pool, "cleanup-post", true).await;
+    let post_id = seed_post(&pool, "Cleanup Post", true).await;
     let comment_id = seed_comment_return_id(&pool, post_id).await;
 
     let app = build_app(pool).await;

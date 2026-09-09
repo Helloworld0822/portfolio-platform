@@ -4,24 +4,27 @@ use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
 use portfolio_blog_api::models::PostSummary;
 
-async fn seed_post(pool: &common::PgPool, slug: &str, title: &str, published: bool) {
+async fn seed_post(pool: &common::PgPool, title: &str, published: bool) -> i64 {
     let conn = pool.get().await.expect("get connection");
     let excerpt = "an excerpt";
     let body = "# body";
-    conn.execute(
-        "INSERT INTO posts (slug, title, excerpt, content_markdown, published)
-         VALUES ($1, $2, $3, $4, $5)",
-        &[&slug, &title, &excerpt, &body, &published],
-    )
-    .await
-    .expect("seeding a post should succeed");
+    let row = conn
+        .query_one(
+            "INSERT INTO posts (title, excerpt, content_markdown, published)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id",
+            &[&title, &excerpt, &body, &published],
+        )
+        .await
+        .expect("seeding a post should succeed");
+    row.get::<_, i64>("id")
 }
 
 #[tokio::test]
 async fn list_posts_returns_only_published() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "published-one", "Published One", true).await;
-    seed_post(&pool, "draft-one", "Draft One", false).await;
+    let id = seed_post(&pool, "Published One", true).await;
+    seed_post(&pool, "Draft One", false).await;
 
     let app = test::init_service(
         App::new()
@@ -35,13 +38,13 @@ async fn list_posts_returns_only_published() {
     let body: Vec<PostSummary> = test::call_and_read_body_json(&app, req).await;
 
     assert_eq!(body.len(), 1);
-    assert_eq!(body[0].slug, "published-one");
+    assert_eq!(body[0].id, id);
 }
 
 #[tokio::test]
 async fn get_post_returns_the_published_post() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "hello-world", "Hello World", true).await;
+    let id = seed_post(&pool, "Hello World", true).await;
 
     let app = test::init_service(
         App::new()
@@ -52,7 +55,7 @@ async fn get_post_returns_the_published_post() {
     .await;
 
     let req = test::TestRequest::get()
-        .uri("/api/posts/hello-world")
+        .uri(&format!("/api/posts/{id}"))
         .to_request();
     let resp = test::call_service(&app, req).await;
 
@@ -62,7 +65,7 @@ async fn get_post_returns_the_published_post() {
 #[tokio::test]
 async fn get_post_hides_drafts_behind_404() {
     let (pool, _db) = common::setup().await;
-    seed_post(&pool, "secret-draft", "Secret Draft", false).await;
+    let id = seed_post(&pool, "Secret Draft", false).await;
 
     let app = test::init_service(
         App::new()
@@ -73,7 +76,7 @@ async fn get_post_hides_drafts_behind_404() {
     .await;
 
     let req = test::TestRequest::get()
-        .uri("/api/posts/secret-draft")
+        .uri(&format!("/api/posts/{id}"))
         .to_request();
     let resp = test::call_service(&app, req).await;
 
