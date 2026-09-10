@@ -64,7 +64,7 @@ const ProjectAttachmentsEditor = ({ attachments, onChange }: ProjectAttachmentsE
               type="button"
               onClick={() => onChange(attachments.filter((a) => a.url !== attachment.url))}
               aria-label={`${attachment.name} 삭제`}
-              className="shrink-0 rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition-colors duration-[240ms] hover:bg-red-50"
+              className="shrink-0 rounded-md border border-danger/30 px-2 py-1 text-xs font-medium text-danger transition-colors duration-[240ms] hover:bg-danger/10"
             >
               삭제
             </button>
@@ -89,7 +89,7 @@ const ProjectAttachmentsEditor = ({ attachments, onChange }: ProjectAttachmentsE
           <p className="text-xs text-ink-subdued">png/jpg/gif/webp/svg/pdf, 최대 20MB</p>
         </div>
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
     </div>
   );
 };

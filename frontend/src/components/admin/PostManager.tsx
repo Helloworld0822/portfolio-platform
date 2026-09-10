@@ -288,7 +288,7 @@ const PostManager = () => {
             발행
           </label>
 
-          {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+          {saveError && <p className="text-sm text-danger">{saveError}</p>}
 
           <div className="flex gap-2">
             <button
@@ -357,7 +357,7 @@ const PostManager = () => {
               <button
                 type="button"
                 onClick={() => handleDelete(post)}
-                className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors duration-[240ms] hover:bg-red-50"
+                className="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors duration-[240ms] hover:bg-danger/10"
               >
                 삭제
               </button>

@@ -119,7 +119,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                   <button
                     type="button"
                     onClick={() => handleDelete(comment)}
-                    className="ml-2 text-xs text-ink-subdued transition-colors duration-[120ms] hover:text-red-600"
+                    className="ml-2 text-xs text-ink-subdued transition-colors duration-[120ms] hover:text-danger"
                   >
                     삭제
                   </button>
@@ -144,7 +144,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
               maxLength={2000}
               className="w-full rounded-md border border-border bg-canvas p-3 text-sm text-ink outline-none focus-visible:border-primary"
             />
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-2 text-sm text-danger">{error}</p>}
             <button
               type="submit"
               disabled={submitting || !draft.trim()}

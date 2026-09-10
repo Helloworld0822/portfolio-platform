@@ -6,9 +6,6 @@ const Hero = () => {
   return (
     <section id="hero" className="bg-navy px-4 py-24 md:px-8 md:py-32">
       <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
-        <p className="mb-4 text-sm font-medium tracking-wide text-ink-on-navy-muted uppercase">
-          Portfolio
-        </p>
         <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-white md:text-5xl md:leading-[1.15]">
           명확함과 정교함으로
           <br />
