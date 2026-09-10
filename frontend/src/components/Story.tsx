@@ -1,16 +1,20 @@
 import { useReveal } from "../lib/useReveal";
 
 const Story = () => {
-  const { ref, className } = useReveal<HTMLDivElement>();
+  const { ref: headingRef, className: headingClassName } = useReveal<HTMLDivElement>();
+  const { ref: cardRef, className: cardClassName } = useReveal<HTMLDivElement>();
 
   return (
     <section id="story" className="px-4 py-20 md:px-8 md:py-24">
-      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
+      <div ref={headingRef} className={`mx-auto max-w-5xl ${headingClassName}`}>
         <h2 className="text-3xl font-semibold tracking-tight text-navy">소개</h2>
         <p className="mt-2 text-ink-muted">저는 어떤 사람이고, 무엇을 중요하게 생각하는지.</p>
       </div>
 
-      <div className="mx-auto mt-10 max-w-5xl rounded-lg border border-border bg-canvas p-8 shadow-card md:p-10">
+      <div
+        ref={cardRef}
+        className={`mx-auto mt-10 max-w-5xl rounded-lg border border-border bg-canvas p-8 shadow-card md:p-10 ${cardClassName}`}
+      >
         <div className="flex flex-col items-center gap-6 md:flex-row md:items-center">
           <img
             src="https://avatars.githubusercontent.com/u/59504422?v=4"
