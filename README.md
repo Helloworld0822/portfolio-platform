@@ -4,10 +4,10 @@
 
 ```
 portfolio-platform/
-├─ docker-compose.yml     # nginx + frontend + api + postgres
+├─ docker-compose.yml     # nginx + api + postgres
 ├─ .env.example           # api / postgres 환경변수 템플릿
-├─ nginx/                 # 리버스 프록시 게이트웨이 (/api → api, / → frontend)
-├─ frontend/              # React 19 + TypeScript + Vite + Tailwind 4
+├─ nginx/                 # frontend 빌드 + 정적 서빙 + /api,/uploads 리버스 프록시
+├─ frontend/              # React 19 + TypeScript + Vite + Tailwind 4 (nginx가 빌드)
 └─ backend/               # Rust + Actix-web 4 + bb8-postgres + PostgreSQL 16
 ```
 

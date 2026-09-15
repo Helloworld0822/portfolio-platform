@@ -1,2 +1,12 @@
+FROM docker.io/library/node:22-alpine AS builder
+WORKDIR /app
+ARG VITE_ADSENSE_CLIENT_ID
+ENV VITE_ADSENSE_CLIENT_ID=$VITE_ADSENSE_CLIENT_ID
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
+
 FROM docker.io/library/nginx:1.27-alpine
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
