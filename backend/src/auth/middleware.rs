@@ -49,6 +49,7 @@ impl FromRequest for AdminUser {
 pub struct AuthUser {
     pub username: String,
     pub avatar_url: Option<String>,
+    pub is_admin: bool,
 }
 
 impl FromRequest for AuthUser {
@@ -56,9 +57,13 @@ impl FromRequest for AuthUser {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
-        let result = extract_claims(req).map(|claims| AuthUser {
-            username: claims.sub,
-            avatar_url: claims.avatar_url,
+        let result = extract_claims(req).map(|claims| {
+            let is_admin = claims.role == "admin";
+            AuthUser {
+                username: claims.sub,
+                avatar_url: claims.avatar_url,
+                is_admin,
+            }
         });
 
         ready(result)

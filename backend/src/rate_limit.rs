@@ -52,6 +52,18 @@ impl RateLimiter {
     }
 }
 
+/// Comment posting gets its own limiter instance so its budget can be tuned
+/// separately from the contact form's (both are keyed by client IP).
+pub struct CommentLimiter(pub RateLimiter);
+
+impl std::ops::Deref for CommentLimiter {
+    type Target = RateLimiter;
+
+    fn deref(&self) -> &RateLimiter {
+        &self.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

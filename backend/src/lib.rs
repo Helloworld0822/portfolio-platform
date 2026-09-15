@@ -1,5 +1,7 @@
 pub mod app;
 pub mod auth;
+pub mod bans;
+pub mod client_ip;
 pub mod config;
 pub mod db;
 pub mod error;
@@ -23,6 +25,8 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
 
     let cors_origins = config.cors_allowed_origins.clone();
     let config_data = web::Data::new(config);
+    let ban_data = web::Data::new(bans::BanStore::new(pool.clone()));
+    ban_data.reload().await?;
     let pool_data = web::Data::new(pool);
 
     HttpServer::new(move || {
@@ -45,8 +49,10 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
             )
             .wrap(app::build_cors(&cors_origins))
             .wrap(actix_web::middleware::Compress::default())
+            .wrap(bans::BanGuard)
             .wrap(tracing_actix_web::TracingLogger::default())
             .app_data(config_data.clone())
+            .app_data(ban_data.clone())
             .app_data(pool_data.clone())
             .configure(app::configure_app)
     })

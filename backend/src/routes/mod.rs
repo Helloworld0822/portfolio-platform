@@ -1,4 +1,5 @@
 pub mod auth_routes;
+pub mod bans;
 pub mod comments;
 pub mod contact;
 pub mod github_repos;

@@ -1,6 +1,7 @@
 use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
+use crate::bans;
 use crate::github_repo;
 use crate::models;
 use crate::routes;
@@ -51,7 +52,8 @@ impl Modify for SecurityAddon {
         (name = "admin/projects", description = "Project management"),
         (name = "admin/timeline", description = "Timeline management"),
         (name = "admin/github", description = "GitHub repository import"),
-        (name = "admin/contact", description = "Received contact messages")
+        (name = "admin/contact", description = "Received contact messages"),
+        (name = "admin/bans", description = "IP bans and blocked users")
     ),
     paths(
         routes::health::health,
@@ -59,6 +61,7 @@ impl Modify for SecurityAddon {
         routes::posts::get_post,
         routes::comments::list_comments,
         routes::comments::create_comment,
+        routes::comments::delete_own_comment,
         routes::comments::delete_comment,
         routes::posts::list_admin_posts,
         routes::posts::get_admin_post,
@@ -84,6 +87,11 @@ impl Modify for SecurityAddon {
         routes::auth_routes::github_login,
         routes::auth_routes::github_callback,
         routes::uploads::upload_file,
+        routes::bans::list_bans,
+        routes::bans::ban_ip,
+        routes::bans::unban_ip,
+        routes::bans::block_user,
+        routes::bans::unblock_user,
     ),
     components(schemas(
         models::Post,
@@ -105,6 +113,11 @@ impl Modify for SecurityAddon {
         models::ReorderTimelineRequest,
         github_repo::GithubRepo,
         routes::uploads::UploadResponse,
+        bans::IpBan,
+        bans::UserBlock,
+        routes::bans::BanIpRequest,
+        routes::bans::BlockUserRequest,
+        routes::bans::BanList,
     ))
 )]
 pub struct ApiDoc;
@@ -123,6 +136,7 @@ mod tests {
             "/api/posts",
             "/api/posts/{id}",
             "/api/posts/{id}/comments",
+            "/api/comments/{id}",
             "/api/admin/comments/{id}",
             "/api/projects",
             "/api/contact",
@@ -141,6 +155,11 @@ mod tests {
             "/api/admin/timeline/{id}",
             "/api/admin/timeline/reorder",
             "/api/admin/github/repos",
+            "/api/admin/bans",
+            "/api/admin/bans/ips",
+            "/api/admin/bans/ips/{ip}",
+            "/api/admin/bans/users",
+            "/api/admin/bans/users/{login}",
         ] {
             assert!(
                 spec.paths.paths.contains_key(path),

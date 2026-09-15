@@ -73,7 +73,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
     }
 
     try {
-      const res = await authFetch(`/api/admin/comments/${comment.id}`, {
+      const res = await authFetch(`/api/comments/${comment.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -115,15 +115,17 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                 <span className="text-xs text-ink-subdued">
                   {new Date(comment.created_at).toLocaleDateString("ko-KR")}
                 </span>
-                {user?.isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(comment)}
-                    className="ml-2 text-xs text-ink-subdued transition-colors duration-[120ms] hover:text-danger"
-                  >
-                    삭제
-                  </button>
-                )}
+                {user &&
+                  (user.isAdmin ||
+                    user.username.toLowerCase() === comment.author_login.toLowerCase()) && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(comment)}
+                      className="ml-2 text-xs text-ink-subdued transition-colors duration-[120ms] hover:text-danger"
+                    >
+                      삭제
+                    </button>
+                  )}
               </div>
               <p className="mt-1 text-sm leading-relaxed text-ink-muted">
                 {comment.body}

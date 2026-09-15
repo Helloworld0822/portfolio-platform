@@ -49,6 +49,20 @@ pub fn user_auth_header(username: &str) -> (&'static str, String) {
 
 pub type PgPool = Pool<PostgresConnectionManager<NoTls>>;
 
+pub async fn ban_store(pool: &PgPool) -> portfolio_blog_api::bans::BanStore {
+    let store = portfolio_blog_api::bans::BanStore::new(pool.clone());
+    store.reload().await.expect("loading bans should succeed");
+    store
+}
+
+/// A request helper that plays the role of the nginx gateway: a private peer
+/// address plus the X-Real-IP header it sets, which is the only combination
+/// the client-IP resolution trusts.
+pub fn as_client_ip(req: actix_web::test::TestRequest, ip: &str) -> actix_web::test::TestRequest {
+    req.peer_addr("172.18.0.1:40000".parse().unwrap())
+        .insert_header(("x-real-ip", ip))
+}
+
 /// Creates a throwaway database, applies migrations, and returns a pool to it.
 ///
 /// Replaces sqlx's `#[sqlx::test]` macro: connects to the server named by

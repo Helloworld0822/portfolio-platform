@@ -5,7 +5,7 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::openapi::ApiDoc;
-use crate::rate_limit::RateLimiter;
+use crate::rate_limit::{CommentLimiter, RateLimiter};
 use crate::routes;
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
@@ -15,6 +15,10 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
         Duration::from_secs(600),
         5,
     )));
+    cfg.app_data(web::Data::new(CommentLimiter(RateLimiter::new(
+        Duration::from_secs(600),
+        10,
+    ))));
 
     // Mounted under /api so the nginx gateway's existing `location /api/` rule
     // proxies the docs without extra configuration. Registered BEFORE the
@@ -35,6 +39,11 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             .route(
                 "/posts/{id}/comments",
                 web::post().to(routes::comments::create_comment),
+            )
+            // Author-or-admin comment deletion
+            .route(
+                "/comments/{id}",
+                web::delete().to(routes::comments::delete_own_comment),
             )
             // Public portfolio content
             .route("/projects", web::get().to(routes::projects::list_projects))
@@ -137,6 +146,21 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             .route(
                 "/admin/uploads",
                 web::post().to(routes::uploads::upload_file),
+            )
+            // Admin abuse controls
+            .route("/admin/bans", web::get().to(routes::bans::list_bans))
+            .route("/admin/bans/ips", web::post().to(routes::bans::ban_ip))
+            .route(
+                "/admin/bans/ips/{ip}",
+                web::delete().to(routes::bans::unban_ip),
+            )
+            .route(
+                "/admin/bans/users",
+                web::post().to(routes::bans::block_user),
+            )
+            .route(
+                "/admin/bans/users/{login}",
+                web::delete().to(routes::bans::unblock_user),
             ),
     );
 }

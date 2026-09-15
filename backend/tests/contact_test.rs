@@ -12,10 +12,12 @@ async fn build_app(
     Response = actix_web::dev::ServiceResponse,
     Error = actix_web::Error,
 > {
+    let bans = common::ban_store(&pool).await;
     test::init_service(
         App::new()
             .app_data(web::Data::new(common::test_config()))
             .app_data(web::Data::new(pool))
+            .app_data(web::Data::new(bans))
             .configure(configure_app),
     )
     .await

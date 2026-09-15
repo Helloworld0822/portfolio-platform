@@ -7,6 +7,8 @@ pub enum AppError {
     NotFound,
     #[error("unauthorized")]
     Unauthorized,
+    #[error("forbidden")]
+    Forbidden,
     #[error("validation error: {0}")]
     Validation(String),
     #[error("too many requests")]
@@ -22,6 +24,7 @@ impl ResponseError for AppError {
             AppError::Unauthorized => {
                 HttpResponse::Unauthorized().json(json!({ "error": "unauthorized" }))
             }
+            AppError::Forbidden => HttpResponse::Forbidden().json(json!({ "error": "forbidden" })),
             AppError::Validation(message) => HttpResponse::BadRequest().json(json!({
                 "error": "validation",
                 "message": message
