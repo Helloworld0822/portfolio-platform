@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 use crate::auth::github;
 use crate::auth::jwt::issue_jwt;
+use crate::bans::BanStore;
 use crate::config::Config;
 
 #[derive(Debug, Deserialize)]
@@ -52,6 +53,7 @@ pub async fn github_login(
 )]
 pub async fn github_callback(
     config: web::Data<Config>,
+    bans: web::Data<BanStore>,
     query: web::Query<CallbackQuery>,
 ) -> HttpResponse {
     let unauthorized_redirect = || {
@@ -60,6 +62,18 @@ pub async fn github_callback(
                 "Location",
                 format!(
                     "{}/?error=unauthorized",
+                    config.frontend_url.trim_end_matches('/')
+                ),
+            ))
+            .finish()
+    };
+
+    let blocked_redirect = || {
+        HttpResponse::Found()
+            .append_header((
+                "Location",
+                format!(
+                    "{}/?error=blocked",
                     config.frontend_url.trim_end_matches('/')
                 ),
             ))
@@ -86,6 +100,10 @@ pub async fn github_callback(
         }
     };
 
+    if bans.is_user_blocked(&user.login) {
+        return blocked_redirect();
+    }
+
     let is_admin = user.login == config.admin_github_username;
     let role = if is_admin { "admin" } else { "user" };
 
@@ -100,15 +118,65 @@ pub async fn github_callback(
             let path = if is_admin {
                 "/admin".to_string()
             } else {
-                query.state.clone().unwrap_or_else(|| "/".to_string())
+                safe_return_path(query.state.as_deref())
             };
+            // Fragments are never sent to the server, so the token cannot end up
+            // in nginx/Cloudflare access logs or in a Referer header the way a
+            // query parameter would.
             HttpResponse::Found()
-                .append_header(("Location", format!("{frontend_url}{path}?token={token}")))
+                .append_header(("Location", format!("{frontend_url}{path}#token={token}")))
                 .finish()
         }
         Err(err) => {
             tracing::error!(error = %err, "jwt issuance failed");
             unauthorized_redirect()
         }
+    }
+}
+
+/// Only a same-origin path may be echoed back after login. Absolute URLs,
+/// protocol-relative `//host`, backslashes and an embedded `@` would all turn
+/// the frontend origin into URL userinfo and forward the freshly issued token
+/// to another host, so anything but a plain path collapses to "/".
+fn safe_return_path(state: Option<&str>) -> String {
+    const FALLBACK: &str = "/";
+
+    let Some(state) = state else {
+        return FALLBACK.to_string();
+    };
+
+    let is_plain_path = state.starts_with('/')
+        && !state.starts_with("//")
+        && state
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '-' | '_' | '.' | '~'));
+
+    if is_plain_path {
+        state.to_string()
+    } else {
+        FALLBACK.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::safe_return_path;
+
+    #[test]
+    fn keeps_plain_relative_paths() {
+        assert_eq!(safe_return_path(Some("/")), "/");
+        assert_eq!(safe_return_path(Some("/blog/12")), "/blog/12");
+        assert_eq!(safe_return_path(None), "/");
+    }
+
+    #[test]
+    fn refuses_paths_that_would_leave_the_frontend_origin() {
+        assert_eq!(safe_return_path(Some("//evil.example")), "/");
+        assert_eq!(safe_return_path(Some("@evil.example")), "/");
+        assert_eq!(safe_return_path(Some("/@evil.example")), "/");
+        assert_eq!(safe_return_path(Some("https://evil.example")), "/");
+        assert_eq!(safe_return_path(Some("/\\evil.example")), "/");
+        assert_eq!(safe_return_path(Some("/path?next=//evil.example")), "/");
+        assert_eq!(safe_return_path(Some("")), "/");
     }
 }

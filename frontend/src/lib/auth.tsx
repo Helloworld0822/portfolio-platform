@@ -45,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const token = hashParams.get("token") ?? params.get("token");
     if (!token) {
       return;
     }
@@ -55,8 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     params.delete("token");
     params.delete("error");
+    hashParams.delete("token");
     const query = params.toString();
-    const cleanUrl = `${window.location.pathname}${query ? `?${query}` : ""}`;
+    const hash = hashParams.toString();
+    const cleanUrl = `${window.location.pathname}${query ? `?${query}` : ""}${
+      hash ? `#${hash}` : ""
+    }`;
     window.history.replaceState({}, "", cleanUrl);
   }, []);
 
