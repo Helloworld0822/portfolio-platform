@@ -39,8 +39,9 @@ curl http://localhost/api/health   # through nginx, not the api container direct
 ```
 
 `nginx` is the only container with a published host port (`HOST_HTTP_PORT`,
-default 80); `api` and `postgres` are reachable only on the internal
-compose network (`postgres`'s 5432 stays published too, for local `cargo test` runs against it).
+default 80); `postgres`'s 5432 is published on loopback only, for local
+`cargo test` runs against it. The api reaches Postgres over the compose
+network, so nothing outside the host needs that port.
 
 ## Deploying to the Raspberry Pi (manual — requires your credentials)
 

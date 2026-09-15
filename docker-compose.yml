@@ -56,7 +56,10 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Bound to loopback: the api reaches Postgres over the compose network,
+      # and only local dev/test on the host (cargo test) needs this published
+      # at all. Never expose the database to the network.
+      - "127.0.0.1:5432:5432"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-blog}", "-d", "${POSTGRES_DB:-portfolio_blog}"]
