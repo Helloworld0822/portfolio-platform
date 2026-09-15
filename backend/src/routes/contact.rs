@@ -179,15 +179,38 @@ pub struct DedupResult {
     pub removed: i64,
 }
 
-/// The proxy in front of this stack sets X-Real-IP, falling back to the direct
-/// peer address for local runs.
+/// The nginx gateway sets X-Real-IP to the real client address. Only trust it
+/// when the direct TCP peer is private/loopback, i.e. the request actually
+/// came from the gateway on the container network — otherwise any caller
+/// could inject an arbitrary X-Real-IP and rotate past the per-IP+email rate
+/// limit for free. Falls back to the real peer address in every other case.
 fn client_ip(req: &HttpRequest) -> String {
-    if let Some(ip) = req.headers().get("x-real-ip").and_then(|v| v.to_str().ok()) {
-        return ip.to_string();
+    let from_trusted_proxy = req
+        .peer_addr()
+        .map(|addr| is_private_or_loopback(addr.ip()))
+        .unwrap_or(false);
+
+    if from_trusted_proxy {
+        let trusted_ip = req
+            .headers()
+            .get("x-real-ip")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<std::net::IpAddr>().ok());
+        if let Some(ip) = trusted_ip {
+            return ip.to_string();
+        }
     }
+
     req.peer_addr()
         .map(|addr| addr.ip().to_string())
         .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn is_private_or_loopback(ip: std::net::IpAddr) -> bool {
+    match ip {
+        std::net::IpAddr::V4(v4) => v4.is_loopback() || v4.is_private(),
+        std::net::IpAddr::V6(v6) => v6.is_loopback(),
+    }
 }
 
 /// Deliberately loose check: one `@` with something before it, and a `.`
