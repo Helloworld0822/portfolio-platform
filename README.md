@@ -75,7 +75,9 @@ GitHub OAuth App 의 Authorization callback URL 은
 | --- | --- | --- |
 | GET | `/api/health` | 헬스체크 |
 | GET | `/api/posts` | 발행된 글 목록 |
-| GET | `/api/posts/{slug}` | 글 상세 (미발행은 404) |
+| GET | `/api/posts/{id}` | 글 상세 (미발행은 404) |
+| GET/POST | `/api/posts/{id}/comments` | 댓글 목록 / 작성 (작성은 로그인 필요) |
+| DELETE | `/api/comments/{id}` | 댓글 삭제 (작성자 본인 또는 관리자) |
 | GET | `/api/projects` | 발행된 프로젝트 목록 |
 | GET | `/api/timeline` | 경력/타임라인 항목 목록 |
 | POST | `/api/contact` | 문의 폼 저장 |
@@ -92,6 +94,11 @@ GitHub OAuth App 의 Authorization callback URL 은
 | POST | `/api/admin/uploads` | 이미지/PDF 업로드 (multipart `file`, 20MB 제한) |
 | GET | `/uploads/{file}` | 업로드된 파일 (nginx가 api로 프록시) |
 | GET | `/api/admin/contact` | 받은 문의 목록 |
+| GET | `/api/admin/bans` | 차단된 IP / 사용자 목록 |
+| POST | `/api/admin/bans/ips` | IP 차단 (`duration_hours` 생략 시 영구) |
+| DELETE | `/api/admin/bans/ips/{ip}` | IP 차단 해제 |
+| POST | `/api/admin/bans/users` | GitHub 사용자 차단 |
+| DELETE | `/api/admin/bans/users/{login}` | 사용자 차단 해제 |
 
 전체 스키마와 요청 예시는 Swagger UI(`/api/docs/`)에서 확인한다.
 
@@ -101,14 +108,33 @@ GitHub OAuth App 의 Authorization callback URL 은
 2. GitHub 가 `/api/auth/github/callback?code=...` 로 리다이렉트
 3. 백엔드가 code → access token → 사용자 조회 후
    `ADMIN_GITHUB_USERNAME` 과 일치하는지 확인
-4. 일치하면 `{FRONTEND_URL}#/admin?token=<JWT>` 로,
-   아니면 `{FRONTEND_URL}#/admin?error=unauthorized` 로 리다이렉트
+4. 일치하면 `{FRONTEND_URL}/admin#token=<JWT>` 로,
+   아니면 `{FRONTEND_URL}/?error=unauthorized` 로 리다이렉트
 
 토큰을 쿠키가 아닌 URL 프래그먼트로 넘기는 이유는 크로스 오리진 쿠키(SameSite)
-문제를 피하기 위함이다. 프래그먼트는 서버 로그에 남지 않는다. JWT 유효기간은 7일.
+문제를 피하기 위함이다. 프래그먼트는 서버로 전송되지 않으므로 nginx·Cloudflare
+액세스 로그와 Referer 헤더에 토큰이 남지 않는다. JWT 유효기간은 7일.
+
+로그인 후 돌아갈 경로(`state`)는 같은 오리진의 일반 경로만 허용한다. `//host`
+나 `@host` 같은 값은 프론트엔드 오리진을 URL 사용자정보로 바꿔 토큰을 다른
+호스트로 흘릴 수 있으므로 `/` 로 대체된다.
 
 `POST /api/contact` 는 메일을 보내지 않고 DB(`contact_messages`)에만 저장한다.
 받은 문의는 `GET /api/admin/contact` 로 확인한다.
+
+### 어뷰즈 컨트롤 (차단)
+
+관리자 대시보드의 **차단** 탭에서 IP와 GitHub 사용자를 직접 차단/해제할 수 있다.
+
+- **IP 차단**: 해당 IP의 모든 요청이 403으로 거부된다. VPN 등 실제 접속 IP로
+  판정하므로 IP를 바꾸지 않는 한 유효하다. 사설/루프백 대역은 게이트웨이를
+  잠글 수 있어 차단할 수 없다.
+- **사용자 차단**: 차단된 GitHub 계정은 로그인과 댓글 작성이 막힌다. IP를
+  바꿀 수 있는 상대에게는 이쪽이 확실한 수단이다.
+- **자동 임시 차단**: 레이트 리밋(문의 5회/10분, 댓글 10회/10분)을 10분 안에
+  10번 초과한 IP는 1시간 동안 자동 차단된다.
+- 관리자 JWT를 가진 요청은 차단을 우회한다. 실수로 본인 IP가 차단돼도 대시보드에
+  접근해 해제할 수 있게 하기 위한 장치다.
 
 ## 로컬 개발
 

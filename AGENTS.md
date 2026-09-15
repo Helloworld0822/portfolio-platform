@@ -123,6 +123,17 @@ Production host uses **podman-compose** (NOT docker). Key gotchas:
 - `backend/src/routes/uploads.rs`: `POST /api/admin/uploads` multipart upload
   (png/jpg/jpeg/gif/webp/svg/pdf, 20MB cap) → `/uploads/{uuid}.{ext}`,
   served by actix-files. Requires admin JWT.
+- `backend/src/bans.rs`: abuse controls. IP bans and blocked GitHub logins live
+  in Postgres (`banned_ips`, `blocked_users` via `migrations/0010_bans.sql`) with
+  an in-memory snapshot for the per-request check. `BanGuard` middleware rejects
+  every request from a banned IP with 403; requests carrying a valid admin JWT
+  deliberately bypass it so the owner can always reach `/api/admin/bans` and lift
+  a ban. Repeated rate-limit violations (10 in 10 minutes) auto-ban an IP for an
+  hour. `backend/src/client_ip.rs` holds the shared trusted-proxy client-IP
+  resolution and the `is_bannable` guard that keeps private/loopback ranges
+  unbannable. Admin UI: the 차단 tab (`frontend/src/components/admin/BansManager.tsx`).
+  Handlers that rate-limit (create_contact_message, create_comment) need
+  `web::Data<BanStore>` in app data, so test `build_app` helpers must register it.
 - `backend/src/routes/timeline.rs`: timeline ("경력") CRUD +
   `POST /api/admin/timeline/reorder` (full `ids` list in desired order).
   Seeded by `migrations/0008_timeline.sql`.
