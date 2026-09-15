@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useReveal } from "../lib/useReveal";
 import ProjectModal, { type Project } from "./ProjectModal";
 
@@ -135,19 +136,41 @@ const Projects = () => {
         )}
 
         {pageCount > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
-            {Array.from({ length: pageCount }).map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setPage(index)}
-                aria-label={`${index + 1}페이지`}
-                aria-current={page === index ? "true" : undefined}
-                className={`size-2.5 rounded-full transition-colors duration-[240ms] ${
-                  page === index ? "bg-primary" : "bg-border hover:bg-ink-subdued"
-                }`}
-              />
-            ))}
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page === 0}
+              aria-label="이전 페이지"
+              className="flex size-9 items-center justify-center rounded-md border border-border bg-canvas text-ink-muted shadow-card transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              {Array.from({ length: pageCount }).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setPage(index)}
+                  aria-label={`${index + 1}페이지`}
+                  aria-current={page === index ? "true" : undefined}
+                  className={`size-2.5 rounded-full transition-colors duration-[240ms] ${
+                    page === index ? "bg-primary" : "bg-border hover:bg-ink-subdued"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page === pageCount - 1}
+              aria-label="다음 페이지"
+              className="flex size-9 items-center justify-center rounded-md border border-border bg-canvas text-ink-muted shadow-card transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronRight className="size-5" />
+            </button>
           </div>
         )}
       </div>
