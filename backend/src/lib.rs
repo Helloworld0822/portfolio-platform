@@ -44,6 +44,7 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
                     .service(actix_files::Files::new("", config_data.upload_dir.clone())),
             )
             .wrap(app::build_cors(&cors_origins))
+            .wrap(actix_web::middleware::Compress::default())
             .wrap(tracing_actix_web::TracingLogger::default())
             .app_data(config_data.clone())
             .app_data(pool_data.clone())

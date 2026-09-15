@@ -40,3 +40,7 @@ utoipa-swagger-ui = { version = "8", features = ["actix-web", "vendored"] }
 [dev-dependencies]
 wiremock = "0.6"
 actix-http = "3"
+
+[profile.release]
+lto = "thin"
+strip = true

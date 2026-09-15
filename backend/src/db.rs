@@ -6,7 +6,11 @@ pub type PgPool = Pool<PostgresConnectionManager<NoTls>>;
 
 pub async fn create_pool(database_url: &str) -> anyhow::Result<PgPool> {
     let manager = PostgresConnectionManager::new_from_stringlike(database_url, NoTls).unwrap();
-    let pool = Pool::builder().max_size(5).build(manager).await?;
+    let pool = Pool::builder()
+        .max_size(5)
+        .min_idle(Some(1))
+        .build(manager)
+        .await?;
     Ok(pool)
 }
 
