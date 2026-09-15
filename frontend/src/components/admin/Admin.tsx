@@ -4,14 +4,16 @@ import PostManager from "./PostManager";
 import ProjectManager from "./ProjectManager";
 import TimelineManager from "./TimelineManager";
 import Inbox from "./Inbox";
+import BansManager from "./BansManager";
 
-type Tab = "posts" | "projects" | "timeline" | "inbox";
+type Tab = "posts" | "projects" | "timeline" | "inbox" | "bans";
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "posts", label: "글" },
   { id: "projects", label: "프로젝트" },
   { id: "timeline", label: "경력" },
   { id: "inbox", label: "문의" },
+  { id: "bans", label: "차단" },
 ];
 
 const Admin = () => {
@@ -94,6 +96,7 @@ const Admin = () => {
           {tab === "projects" && <ProjectManager />}
           {tab === "timeline" && <TimelineManager />}
           {tab === "inbox" && <Inbox />}
+          {tab === "bans" && <BansManager />}
         </div>
       </div>
     </section>
