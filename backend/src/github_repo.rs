@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
+use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -48,6 +49,13 @@ pub struct RepoMeta {
     pub is_private: bool,
 }
 
+/// A path segment is safe to interpolate unescaped into the `format!`-built
+/// GitHub API URLs below only if it can't introduce its own `?query` or
+/// `#fragment`, which would silently corrupt the rest of the URL.
+fn is_safe_url_segment(s: &str) -> bool {
+    !s.is_empty() && !s.contains(['?', '#', ' '])
+}
+
 /// Extract (owner, repo) from a github.com URL. Returns None for non-GitHub
 /// URLs so callers can skip the network call.
 pub fn repo_path(url: &str) -> Option<(String, String)> {
@@ -61,10 +69,28 @@ pub fn repo_path(url: &str) -> Option<(String, String)> {
     }
     let owner = parts.next()?;
     let repo = parts.next()?.trim_end_matches(".git");
-    if owner.is_empty() || repo.is_empty() {
+    if !is_safe_url_segment(owner) || !is_safe_url_segment(repo) {
         return None;
     }
     Some((owner.to_string(), repo.to_string()))
+}
+
+/// Extract an org/user login from a bare "https://github.com/name" account
+/// URL. Returns None when a repo segment follows (that's `repo_path`'s job)
+/// or the URL isn't a github.com account page.
+pub fn account_path(url: &str) -> Option<String> {
+    let mut parts = url.trim_end_matches('/').split('/');
+    let _ = parts.next()?; // scheme
+    let _ = parts.next()?; // empty after "//"
+    let host = parts.next()?;
+    if !host.eq_ignore_ascii_case("github.com") {
+        return None;
+    }
+    let owner = parts.next()?;
+    if !is_safe_url_segment(owner) || parts.next().is_some() {
+        return None;
+    }
+    Some(owner.to_string())
 }
 
 /// A reqwest client preconfigured with the GitHub-mandated User-Agent and the
@@ -130,6 +156,97 @@ pub async fn fetch_repo_meta(config: &Config, url: &str) -> Option<RepoMeta> {
     })
 }
 
+/// Best-effort fetch of a GitHub org/account's combined language breakdown
+/// across its *public* repositories, treated as a single project. Private
+/// repos are skipped entirely so their existence and languages never leak
+/// through the aggregate; the account page itself is always publicly
+/// viewable, so this never reports private.
+pub async fn fetch_org_meta(config: &Config, login: &str) -> Option<RepoMeta> {
+    let client = github_client(config);
+
+    // Orgs and personal accounts are listed through different endpoints;
+    // try the org one first (404s for a personal account) and fall back to
+    // the user one, so this transparently supports either kind of login.
+    let org_repos_url = format!(
+        "{}/orgs/{}/repos?per_page=100",
+        config.github_api_base_url, login
+    );
+    let repos: Vec<RepoItem> = match client
+        .get(&org_repos_url)
+        .timeout(Duration::from_secs(5))
+        .send()
+        .await
+        .ok()?
+        .error_for_status()
+    {
+        Ok(res) => res.json().await.ok()?,
+        Err(_) => {
+            let user_repos_url = format!(
+                "{}/users/{}/repos?per_page=100",
+                config.github_api_base_url, login
+            );
+            client
+                .get(&user_repos_url)
+                .timeout(Duration::from_secs(5))
+                .send()
+                .await
+                .ok()?
+                .error_for_status()
+                .ok()?
+                .json()
+                .await
+                .ok()?
+        }
+    };
+
+    let public_repos: Vec<&RepoItem> = repos.iter().filter(|repo| !repo.private).collect();
+
+    // Cap fan-out so one project save can't burn the anonymous GitHub quota
+    // (60 req/hr) in a single request when an org has many public repos.
+    let language_fetches = futures_util::stream::iter(public_repos.iter().map(|repo| {
+        let client = &client;
+        let url = format!(
+            "{}/repos/{}/languages",
+            config.github_api_base_url, repo.full_name
+        );
+        async move {
+            client
+                .get(&url)
+                .timeout(Duration::from_secs(5))
+                .send()
+                .await
+                .ok()?
+                .error_for_status()
+                .ok()?
+                .json::<HashMap<String, i64>>()
+                .await
+                .ok()
+        }
+    }))
+    .buffer_unordered(4)
+    .collect::<Vec<_>>()
+    .await;
+
+    // Distinguish "no public repos" (a legitimately empty result) from
+    // "every fetch failed" (a transient GitHub error), so a rate limit or
+    // outage doesn't silently overwrite stored languages with {}.
+    if !public_repos.is_empty() && language_fetches.iter().all(Option::is_none) {
+        return None;
+    }
+
+    let mut languages: HashMap<String, i64> = HashMap::new();
+    for repo_languages in language_fetches.into_iter().flatten() {
+        for (lang, bytes) in repo_languages {
+            *languages.entry(lang).or_insert(0) += bytes;
+        }
+    }
+
+    Some(RepoMeta {
+        languages,
+        is_private: false,
+    })
+}
+
 /// List the repositories the configured GitHub token (or the admin's public
 /// profile, when no token is set) can see. Used by the admin UI to import
 /// projects. Fails the request when GitHub is unreachable, since the caller
@@ -181,7 +298,7 @@ pub async fn fetch_user_repos(config: &Config) -> anyhow::Result<Vec<GithubRepo>
 
 #[cfg(test)]
 mod tests {
-    use super::repo_path;
+    use super::{account_path, repo_path};
 
     #[test]
     fn parses_github_repo_urls() {
@@ -204,5 +321,36 @@ mod tests {
         assert!(repo_path("https://gitlab.com/org/repo").is_none());
         assert!(repo_path("https://example.com/x").is_none());
         assert!(repo_path("").is_none());
+    }
+
+    #[test]
+    fn rejects_repo_urls_with_query_or_fragment_segments() {
+        assert!(repo_path("https://github.com/org?evil=1/repo").is_none());
+        assert!(repo_path("https://github.com/org/repo#evil").is_none());
+    }
+
+    #[test]
+    fn parses_github_account_urls() {
+        assert_eq!(
+            account_path("https://github.com/Taskloops"),
+            Some("Taskloops".into())
+        );
+        assert_eq!(
+            account_path("https://github.com/Taskloops/"),
+            Some("Taskloops".into())
+        );
+    }
+
+    #[test]
+    fn rejects_repo_and_non_github_urls_as_accounts() {
+        assert!(account_path("https://github.com/org/repo").is_none());
+        assert!(account_path("https://gitlab.com/org").is_none());
+        assert!(account_path("").is_none());
+    }
+
+    #[test]
+    fn rejects_account_urls_with_query_or_fragment_segments() {
+        assert!(account_path("https://github.com/org?evil=1").is_none());
+        assert!(account_path("https://github.com/org#evil").is_none());
     }
 }

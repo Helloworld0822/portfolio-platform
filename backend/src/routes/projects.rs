@@ -8,9 +8,10 @@ use crate::error::AppError;
 use crate::github_repo;
 use crate::models::{CreateProjectRequest, Project, UpdateProjectRequest};
 
-/// Best-effort: enrich a project with its GitHub repo's language breakdown and
-/// privacy flag. Falls back to the supplied defaults when the URL is not a
-/// GitHub repo or the API call fails.
+/// Best-effort: enrich a project with its GitHub repo's (or org/account's,
+/// aggregated across its public repos) language breakdown and privacy flag.
+/// Falls back to the supplied defaults when the URL isn't a GitHub repo or
+/// account, or the API call fails.
 async fn fetch_repo_meta(
     config: &Config,
     repo_url: Option<&str>,
@@ -19,7 +20,16 @@ async fn fetch_repo_meta(
     let Some(url) = repo_url else {
         return default.unwrap_or((serde_json::json!({}), false));
     };
-    match github_repo::fetch_repo_meta(config, url).await {
+
+    let meta = if github_repo::repo_path(url).is_some() {
+        github_repo::fetch_repo_meta(config, url).await
+    } else if let Some(login) = github_repo::account_path(url) {
+        github_repo::fetch_org_meta(config, &login).await
+    } else {
+        None
+    };
+
+    match meta {
         Some(meta) => (
             serde_json::to_value(meta.languages).unwrap_or(serde_json::json!({})),
             meta.is_private,
