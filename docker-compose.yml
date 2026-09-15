@@ -66,8 +66,9 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-blog}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-blog}", "-d", "${POSTGRES_DB:-portfolio_blog}"]
       interval: 5s
       timeout: 3s
       retries: 5
