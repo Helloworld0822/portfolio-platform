@@ -1,0 +1,49 @@
+# Environment / secrets
+.env
+.env.local
+
+# Node
+node_modules/
+frontend/dist/
+npm-debug.log*
+frontend/package-lock.json
+
+# Rust
+backend/target/
+backend/Cargo.lock
+
+# OMC / Claude
+.omc/
+.claude/
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Agent orchestration
+.omo/
+
+# Other AI coding agents / assistants
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.codeium/
+.continue/
+.clinerules/
+.roo/
+.aider*
+.github/copilot-instructions.md
+GEMINI.md
+.gemini/
+.qwen/
+
+# Model weights / large binaries
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+models/
