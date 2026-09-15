@@ -28,8 +28,10 @@ const PostManager = () => {
   const [isNew, setIsNew] = useState(false);
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
 
   const loadPosts = useCallback(() => {
     setPosts(null);
@@ -53,6 +55,7 @@ const PostManager = () => {
     setIsNew(true);
     setPreview(false);
     setSaveError(null);
+    setDraftSavedAt(null);
     setEditing({
       id: 0,
       title: "",
@@ -67,6 +70,7 @@ const PostManager = () => {
     setIsNew(false);
     setPreview(false);
     setSaveError(null);
+    setDraftSavedAt(null);
     setEditing({
       ...post,
       content_markdown: "",
@@ -88,6 +92,37 @@ const PostManager = () => {
     loadPosts();
   };
 
+  const submitPost = async (published: boolean): Promise<Post> => {
+    if (!editing) {
+      throw new Error("nothing to save");
+    }
+
+    const body: Record<string, unknown> = {
+      title: editing.title,
+      excerpt: editing.excerpt,
+      content_markdown: editing.content_markdown,
+      published,
+    };
+
+    const res = isNew
+      ? await authFetch("/api/admin/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+      : await authFetch(`/api/admin/posts/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+    if (!res.ok) {
+      throw new Error("save failed");
+    }
+
+    return (await res.json()) as Post;
+  };
+
   const handleSave = async () => {
     if (!editing) {
       return;
@@ -99,37 +134,39 @@ const PostManager = () => {
 
     setSaving(true);
     setSaveError(null);
-
-    const body: Record<string, unknown> = {
-      title: editing.title,
-      excerpt: editing.excerpt,
-      content_markdown: editing.content_markdown,
-      published: editing.published,
-    };
-
     try {
-      const res = isNew
-        ? await authFetch("/api/admin/posts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          })
-        : await authFetch(`/api/admin/posts/${editing.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-
-      if (!res.ok) {
-        throw new Error("save failed");
-      }
-
+      await submitPost(editing.published);
       setEditing(null);
       loadPosts();
     } catch {
       setSaveError("저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Saves as unpublished and keeps the editor open, unlike handleSave which
+  // closes it and returns to the list.
+  const handleSaveDraft = async () => {
+    if (!editing) {
+      return;
+    }
+    if (!editing.title.trim()) {
+      setSaveError("제목을 입력해주세요.");
+      return;
+    }
+
+    setSavingDraft(true);
+    setSaveError(null);
+    try {
+      const saved = await submitPost(false);
+      setEditing(saved);
+      setIsNew(false);
+      setDraftSavedAt(new Date());
+    } catch {
+      setSaveError("임시저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -289,12 +326,25 @@ const PostManager = () => {
           </label>
 
           {saveError && <p className="text-sm text-danger">{saveError}</p>}
+          {draftSavedAt && (
+            <p className="text-sm text-ink-subdued">
+              {draftSavedAt.toLocaleTimeString("ko-KR")}에 임시저장됨
+            </p>
+          )}
 
           <div className="flex gap-2">
             <button
               type="button"
+              onClick={handleSaveDraft}
+              disabled={savingDraft || saving}
+              className="rounded-md border border-border px-5 py-2 text-sm font-medium text-ink transition-colors duration-[240ms] hover:bg-surface-1 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingDraft ? "임시저장 중..." : "임시저장"}
+            </button>
+            <button
+              type="button"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || savingDraft}
               className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "저장 중..." : "저장"}
