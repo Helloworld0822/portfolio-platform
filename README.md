@@ -211,6 +211,8 @@ SSH로 배포 서버에 접속해 다음을 수행한다:
 
 - 배포 서버에 이 저장소를 클론해 두고, `git remote` 가 GitHub 과 연결되어 있어야 한다.
 - `.env` 에 실제 시크릿(`JWT_SECRET`, `GITHUB_CLIENT_*` 등)을 채워 둔다.
+- 배포 서버의 sshd 를 Cloudflare Tunnel (`ssh.<도메인>` → `ssh://localhost:22`) 로 노출한다.
+  GitHub Actions 러너는 `cloudflared access ssh` ProxyCommand 로 이 터널을 통해 접속한다.
 - GitHub Actions 러너에서 접속 가능한 SSH 키를 서버의 `authorized_keys` 에 등록한다.
 
 #### 필수 시크릿/변수 설정
@@ -219,10 +221,10 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 설�
 
 | 종류 | 이름 | 설명 |
 | --- | --- | --- |
-| Secret | `DEPLOY_HOST` | 배포 서버 IP/도메인 |
+| Secret | `DEPLOY_HOST` | SSH 터널 호스트명 (예: `ssh.helloworld0822.site`) |
 | Secret | `DEPLOY_USER` | SSH 접속 사용자 |
 | Secret | `DEPLOY_SSH_KEY` | SSH private key (서버 `authorized_keys` 에 등록된 키) |
-| Secret | `DEPLOY_PORT` | SSH 포트 (기본 22, 미설정 시 22 사용) |
-| Variable | `DEPLOY_PATH` | 서버에서 저장소가 클론된 절대 경로 (예: `/home/pi/portfolio-platform`) |
+| Secret | `DEPLOY_KNOWN_HOSTS` | 서버 호스트 키 known_hosts 줄 (미설정 시 첫 사용 시 자동 승인) |
+| Variable | `DEPLOY_PATH` | 서버에서 저장소가 클론된 절대 경로 |
 
 GitHub OAuth 콜백 URL 등 운영 설정은 코드에 커밋하지 말고 서버 `.env` 에만 둔다.

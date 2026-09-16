@@ -6,7 +6,7 @@ Guidance for AI agents working in this repository.
 
 Self-hosted portfolio + blog platform. React 19 + TypeScript + Vite + Tailwind 4
 frontend, Rust + Actix-web 4 + bb8/tokio-postgres backend, nginx gateway,
-PostgreSQL 16, deployed with Compose on a Raspberry Pi behind a Cloudflare
+PostgreSQL 16, deployed with Compose on the production host behind Cloudflare
 Tunnel. Two public hostnames share one stack:
 
 - **portfolio.helloworld0822.site** — `GET /`: portfolio home sections
@@ -26,7 +26,7 @@ host.
 | `docker-compose.yml` | nginx (build+serve frontend) + api + postgres |
 | `.env` (not committed) | Secrets + runtime config; `.env.example` is the template |
 | `.github/workflows/ci.yml` | fmt/clippy/test + npm lint/build + compose validation |
-| `.github/workflows/deploy.yml` | SSH deploy to the Pi (requires repo secrets) |
+| `.github/workflows/deploy.yml` | SSH deploy to the host via the Cloudflare Tunnel (requires repo secrets) |
 
 ## Local development
 
@@ -73,22 +73,31 @@ npm run lint
 npm run build
 ```
 
-## Deployment (Raspberry Pi)
+## Deployment
 
-Production host uses **podman-compose** (NOT docker). Key gotchas:
+The production host is this development machine (x86_64 Ubuntu, hostname
+`helloworld0822`) running **docker compose** from the main checkout
+`/home/helloworld0822/coding/portfolio-platform`; the sibling
+`portfolio-platform-{permit,steelhead}` directories are git worktrees.
+GitHub Actions (`deploy.yml`) SSHes in through the Cloudflare Tunnel, or you
+can deploy by hand with `git pull --ff-only origin main && docker compose up
+-d --build`. Key gotchas:
 
-1. **podman storage is vfs** → image builds are very slow. Be patient; prefer
-   reuse over rebuilds when only source changed.
-2. Images are built locally as `portfolio-platform-{nginx,api}:latest` (the
+1. Images are built locally as `portfolio-platform-{nginx,api}:latest` (the
    frontend is built into the nginx image; there's no separate frontend
    image or container).
-3. After rebuilding api, nginx can serve stale upstream DNS → 502.
-   Fix: `podman-compose up -d --force-recreate nginx`
-   (or `podman start portfolio-platform_nginx_1` if compose leaves it `Created`).
-4. `docker-compose` v5.5.0 on the Pi FAILS (no Docker socket) — always use
-   `podman-compose` there.
-5. Cloudflare Tunnel (`~/.cloudflared/config.yml`, tunnel `opencode-tunnel`)
-   maps both domains to localhost:80.
+2. After rebuilding api, nginx can serve stale upstream DNS → 502.
+   Fix: `docker compose up -d --force-recreate nginx`.
+3. Cloudflare tunnels: `~/.cloudflared/portfolio-platform-config.yml` maps
+   the public domains to localhost:80; `/etc/cloudflared/config.yml` exposes
+   sshd as `ssh.helloworld0822.site`. Plain TCP to that hostname does NOT
+   reach sshd — the deploy workflow connects via a
+   `cloudflared access ssh --hostname %h` ProxyCommand.
+4. Deploy needs repo secrets `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_SSH_KEY`
+   (+ optional `DEPLOY_KNOWN_HOSTS`) and the variable `DEPLOY_PATH`; the key
+   pair's public half is in `~/.ssh/authorized_keys`.
+5. The deploy runs `git reset --hard origin/main` in the main checkout, so
+   never leave uncommitted work there while a deploy may run.
 6. Uploaded files persist in an `uploads-data` volume mounted at
    `/app/uploads` — container recreation does not lose them.
 7. OAuth creds and secrets live only in the server `.env`; never commit `.env`.
