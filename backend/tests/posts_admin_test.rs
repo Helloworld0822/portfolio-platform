@@ -2,7 +2,7 @@ mod common;
 
 use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
-use portfolio_blog_api::models::Post;
+use portfolio_blog_api::models::{Post, PostSummary};
 use serde_json::json;
 
 async fn build_app(
@@ -186,4 +186,45 @@ async fn get_admin_post_returns_401_without_a_token() {
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), 401);
+}
+
+#[tokio::test]
+async fn list_admin_posts_reports_comment_count_for_drafts() {
+    let (pool, _db) = common::setup().await;
+    let id = {
+        let conn = pool.get().await.expect("get connection");
+        let row = conn
+            .query_one(
+                "INSERT INTO posts (title, excerpt, content_markdown, published)
+                 VALUES ('Draft With Comments', '', '', false)
+                 RETURNING id",
+                &[],
+            )
+            .await
+            .unwrap();
+        let id = row.get::<_, i64>("id");
+        conn.execute(
+            "INSERT INTO comments (post_id, author_login, body) VALUES ($1, 'commenter', 'a comment')",
+            &[&id],
+        )
+        .await
+        .expect("seeding a comment should succeed");
+        id
+    };
+
+    let app = build_app(pool).await;
+    let req = test::TestRequest::get()
+        .uri("/api/admin/posts")
+        .insert_header(common::auth_header())
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), 200);
+
+    let body: Vec<PostSummary> = test::read_body_json(resp).await;
+    let summary = body
+        .iter()
+        .find(|post| post.id == id)
+        .expect("seeded draft should be listed");
+    assert_eq!(summary.comment_count, 1);
 }

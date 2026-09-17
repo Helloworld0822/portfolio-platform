@@ -46,6 +46,7 @@ pub struct PostSummary {
     pub title: String,
     pub excerpt: String,
     pub created_at: DateTime<Utc>,
+    pub comment_count: i64,
 }
 
 impl TryFrom<&Row> for PostSummary {
@@ -57,6 +58,9 @@ impl TryFrom<&Row> for PostSummary {
             excerpt: row.try_get::<_, String>("excerpt").map_err(|_| row_err())?,
             created_at: row
                 .try_get::<_, DateTime<Utc>>("created_at")
+                .map_err(|_| row_err())?,
+            comment_count: row
+                .try_get::<_, i64>("comment_count")
                 .map_err(|_| row_err())?,
         })
     }

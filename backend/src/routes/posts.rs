@@ -16,9 +16,12 @@ pub async fn list_posts(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
     let conn = pool.get().await?;
     let rows = conn
         .query(
-            "SELECT id, title, excerpt, created_at FROM posts
-             WHERE published = true
-             ORDER BY created_at DESC",
+            "SELECT p.id, p.title, p.excerpt, p.created_at, COUNT(c.id) AS comment_count
+             FROM posts p
+             LEFT JOIN comments c ON c.post_id = p.id
+             WHERE p.published = true
+             GROUP BY p.id
+             ORDER BY p.created_at DESC",
             &[],
         )
         .await?;
@@ -110,7 +113,11 @@ pub async fn list_admin_posts(
     let conn = pool.get().await?;
     let rows = conn
         .query(
-            "SELECT id, title, excerpt, created_at FROM posts ORDER BY created_at DESC",
+            "SELECT p.id, p.title, p.excerpt, p.created_at, COUNT(c.id) AS comment_count
+             FROM posts p
+             LEFT JOIN comments c ON c.post_id = p.id
+             GROUP BY p.id
+             ORDER BY p.created_at DESC",
             &[],
         )
         .await?;

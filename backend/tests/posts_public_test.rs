@@ -20,6 +20,16 @@ async fn seed_post(pool: &common::PgPool, title: &str, published: bool) -> i64 {
     row.get::<_, i64>("id")
 }
 
+async fn seed_comment(pool: &common::PgPool, post_id: i64) {
+    let conn = pool.get().await.expect("get connection");
+    conn.execute(
+        "INSERT INTO comments (post_id, author_login, body) VALUES ($1, 'commenter', 'a comment')",
+        &[&post_id],
+    )
+    .await
+    .expect("seeding a comment should succeed");
+}
+
 #[tokio::test]
 async fn list_posts_returns_only_published() {
     let (pool, _db) = common::setup().await;
@@ -39,6 +49,37 @@ async fn list_posts_returns_only_published() {
 
     assert_eq!(body.len(), 1);
     assert_eq!(body[0].id, id);
+}
+
+#[tokio::test]
+async fn list_posts_reports_comment_count() {
+    let (pool, _db) = common::setup().await;
+    let quiet = seed_post(&pool, "No Comments", true).await;
+    let popular = seed_post(&pool, "Two Comments", true).await;
+    seed_comment(&pool, popular).await;
+    seed_comment(&pool, popular).await;
+
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(common::test_config()))
+            .app_data(web::Data::new(pool))
+            .configure(configure_app),
+    )
+    .await;
+
+    let req = test::TestRequest::get().uri("/api/posts").to_request();
+    let body: Vec<PostSummary> = test::call_and_read_body_json(&app, req).await;
+
+    let quiet_summary = body
+        .iter()
+        .find(|post| post.id == quiet)
+        .expect("quiet post should be listed");
+    let popular_summary = body
+        .iter()
+        .find(|post| post.id == popular)
+        .expect("popular post should be listed");
+    assert_eq!(quiet_summary.comment_count, 0);
+    assert_eq!(popular_summary.comment_count, 2);
 }
 
 #[tokio::test]
