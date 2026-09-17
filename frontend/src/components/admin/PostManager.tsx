@@ -8,9 +8,10 @@ interface PostSummary {
   title: string;
   excerpt: string;
   created_at: string;
+  comment_count: number;
 }
 
-interface Post extends PostSummary {
+interface Post extends Omit<PostSummary, "comment_count"> {
   content_markdown: string;
   published: boolean;
 }
@@ -393,7 +394,8 @@ const PostManager = () => {
             <div className="min-w-0">
               <div className="truncate font-medium text-ink">{post.title}</div>
               <div className="mt-0.5 truncate text-xs text-ink-subdued">
-                #{post.id} · {new Date(post.created_at).toLocaleDateString("ko-KR")}
+                #{post.id} · {new Date(post.created_at).toLocaleDateString("ko-KR")} ·{" "}
+                댓글 {post.comment_count}
               </div>
             </div>
             <div className="flex shrink-0 gap-2">

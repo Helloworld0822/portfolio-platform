@@ -6,6 +6,7 @@ interface PostSummary {
   title: string;
   excerpt: string;
   created_at: string;
+  comment_count: number;
 }
 
 const BlogList = () => {
@@ -55,8 +56,9 @@ const BlogList = () => {
               <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">
                 {post.excerpt}
               </p>
-              <span className="mt-5 text-xs text-ink-subdued">
-                {new Date(post.created_at).toLocaleDateString("ko-KR")}
+              <span className="mt-5 flex items-center gap-3 text-xs text-ink-subdued">
+                <span>{new Date(post.created_at).toLocaleDateString("ko-KR")}</span>
+                <span>댓글 {post.comment_count}</span>
               </span>
             </Link>
           ))}
