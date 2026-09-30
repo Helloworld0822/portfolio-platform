@@ -18,3 +18,7 @@ jobs:
         run: sh backend-forge/scripts/test-integration.sh
       - name: Validate Forge Compose override
         run: docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.forge.yml config --quiet
+      - name: Build Forge browser frontend
+        run: docker build -f frontend-forge/Containerfile -t forge-frontend-check .
+      - name: Validate combined frontend and backend overrides
+        run: docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.forge.yml -f docker-compose.frontend-forge.yml config --quiet

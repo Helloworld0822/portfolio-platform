@@ -1,0 +1,12 @@
+import {execFileSync} from 'node:child_process';
+import {mkdirSync,copyFileSync,writeFileSync} from 'node:fs';
+import {resolve,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {build} from 'esbuild';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');const forge=process.env.FORGE_BIN??resolve(root,'../backend-forge/build/toolchain/bin/forge');
+const browser=process.env.FORGE_BROWSER_SOURCE??resolve(root,'../backend-forge/vendor/forge-browser');
+mkdirSync(resolve(root,'generated'),{recursive:true});mkdirSync(resolve(root,'dist'),{recursive:true});
+execFileSync(forge,[resolve(root,'src/main.fg'),'--emit-js','-o',resolve(root,'generated/app.js'),'-I',browser,'-I',resolve(root,'../backend-forge/vendor/forge-web')],{stdio:'inherit'});
+writeFileSync(resolve(root,'generated/entry.js'),`import ${JSON.stringify(resolve(browser,'src/bridge.js'))};\nimport './app.js';\n`);
+await build({entryPoints:[resolve(root,'generated/entry.js')],bundle:true,minify:true,outfile:resolve(root,'dist/app.js'),format:'iife',target:'es2022'});
+copyFileSync(resolve(root,'index.html'),resolve(root,'dist/index.html'));copyFileSync(resolve(root,'style.css'),resolve(root,'dist/style.css'));

@@ -1,12 +1,8 @@
-# Pinned Forge compiler snapshot
+# Pinned Forge toolchain
 
-Minimal compiler/runtime/standard-library sources from the local Forge repository
-at ed0a3a6, including the reviewed September 30, 2026 fixes and migration support:
-imported extern declarations, typed module string calls and module prototypes.
-The original MIT license is retained. This source snapshot makes the migration
-build reproducible while the upstream repository URL is unavailable. No Rust
-runtime is used. Examples, benchmarks, editor tools and Lean files are excluded.
+Compiler/runtime/include/stdlib from Helloworld0822/forge commit 9a6109c,
+with a minimal CMake packaging file. Includes native module FFI fixes, resource
+lifetime fixes and JavaScript output. Compiler/runtime remain C; application
+policy is Forge. OpenCL is disabled in this minimal snapshot.
 
-Compiler changes remain in the original Forge workspace as well. To refresh the
-snapshot, review/copy compiler/, include/, runtime/ and stdlib/ together and rerun
-compiler regressions and portfolio integration tests. Do not mix runtime ABIs.
+https://github.com/Helloworld0822/forge — MIT, see LICENSE.

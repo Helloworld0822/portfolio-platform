@@ -236,3 +236,6 @@ with separate PostgreSQL and HTTP/JSON modules pinned as Git submodules.
 See [the migration report](docs/forge-migration.md) for tests, compatibility and
 Compose rollout/rollback. Run `sh backend-forge/scripts/test-integration.sh` after
 initializing submodules. The default Compose/deployment path remains Rust.
+
+Forge 브라우저 프런트엔드: `frontend-forge/README.md`.
+Rust/Forge API 측정 결과: `docs/forge-performance.md`.

@@ -37,6 +37,7 @@ static void usage(const char *prog) {
     fprintf(stderr, "  %s <input.fg> -o <output.c> --emit-c   Emit C source only\n", prog);
     fprintf(stderr, "  %s --lib <input.fg> -o <lib.a> --header <lib.h>\n", prog);
     fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  --emit-js          Emit JavaScript for browser/native-JS FFI\n");
     fprintf(stderr, "  --emit-c           Emit C instead of a native binary\n");
     fprintf(stderr, "  --forge-root PATH  Project root (include/, build/lib)\n");
     fprintf(stderr, "  --lib-dir PATH     Directory containing libforge_*.a\n");
@@ -62,6 +63,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    bool emit_js = false;
     bool lib_mode = false;
     bool check_only = false;
     bool symbols_json = false;
@@ -73,12 +75,16 @@ int main(int argc, char **argv) {
     forge_driver_config_init(&cfg);
     forge_driver_detect_paths(&cfg, argv[0]);
 
-    const char *includes[32];
+    const char *includes[256];
     const char *link_libs[32];
     size_t include_count = 0;
     size_t link_lib_count = 0;
 
     for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--version") == 0) {
+            printf("forge %s\n", FORGE_VERSION);
+            return 0;
+        }
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             usage(argv[0]);
             return 0;
@@ -88,6 +94,8 @@ int main(int argc, char **argv) {
             output = option_value(argc, argv, &i);
         } else if (strcmp(argv[i], "--header") == 0) {
             header = option_value(argc, argv, &i);
+        } else if (strcmp(argv[i], "--emit-js") == 0) {
+            emit_js = true;
         } else if (strcmp(argv[i], "--emit-c") == 0) {
             cfg.emit_c_only = true;
         } else if (strcmp(argv[i], "--forge-root") == 0) {
@@ -105,7 +113,7 @@ int main(int argc, char **argv) {
             cfg.keep_intermediate = true;
         } else if (strcmp(argv[i], "-I") == 0) {
             if (include_count == sizeof(includes) / sizeof(includes[0]))
-                forge_die("too many include directories (maximum 32)");
+                forge_die("too many include directories (maximum 256)");
             includes[include_count++] = option_value(argc, argv, &i);
         } else if (strcmp(argv[i], "-l") == 0) {
             if (link_lib_count == sizeof(link_libs) / sizeof(link_libs[0]))
@@ -163,7 +171,13 @@ int main(int argc, char **argv) {
     }
 
     int rc = 0;
-    if (lib_mode) {
+    if (emit_js) {
+        if (lib_mode || cfg.emit_c_only || !output || link_lib_count) forge_die("--emit-js requires -o and cannot be combined with native library options");
+        FILE *out_js = fopen(output, "wb");
+        if (!out_js) forge_die("cannot open JavaScript output");
+        codegen_emit_js(&prog, out_js);
+        if (fclose(out_js) != 0) forge_die("cannot write JavaScript output");
+    } else if (lib_mode) {
         if (!output) {
             fprintf(stderr, "forge: library mode requires -o\n");
             rc = 1;

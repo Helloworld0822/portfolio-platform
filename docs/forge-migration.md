@@ -88,3 +88,17 @@ docker compose -f docker-compose.yml up -d --force-recreate nginx
 
 이 작업에서는 운영 Compose, 운영 DB 및 실제 `.env`를 변경하지 않았다.
 기존 main 자동 배포는 유지되며, Forge 사용은 override를 선택하는 별도 전환이다.
+
+## Forge 브라우저 프런트엔드
+
+`frontend-forge/src/*.fg`가 공개 페이지와 관리자 화면의 라우팅·API·세션·
+콘텐츠 동작을 구현합니다. `forge --emit-js`와 독립 `forge-browser` 모듈을
+통해 브라우저에서 실행합니다. 관리자 편집기는 API 필드를 JSON으로
+편집하며, 기존 React 화면과 시각적 동일성을 목표로 하지는 않습니다.
+GitHub 가져오기, 업로드, Markdown 미리보기, 댓글, 문의, 경력 순서 변경,
+차단 관리를 포함합니다. `docker-compose.frontend-forge.yml`로 선택할 수
+있습니다. 현재 구성은 한 origin의 `/blog` 경로를 사용합니다.
+
+성능 측정 조건과 원시 자료는 `forge-performance.md`, `forge-performance.json`,
+`forge-build-performance.json`을 확인하세요. 하나의 공유 호스트에서 측정한
+구현 간 비교이며 언어 전체의 우열을 나타내지 않습니다.

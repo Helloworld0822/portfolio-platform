@@ -162,3 +162,10 @@ can deploy by hand with `git pull --ff-only origin main && docker compose up
   Seeded by `migrations/0008_timeline.sql`.
 - DB columns added by `migrations/0007_*`: `repo_languages JSONB`,
   `repo_private BOOLEAN`, `attachments JSONB`.
+### Forge frontend
+
+`frontend-forge/src` contains the Forge browser application. Build through
+frontend-forge/scripts/build.mjs, using the pinned JavaScript compiler and browser
+Git submodule. Run Playwright against a disposable API; never create fixtures in
+the production database. Performance scripts target explicitly named test
+containers and record raw measurements under docs/.

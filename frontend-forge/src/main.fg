@@ -1,0 +1,3 @@
+import app;
+import browser;
+native main { browser.start(app.render); return 0; }

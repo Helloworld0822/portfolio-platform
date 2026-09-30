@@ -103,10 +103,10 @@ static bool is_prebuilt_lib(const char *lib_dir, ForgeStr name) {
 static bool resolve_module_path(ModuleResolver *r, ForgeStr name, ForgeStr rel_path,
                               char *out, size_t cap) {
     char candidate[PATH_MAX];
-    const char *bases[32];
+    const char *bases[257];
     size_t base_count = 0;
     bases[base_count++] = r->entry_dir;
-    for (size_t i = 0; i < r->cfg->include_dir_count && base_count < 32; i++)
+    for (size_t i = 0; i < r->cfg->include_dir_count && base_count < 257; i++)
         bases[base_count++] = r->cfg->include_dirs[i];
 
     if (rel_path.len > 0) {

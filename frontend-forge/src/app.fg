@@ -1,0 +1,103 @@
+import browser;
+import web;
+import ui;
+import strings;
+fn token(): string{return browser.load("auth_token");}
+fn user(): int{return browser.claims(token());}
+fn admin(): int{return web.equal(web.field_text(user(),"role"),"admin") && web.field_int(user(),"exp")>web.now();}
+fn context(kind: string,data: int): string{
+ let c: int=web.object();web.set(c,"kind",web.jstring(kind));web.set(c,"epoch",web.jstring(browser.state_get("render_epoch")));web.set(c,"data",data);return web.dump(c);
+}
+fn valid_reply(reply: int): int {let c: int=web.parse(web.field_text(reply,"context"));return web.equal(web.field_text(c,"epoch"),browser.state_get("render_epoch"));}
+fn reply_context(reply: int): int {return web.parse(web.field_text(reply,"context"));}
+fn get(path: string,kind: string,data: int): int{return browser.request(path,"GET","",token(),app.received,context(kind,data));}
+fn logout(unused: string): int{browser.store("auth_token","");return render("");}
+fn route(path: string): int{return browser.navigate(path,app.render);}
+fn goto(path: string): int{return route(path);}
+fn submit_request(path: string,method: string,body: string): int{return browser.request(path,method,body,token(),app.changed,context("changed",0));}
+fn changed(reply: int): int {
+ if(valid_reply(reply)==0){return 0;}let status: int=web.field_int(reply,"status");
+ if(status>=200&&status<300){render("");return ui.notice("저장했습니다.");}
+ return ui.notice(str_concat("요청 실패: ",web.dump(web.get(reply,"data"))));
+}
+fn contact(unused: string): int {
+ let body: int=web.object();web.set(body,"name",web.jstring(browser.value("contact-name")));web.set(body,"email",web.jstring(browser.value("contact-email")));web.set(body,"message",web.jstring(browser.value("contact-message")));return submit_request("/api/contact","POST",web.dump(body));
+}
+fn add_comment(id: string): int {let body: int=web.object();web.set(body,"body",web.jstring(browser.value("comment-body")));return submit_request(str_concat(str_concat("/api/posts/",id),"/comments"),"POST",web.dump(body));}
+fn remove(path: string): int{return submit_request(path,"DELETE","");}
+fn fetch_rows(parent: int,path: string,kind: string): int{ui.id(parent,kind);return get(path,kind,0);}
+fn shell(): int {
+ let root: int=browser.root();browser.clear(root);let header: int=ui.el(root,"header","");ui.link(header,"전재민 · Portfolio","/");let nav: int=ui.el(header,"nav","");ui.link(nav,"블로그","/blog");ui.link(nav,"GitHub","https://github.com/Helloworld0822");
+ if(admin()!=0){ui.link(nav,"관리","/admin/posts");}if(str_len(token())>0){ui.button(nav,"로그아웃",app.logout,"");}else{ui.link(nav,"GitHub 로그인",str_concat("/api/auth/github/login?state=",browser.path()));}
+ let main: int=ui.el(root,"main","");let notice: int=ui.box(main,"notice");ui.id(notice,"notice");let content: int=ui.box(main,"");ui.id(content,"content");ui.el(root,"footer","Forge로 작성한 포트폴리오 · DOM과 네트워크는 브라우저 브리지로 연결합니다.");return content;
+}
+fn home(parent: int): int {
+ let hero: int=ui.box(parent,"hero");ui.el(hero,"h1","문제를 발견하고,\n동작하는 제품으로 만듭니다.");ui.text(hero,"전재민 — 선린인터넷고등학교 소프트웨어과. 풀스택 개발과 언어·런타임 구현을 공부하며 웹과 앱을 만들고 있습니다.");ui.link(hero,"작성한 글 보기 →","/blog");
+ let projects: int=ui.el(parent,"section","");ui.heading(projects,"프로젝트");let items: int=ui.box(projects,"grid");fetch_rows(items,"/api/projects","projects");
+ let experience: int=ui.el(parent,"section","");ui.heading(experience,"경력과 활동");let timeline: int=ui.box(experience,"");fetch_rows(timeline,"/api/timeline","timeline");
+ let skills: int=ui.el(parent,"section","");ui.heading(skills,"사용하는 기술");ui.text(skills,"Rust · Forge · TypeScript · React · PostgreSQL · Docker");
+ let contact_form: int=ui.el(parent,"section","");ui.heading(contact_form,"함께 이야기해요");ui.field(contact_form,"contact-name","이름","",0);let email: int=ui.field(contact_form,"contact-email","이메일","",0);browser.attr(email,"type","email");ui.field(contact_form,"contact-message","메시지","",1);ui.button(contact_form,"문의 보내기",app.contact,"");return 1;
+}
+fn blog(parent: int): int {ui.el(parent,"h1","블로그");ui.text(parent,"개발하면서 배운 것과 만든 것들을 기록합니다.");let items: int=ui.box(parent,"grid");return fetch_rows(items,"/api/posts","posts");}
+fn post(parent: int,id: string): int {
+ let article: int=ui.box(parent,"post");ui.id(article,"post");get(str_concat("/api/posts/",id),"post",web.jstring(id));let comments: int=ui.box(parent,"post");ui.heading(comments,"댓글");let rows: int=ui.box(comments,"");fetch_rows(rows,str_concat(str_concat("/api/posts/",id),"/comments"),"comments");
+ if(str_len(token())>0){ui.field(comments,"comment-body","댓글","",1);ui.button(comments,"댓글 작성",app.add_comment,id);}else{ui.text(comments,"댓글을 남기려면 GitHub로 로그인해 주세요.");}return 1;
+}
+fn template(resource: string): string {
+ if(web.equal(resource,"posts")!=0){return "{\"title\":\"새 글\",\"excerpt\":\"요약\",\"content_markdown\":\"# 본문\",\"published\":false}";}
+ if(web.equal(resource,"projects")!=0){return "{\"title\":\"새 프로젝트\",\"description\":\"설명\",\"details\":[],\"tags\":[],\"status\":\"진행 중\",\"published\":false,\"attachments\":[]}";}
+ if(web.equal(resource,"timeline")!=0){return "{\"period\":\"2026\",\"title\":\"활동\",\"org\":\"기관\",\"description\":\"설명\"}";}
+ return "{}";
+}
+fn preview(unused: string): int {let body: int=web.parse(browser.value("editor-json"));let area: int=browser.find("preview");browser.clear(area);return browser.markdown(area,web.field_text(body,"content_markdown"));}
+fn save(info: string): int {let c: int=web.parse(info);let body: string=browser.value("editor-json");if(web.kind(web.parse(body))!=4){return ui.notice("JSON 형식을 확인해 주세요.");}return submit_request(web.field_text(c,"path"),web.field_text(c,"method"),body);}
+fn edit(info: string): int {
+ let c: int=web.parse(info);let area: int=browser.find("editor");browser.clear(area);ui.heading(area,"편집");ui.text(area,"API 필드를 JSON으로 편집합니다. 공개 여부, 프로젝트 태그·첨부 파일도 함께 수정할 수 있습니다.");ui.field(area,"editor-json","내용 (JSON)",web.field_text(c,"body"),1);ui.button(area,"저장",app.save,info);ui.button(area,"Markdown 미리보기",app.preview,"");let preview_area: int=ui.box(area,"markdown");ui.id(preview_area,"preview");return 1;
+}
+fn new_item(resource: string): int {let c: int=web.object();web.set(c,"path",web.jstring(str_concat("/api/admin/",resource)));web.set(c,"method",web.jstring("POST"));web.set(c,"body",web.jstring(template(resource)));return edit(web.dump(c));}
+fn uploaded(reply: int): int {if(valid_reply(reply)==0){return 0;}let data: int=web.get(reply,"data");if(web.field_int(reply,"status")<200||web.field_int(reply,"status")>=300){return ui.notice(web.dump(data));}return ui.notice(str_concat("업로드 완료 — 글 또는 프로젝트 첨부 URL: ",web.dump(data)));}
+fn upload(unused: string): int{return browser.upload("upload-file","/api/admin/uploads",token(),app.uploaded,context("upload",0));}
+fn reorder(unused: string): int {let value: int=web.parse(browser.value("timeline-order"));if(web.kind(value)!=5){return ui.notice("UUID 배열을 입력하세요.");}let body: int=web.object();web.set(body,"ids",value);return submit_request("/api/admin/timeline/reorder","POST",web.dump(body));}
+fn dedupe(unused: string): int{return submit_request("/api/admin/contact/dedupe","POST","{}");}
+fn ban(info: string): int {let kind: string=info;let value: int=web.parse(browser.value("ban-json"));if(web.kind(value)!=4){return ui.notice("JSON을 입력하세요.");}return submit_request(str_concat("/api/admin/bans/",kind),"POST",web.dump(value));}
+fn github(unused: string): int{return get("/api/admin/github/repos","github",0);}
+fn import_repo(info: string): int {
+ let repo: int=web.parse(info);let body: int=web.parse(template("projects"));web.set(body,"title",web.get(repo,"name"));web.set(body,"description",web.jstring(web.field_text(repo,"description")));web.set(body,"url",web.get(repo,"html_url"));let c: int=web.object();web.set(c,"path",web.jstring("/api/admin/projects"));web.set(c,"method",web.jstring("POST"));web.set(c,"body",web.jstring(web.dump(body)));return edit(web.dump(c));
+}
+fn manage(parent: int,resource: string): int {
+ ui.el(parent,"h1","콘텐츠 관리");if(admin()==0){ui.text(parent,"관리자 계정으로 로그인해 주세요.");return 0;}
+ let tabs: int=ui.box(parent,"toolbar");ui.link(tabs,"글","/admin/posts");ui.link(tabs,"프로젝트","/admin/projects");ui.link(tabs,"경력","/admin/timeline");ui.link(tabs,"문의","/admin/contact");ui.link(tabs,"차단","/admin/bans");
+ let editor: int=ui.box(parent,"");ui.id(editor,"editor");let rows: int=ui.box(parent,"grid");ui.id(rows,"admin-rows");
+ if(web.equal(resource,"posts")!=0||web.equal(resource,"projects")!=0||web.equal(resource,"timeline")!=0){ui.button(tabs,"새 항목",app.new_item,resource);get(str_concat("/api/admin/",resource),"admin",web.jstring(resource));}
+ if(web.equal(resource,"posts")!=0||web.equal(resource,"projects")!=0){let file: int=ui.field(parent,"upload-file","이미지·첨부 파일","",0);browser.attr(file,"type","file");ui.button(parent,"파일 업로드",app.upload,"");}
+ if(web.equal(resource,"projects")!=0){ui.button(tabs,"GitHub에서 가져오기",app.github,"");let github_rows: int=ui.box(parent,"grid");ui.id(github_rows,"github");}
+ if(web.equal(resource,"timeline")!=0){ui.field(parent,"timeline-order","정렬할 항목 UUID 배열","[]",1);ui.button(parent,"순서 저장",app.reorder,"");}
+ if(web.equal(resource,"contact")!=0){get("/api/admin/contact","admin",web.jstring(resource));ui.button(tabs,"중복 문의 정리",app.dedupe,"");}
+ if(web.equal(resource,"bans")!=0){get("/api/admin/bans","bans",0);ui.field(parent,"ban-json","차단 대상 JSON","{\"ip\":\"203.0.113.1\",\"reason\":\"사유\"}",1);ui.button(parent,"IP 차단",app.ban,"ips");ui.button(parent,"사용자 차단",app.ban,"users");ui.text(parent,"사용자 차단은 {\"login\":\"GitHub사용자\",\"reason\":\"사유\"} 형식입니다.");}return 1;
+}
+fn received(reply: int): int {
+ if(valid_reply(reply)==0){return 0;}let status: int=web.field_int(reply,"status");let data: int=web.get(reply,"data");let c: int=reply_context(reply);let kind: string=web.field_text(c,"kind");
+ if(status!=200){return ui.notice(str_concat("데이터 조회 실패: ",web.dump(data)));}
+ if(web.equal(kind,"post")!=0){let area: int=browser.find("post");browser.clear(area);ui.el(area,"h1",web.field_text(data,"title"));browser.markdown(area,web.field_text(data,"content_markdown"));return 1;}
+ if(web.equal(kind,"bans")!=0){let area: int=browser.find("admin-rows");browser.clear(area);let types: int=web.parse("[\"ips\",\"users\"]");let t: int=0;while(t<2){let typ: string=web.text(web.at(types,t));let items: int=web.get(data,typ);let i: int=0;while(i<web.count(items)){let item: int=web.at(items,i);let card: int=ui.box(area,"card");ui.text(card,web.dump(item));let key: string="ip";if(web.equal(typ,"users")!=0){key="login";}ui.button(card,"차단 해제",app.remove,str_concat(str_concat(str_concat("/api/admin/bans/",typ),"/"),web.urlencode(web.field_text(item,key))));i=i+1;}t=t+1;}return 1;}
+ let area: int=browser.find(kind);if(web.equal(kind,"admin")!=0){area=browser.find("admin-rows");}if(area==0){return 0;}browser.clear(area);let i: int=0;
+ if(web.count(data)==0){ui.text(area,"아직 등록된 내용이 없습니다.");}
+ while(i<web.count(data)){
+  let item: int=web.at(data,i);let card: int=ui.box(area,"card");
+  if(web.equal(kind,"projects")!=0){ui.el(card,"h3",web.field_text(item,"title"));ui.text(card,web.field_text(item,"description"));let tags: int=web.get(item,"tags");ui.el(card,"p",web.dump(tags));let details: int=web.get(item,"details");let j: int=0;while(j<web.count(details)){ui.text(card,web.text(web.at(details,j)));j=j+1;}if(str_len(web.field_text(item,"url"))>0){ui.link(card,"저장소 ↗",web.field_text(item,"url"));}if(str_len(web.field_text(item,"demo_url"))>0){ui.link(card,"서비스 ↗",web.field_text(item,"demo_url"));}let files: int=web.get(item,"attachments");j=0;while(j<web.count(files)){let file: int=web.at(files,j);ui.link(card,web.field_text(file,"name"),web.field_text(file,"url"));j=j+1;}}
+  if(web.equal(kind,"timeline")!=0){ui.el(card,"h3",web.field_text(item,"title"));ui.text(card,str_concat(str_concat(web.field_text(item,"period")," · "),web.field_text(item,"org")));ui.text(card,web.field_text(item,"description"));}
+  if(web.equal(kind,"posts")!=0){ui.link(card,web.field_text(item,"title"),str_concat("/blog/",ui.item_id(item)));ui.text(card,web.field_text(item,"excerpt"));ui.el(card,"p",str_concat("댓글 ",web.dump(web.get(item,"comment_count"))));}
+  if(web.equal(kind,"comments")!=0){ui.el(card,"h3",web.field_text(item,"author_login"));ui.text(card,web.field_text(item,"body"));if(admin()!=0||web.equal(web.field_text(user(),"sub"),web.field_text(item,"author_login"))!=0){ui.button(card,"삭제",app.remove,str_concat("/api/comments/",ui.item_id(item)));}}
+  if(web.equal(kind,"admin")!=0){let resource: string=web.text(web.get(c,"data"));ui.el(card,"h3",web.field_text(item,"title"));ui.el(card,"pre",web.dump(item));let path: string=str_concat(str_concat(str_concat("/api/admin/",resource),"/"),ui.item_id(item));let e: int=web.object();web.set(e,"path",web.jstring(path));web.set(e,"method",web.jstring("PUT"));web.set(e,"body",web.jstring(web.dump(item)));if(web.equal(resource,"contact")==0){ui.button(card,"편집",app.edit,web.dump(e));}ui.button(card,"삭제",app.remove,path);}
+  if(web.equal(kind,"github")!=0){ui.el(card,"h3",web.field_text(item,"name"));ui.text(card,web.field_text(item,"description"));ui.button(card,"프로젝트로 가져오기",app.import_repo,web.dump(item));}
+  i=i+1;
+ }
+ return 1;
+}
+fn render(unused: string): int {
+ browser.state("render_epoch",web.uuid());let parent: int=shell();let path: string=browser.path();
+ if(web.equal(path,"/")!=0){return home(parent);}if(web.equal(path,"/blog")!=0||web.equal(path,"/blog/")!=0){return blog(parent);}
+ if(web.starts(path,"/blog/")!=0){return post(parent,str_sub(path,6,str_len(path)-6));}
+ if(web.starts(path,"/admin")!=0){let resource: string="posts";if(str_len(path)>7){resource=str_sub(path,7,str_len(path)-7);}return manage(parent,resource);}
+ ui.el(parent,"h1","페이지를 찾을 수 없습니다.");return 0;
+}

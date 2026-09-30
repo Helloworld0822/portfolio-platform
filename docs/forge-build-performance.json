@@ -1,0 +1,41 @@
+{
+  "method": "Application-only release rebuild with dependencies/toolchain already built; container start and clean included; 2 CPU limit; Rust cargo clean --release removes application artifacts and thin LTO relinks; Forge C -O2 relinks generated app. Excludes dependency compilation/network. Different optimization/link policies limit causal interpretation.",
+  "results": [
+    {
+      "language": "rust",
+      "repeat": 1,
+      "wall_seconds": 97.588,
+      "exit_code": 0
+    },
+    {
+      "language": "rust",
+      "repeat": 2,
+      "wall_seconds": 97.156,
+      "exit_code": 0
+    },
+    {
+      "language": "rust",
+      "repeat": 3,
+      "wall_seconds": 96.71,
+      "exit_code": 0
+    },
+    {
+      "language": "forge",
+      "repeat": 1,
+      "wall_seconds": 1.455,
+      "exit_code": 0
+    },
+    {
+      "language": "forge",
+      "repeat": 2,
+      "wall_seconds": 1.485,
+      "exit_code": 0
+    },
+    {
+      "language": "forge",
+      "repeat": 3,
+      "wall_seconds": 1.354,
+      "exit_code": 0
+    }
+  ]
+}

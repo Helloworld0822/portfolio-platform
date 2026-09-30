@@ -4,3 +4,6 @@
 [submodule "backend-forge/vendor/forge-web"]
 	path = backend-forge/vendor/forge-web
 	url = https://github.com/Helloworld0822/forge-web.git
+[submodule "backend-forge/vendor/forge-browser"]
+	path = backend-forge/vendor/forge-browser
+	url = https://github.com/Helloworld0822/forge-browser.git
