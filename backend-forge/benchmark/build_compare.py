@@ -11,7 +11,7 @@ for language in ['rust','forge']:
   if p.returncode:raise RuntimeError(p.stderr.decode())
 report={'method':'Application-only release rebuild with dependencies/toolchain already built; container start and clean included; 2 CPU limit; Rust cargo clean --release removes application artifacts and thin LTO relinks; Forge C -O2 relinks generated app. Excludes dependency compilation/network. Different optimization/link policies limit causal interpretation.','results':results}
 (root/'docs/forge-build-performance.json').write_text(json.dumps(report,indent=2)+'\n')
-text=(root/'docs/forge-performance.md').read_text();text+='\n## Application rebuild\n\nWarm dependency builds, application sources rebuilt with 2 CPU limit. Median of three runs, including container start and clean.\n\n'
+text=(root/'docs/forge-performance.md').read_text().split('\n## Application rebuild')[0];text+='\n## Application rebuild\n\nWarm dependency builds, application sources rebuilt with 2 CPU limit. Median of three runs, including container start and clean.\n\n'
 for language in ['rust','forge']:
  value=statistics.median(v['wall_seconds'] for v in results if v['language']==language);text+=f'- {language}: {value:.3f} seconds.\n'
 text+='\nRust uses thin LTO; Forge emits C and compiles at -O2. Toolchain and dependency builds are excluded, so this does not compare clean ecosystem build times.\n'
