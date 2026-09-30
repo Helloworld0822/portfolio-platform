@@ -20,6 +20,8 @@ host.
 
 | Path | What |
 | --- | --- |
+| `backend-forge/` | Forge migration server; pinned compiler and independent PostgreSQL/web Git modules; see `backend-forge/README.md` |
+| `docker-compose.forge.yml` | Opt-in Forge API override; default deployment remains Rust |
 | `backend/` | Rust API (`portfolio-blog-api`), migrations in `backend/migrations/` |
 | `frontend/` | React app (Vite dev server, `npm run dev`; built by `nginx/Containerfile` in prod, no standalone Containerfile) |
 | `nginx/` | Builds the frontend and serves it directly; `nginx.conf` proxies `/api/` and `/uploads/` → api, everything else is the static SPA |
@@ -72,6 +74,18 @@ cd frontend
 npm run lint
 npm run build
 ```
+
+Forge migration:
+
+```sh
+GIT_MASTER=1 git submodule update --init --recursive
+sh backend-forge/scripts/test-integration.sh
+```
+
+The Forge suite creates disposable containers, a tmpfs test DB and mock GitHub;
+it never reads `.env` or touches production. `.github/workflows/forge.yml` runs
+this suite separately. `backend-forge/toolchain` pins the required compiler ABI.
+Do not deploy the Forge override without staging/rollout review.
 
 ## Deployment
 

@@ -1,0 +1,63 @@
+import database;
+import web;
+import postgres;
+import github;
+fn validate(body: int, create: int): int {
+    if (web.kind(body) != 4) { return 0; }
+    if (create != 0 && web.required(body, "title", 3) == 0) { return 0; }
+    if (web.optional(body, "title", 3) == 0) { return 0; }
+    if (create != 0 && web.required(body, "description", 3) == 0) { return 0; }
+    if (web.optional(body, "description", 3) == 0) { return 0; }
+    if (create != 0 && web.required(body, "details", 5) == 0) { return 0; }
+    if (web.optional(body, "details", 5) == 0) { return 0; }
+    if (create != 0 && web.required(body, "tags", 5) == 0) { return 0; }
+    if (web.optional(body, "tags", 5) == 0) { return 0; }
+    if (create != 0 && web.required(body, "status", 3) == 0) { return 0; }
+    if (web.optional(body, "status", 3) == 0) { return 0; }
+    if (create != 0 && web.required(body, "published", 1) == 0) { return 0; }
+    if (web.optional(body, "published", 1) == 0) { return 0; }
+    if (web.optional(body, "period", 3) == 0) { return 0; }
+    if (web.optional(body, "role", 3) == 0) { return 0; }
+    if (web.optional(body, "url", 3) == 0) { return 0; }
+    if (web.optional(body, "demo_url", 3) == 0) { return 0; }
+    if (web.optional(body, "attachments", 5) == 0) { return 0; }
+    if (web.present(body, "title") != 0 && web.chars(web.trim(web.field_text(body, "title"))) == 0) { return 0; }
+    if (web.present(body, "details") != 0 && web.string_array(web.get(body, "details")) == 0) { return 0; }
+    if (web.present(body, "tags") != 0 && web.string_array(web.get(body, "tags")) == 0) { return 0; }
+    if (web.present(body, "url") != 0 && web.valid(web.field_text(body, "url"), "url") == 0) { return 0; }
+    if (web.present(body, "demo_url") != 0 && web.valid(web.field_text(body, "demo_url"), "url") == 0) { return 0; }
+    if (create != 0 && web.has(body, "attachments") != 0 && web.kind(web.get(body, "attachments")) == 0) { return 0; }
+    let attachments: int = web.get(body, "attachments");
+    let index: int = 0;
+    while (index < web.count(attachments)) {
+        let item: int = web.at(attachments, index);
+        if (web.required(item, "name", 3) == 0 || web.required(item, "url", 3) == 0 || web.required(item, "kind", 3) == 0) { return 0; }
+        let url: string = web.field_text(item, "url");
+        if (web.starts(url, "/uploads/") == 0 && web.valid(url, "url") == 0) { return 0; }
+        index = index + 1;
+    }
+    return 1;
+}
+fn list(conn: int, request: int, all: int): int {
+    if (all != 0) { return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects ORDER BY created_at DESC) item", 0, 200); }
+    return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects WHERE published=true ORDER BY created_at DESC) item", 0, 200);
+}
+fn save(conn: int, request: int, id: string, create: int): int {
+    let body: int = web.request_json(request);
+    if (validate(body, create) == 0) { return web.validation(request, "invalid or missing field"); }
+    let enrich: int = create;
+    if (create == 0) {
+        let existing: int = database.fetch(conn, "SELECT row_to_json(p) FROM projects p WHERE id=$1::uuid", database.args1(id));
+        if (web.kind(existing) == 0) { return web.error(request, 404, "not_found"); }
+        if (web.present(body, "url") != 0 && web.equal(web.field_text(body, "url"), web.field_text(existing, "url")) == 0) { enrich = 1; }
+    }
+    if (enrich != 0) {
+        let meta: int = github.metadata(web.field_text(body, "url"));
+        web.set(body, "repo_languages", web.get(meta, "languages")); web.set(body, "repo_private", web.get(meta, "private"));
+    } else {
+        web.set(body, "repo_languages", 0); web.set(body, "repo_private", 0);
+    }
+    if (create != 0) { return database.response(conn, request, "WITH changed AS (INSERT INTO projects(title,description,details,tags,status,published,period,role,url,demo_url,attachments,repo_languages,repo_private) SELECT (jsonb_populate_record(NULL::projects,$1::jsonb)).title,(jsonb_populate_record(NULL::projects,$1::jsonb)).description,(jsonb_populate_record(NULL::projects,$1::jsonb)).details,(jsonb_populate_record(NULL::projects,$1::jsonb)).tags,(jsonb_populate_record(NULL::projects,$1::jsonb)).status,(jsonb_populate_record(NULL::projects,$1::jsonb)).published,(jsonb_populate_record(NULL::projects,$1::jsonb)).period,(jsonb_populate_record(NULL::projects,$1::jsonb)).role,(jsonb_populate_record(NULL::projects,$1::jsonb)).url,(jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,COALESCE($1::jsonb->'attachments','[]'::jsonb),COALESCE($1::jsonb->'repo_languages','{}'::jsonb),COALESCE(($1::jsonb->>'repo_private')::boolean,false) RETURNING *) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201); }
+    return database.response(conn, request, "WITH changed AS (UPDATE projects SET title=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).title,title),description=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).description,description),details=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).details,details),tags=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).tags,tags),status=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).status,status),published=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).published,published),period=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).period,period),role=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).role,role),url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).url,url),demo_url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,demo_url),attachments=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).attachments,attachments),updated_at=now(),repo_languages=COALESCE(NULLIF($1::jsonb->'repo_languages','null'::jsonb),repo_languages),repo_private=COALESCE(($1::jsonb->>'repo_private')::boolean,repo_private) WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
+}
+fn remove(conn: int, request: int, id: string): int { return database.response(conn, request, "DELETE FROM projects WHERE id=$1::uuid", database.args1(id), 204); }

@@ -228,3 +228,11 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 설�
 | Variable | `DEPLOY_PATH` | 서버에서 저장소가 클론된 절대 경로 |
 
 GitHub OAuth 콜백 URL 등 운영 설정은 코드에 커밋하지 말고 서버 `.env` 에만 둔다.
+
+## Forge migration
+
+The Forge backend is available in [`backend-forge/`](backend-forge/README.md),
+with separate PostgreSQL and HTTP/JSON modules pinned as Git submodules.
+See [the migration report](docs/forge-migration.md) for tests, compatibility and
+Compose rollout/rollback. Run `sh backend-forge/scripts/test-integration.sh` after
+initializing submodules. The default Compose/deployment path remains Rust.

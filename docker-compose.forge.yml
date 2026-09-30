@@ -1,0 +1,6 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend-forge/Containerfile
+    image: portfolio-platform-forge-api:latest

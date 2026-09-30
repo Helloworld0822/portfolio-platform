@@ -9,3 +9,7 @@ backend/target
 .claude
 .vscode
 .idea
+
+**/.git
+backend-forge/build
+**/__pycache__

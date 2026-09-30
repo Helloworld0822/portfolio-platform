@@ -1,0 +1,19 @@
+import database;
+import postgres;
+import web;
+import strings;
+fn blocked(conn: int, login: string): int {
+    return database.exists(conn, "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE lower(login)=lower($1))", database.args1(login));
+}
+fn banned(conn: int, ip: string): int {
+    return database.exists(conn, "SELECT EXISTS(SELECT 1 FROM banned_ips WHERE ip=$1 AND (expires_at IS NULL OR expires_at>now()))", database.args1(ip));
+}
+fn limit(conn: int, request: int, key: string, maximum: int): int {
+    if (web.rate(key, maximum, 600) != 0) { return 1; }
+    let ip: string = web.ip(request);
+    if (web.valid(ip, "public_ip") != 0 && web.rate(str_concat("violation|", ip), 10, 600) == 0) {
+        let result: int = database.query(conn, "INSERT INTO banned_ips(ip,reason,expires_at) VALUES($1,'rate limit violations',now()+interval '1 hour') ON CONFLICT(ip) DO UPDATE SET reason=EXCLUDED.reason,expires_at=EXCLUDED.expires_at", database.args1(ip));
+        postgres.clear(result);
+    }
+    web.error(request, 429, "too_many_requests"); return 0;
+}

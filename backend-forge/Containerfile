@@ -1,0 +1,22 @@
+FROM alpine:3.20 AS builder
+RUN apk add --no-cache build-base cmake pkgconf postgresql-dev json-c-dev libmicrohttpd-dev curl-dev openssl-dev
+WORKDIR /src
+COPY backend-forge/toolchain backend-forge/toolchain
+COPY backend-forge/vendor backend-forge/vendor
+COPY backend-forge/src backend-forge/src
+COPY backend-forge/native backend-forge/native
+COPY backend-forge/scripts/build.sh backend-forge/scripts/build.sh
+RUN sh backend-forge/scripts/build.sh
+
+FROM alpine:3.20 AS runtime
+RUN apk add --no-cache libpq json-c libmicrohttpd libcurl openssl ca-certificates curl
+WORKDIR /app
+COPY --from=builder /src/backend-forge/build/portfolio-api /app/portfolio-api
+COPY backend/migrations /app/backend/migrations
+COPY backend-forge/openapi.json backend-forge/docs.html /app/backend-forge/
+RUN mkdir -p /app/uploads
+ENV HOST=0.0.0.0 PORT=8080 UPLOAD_DIR=/app/uploads
+EXPOSE 8080
+STOPSIGNAL SIGTERM
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 CMD curl -fsS http://127.0.0.1:8080/api/health || exit 1
+CMD ["/app/portfolio-api"]
