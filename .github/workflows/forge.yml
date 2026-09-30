@@ -16,6 +16,8 @@ jobs:
           submodules: recursive
       - name: Build and test Forge server and modules
         run: sh backend-forge/scripts/test-integration.sh
+      - name: Prepare example environment for Compose validation
+        run: cp .env.example .env
       - name: Validate Forge Compose override
         run: docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.forge.yml config --quiet
       - name: Build Forge browser frontend
