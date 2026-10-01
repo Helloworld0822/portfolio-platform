@@ -69,8 +69,12 @@ async def main():
                    'pool_connections': 5, 'forge_workers': 8, 'repeats': 3,
                    'duration_seconds': 5, 'warmup_seconds': 1,
                    'fixture_posts': 100, 'encoding': 'identity',
-                   'order': 'three-way rotation per repeat'},
+                   'order': 'three-way rotation per repeat',
+                   'post_equivalence': 'All fields after timestamp normalization and sorting equal-time posts by ID; wire timestamp spelling/order can differ',
+                   'runtime_bases': 'Rust Debian-based versus Forge Alpine/musl; application-level comparison'},
         'baseline_forge_commit': '5546fdc',
+        'optimized_forge_compiler_commit': 'ba36611f92fdd444a4c29827d9020e8bcff05dde',
+        'optimized_forge_web_commit': 'eb10d7846c4a371a0ae76cee67f347d5976699b8',
         'equivalence': equivalent,
         'results': results,
     }
@@ -97,7 +101,9 @@ async def main():
               'CPU and memory samples are included in the raw JSON.', '',
               'The Forge implementation retains PostgreSQL ban checks on every public request; '
               'the optimization releases DB leases before external HTTP and file work. '
-              'A separate delayed-GitHub test covers the contention this change targets.']
+              'A separate delayed-GitHub test covers the contention this change targets.', '',
+              'Post fields match after timestamp normalization and sorting equal-time posts by ID. '
+              'Wire timestamp spellings and tie order can differ. Compiler: `ba36611`; Web: `eb10d78`.']
     OUT.with_suffix('.md').write_text('\n'.join(lines) + '\n')
     if any(r['errors'] for r in results):
         raise RuntimeError('Benchmark produced request errors')
