@@ -5,4 +5,4 @@ with a minimal CMake packaging file. Includes native module FFI fixes, resource
 lifetime fixes and JavaScript output. Compiler/runtime remain C; application
 policy is Forge. OpenCL is disabled in this minimal snapshot.
 
-https://github.com/Helloworld0822/forge — MIT, see LICENSE.
+https://github.com/forge-language/forge-preview — MIT, see LICENSE.

@@ -27,7 +27,7 @@ ATTEMPT=0
 until docker exec "$DB_NAME" pg_isready -U forge -d forge_test >/dev/null 2>&1; do
     ATTEMPT=$((ATTEMPT + 1)); test "$ATTEMPT" -lt 60 || { docker logs "$DB_NAME"; exit 1; }; sleep 1
 done
-docker run -d --name "$API_NAME" --network "$NETWORK" --network-alias api -e DATABASE_URL='postgres://forge:forge-test-password@postgres/forge_test?connect_timeout=5' -e JWT_SECRET=forge-integration-test-secret -e ADMIN_GITHUB_USERNAME=Helloworld0822 -e GITHUB_CLIENT_ID=test-client -e GITHUB_CLIENT_SECRET=test-client-secret -e FRONTEND_URL=http://frontend.test -e BACKEND_BASE_URL=http://api:8080 -e CORS_ALLOWED_ORIGINS=http://frontend.test -e GITHUB_OAUTH_BASE_URL=http://checker:19090 -e GITHUB_API_BASE_URL=http://checker:19090 "$API_IMAGE" >/dev/null
+docker run -d --name "$API_NAME" --network "$NETWORK" --network-alias api -e DATABASE_URL='postgres://forge:forge-test-password@postgres/forge_test?connect_timeout=5' -e DATABASE_POOL_SIZE=1 -e JWT_SECRET=forge-integration-test-secret -e ADMIN_GITHUB_USERNAME=Helloworld0822 -e GITHUB_CLIENT_ID=test-client -e GITHUB_CLIENT_SECRET=test-client-secret -e FRONTEND_URL=http://frontend.test -e BACKEND_BASE_URL=http://api:8080 -e CORS_ALLOWED_ORIGINS=http://frontend.test -e GITHUB_OAUTH_BASE_URL=http://checker:19090 -e GITHUB_API_BASE_URL=http://checker:19090 "$API_IMAGE" >/dev/null
 ATTEMPT=0
 until docker exec "$API_NAME" curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1; do
     ATTEMPT=$((ATTEMPT + 1)); test "$ATTEMPT" -lt 60 || { docker logs "$API_NAME"; exit 1; }; sleep 1

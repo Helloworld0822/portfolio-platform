@@ -2,6 +2,7 @@ import database;
 import web;
 import postgres;
 import github;
+extern fn portfolio_pool(): int;
 fn validate(body: int, create: int): int {
     if (web.kind(body) != 4) { return 0; }
     if (create != 0 && web.required(body, "title", 3) == 0) { return 0; }
@@ -42,12 +43,15 @@ fn list(conn: int, request: int, all: int): int {
     if (all != 0) { return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects ORDER BY created_at DESC) item", 0, 200); }
     return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects WHERE published=true ORDER BY created_at DESC) item", 0, 200);
 }
-fn save(conn: int, request: int, id: string, create: int): int {
+fn save(request: int, id: string, create: int): int {
     let body: int = web.request_json(request);
     if (validate(body, create) == 0) { return web.validation(request, "invalid or missing field"); }
     let enrich: int = create;
     if (create == 0) {
-        let existing: int = database.fetch(conn, "SELECT row_to_json(p) FROM projects p WHERE id=$1::uuid", database.args1(id));
+        let lease: int = postgres.acquire(portfolio_pool());
+        if (lease == 0) { return web.error(request, 503, "unavailable"); }
+        let existing: int = database.fetch(lease, "SELECT row_to_json(p) FROM projects p WHERE id=$1::uuid", database.args1(id));
+        postgres.release(portfolio_pool(), lease);
         if (web.kind(existing) == 0) { return web.error(request, 404, "not_found"); }
         if (web.present(body, "url") != 0 && web.equal(web.field_text(body, "url"), web.field_text(existing, "url")) == 0) { enrich = 1; }
     }
@@ -57,7 +61,7 @@ fn save(conn: int, request: int, id: string, create: int): int {
     } else {
         web.set(body, "repo_languages", 0); web.set(body, "repo_private", 0);
     }
-    if (create != 0) { return database.response(conn, request, "WITH changed AS (INSERT INTO projects(title,description,details,tags,status,published,period,role,url,demo_url,attachments,repo_languages,repo_private) SELECT (jsonb_populate_record(NULL::projects,$1::jsonb)).title,(jsonb_populate_record(NULL::projects,$1::jsonb)).description,(jsonb_populate_record(NULL::projects,$1::jsonb)).details,(jsonb_populate_record(NULL::projects,$1::jsonb)).tags,(jsonb_populate_record(NULL::projects,$1::jsonb)).status,(jsonb_populate_record(NULL::projects,$1::jsonb)).published,(jsonb_populate_record(NULL::projects,$1::jsonb)).period,(jsonb_populate_record(NULL::projects,$1::jsonb)).role,(jsonb_populate_record(NULL::projects,$1::jsonb)).url,(jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,COALESCE($1::jsonb->'attachments','[]'::jsonb),COALESCE($1::jsonb->'repo_languages','{}'::jsonb),COALESCE(($1::jsonb->>'repo_private')::boolean,false) RETURNING *) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201); }
-    return database.response(conn, request, "WITH changed AS (UPDATE projects SET title=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).title,title),description=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).description,description),details=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).details,details),tags=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).tags,tags),status=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).status,status),published=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).published,published),period=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).period,period),role=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).role,role),url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).url,url),demo_url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,demo_url),attachments=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).attachments,attachments),updated_at=now(),repo_languages=COALESCE(NULLIF($1::jsonb->'repo_languages','null'::jsonb),repo_languages),repo_private=COALESCE(($1::jsonb->>'repo_private')::boolean,repo_private) WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
+    if (create != 0) { return database.response_once(request, "WITH changed AS (INSERT INTO projects(title,description,details,tags,status,published,period,role,url,demo_url,attachments,repo_languages,repo_private) SELECT (jsonb_populate_record(NULL::projects,$1::jsonb)).title,(jsonb_populate_record(NULL::projects,$1::jsonb)).description,(jsonb_populate_record(NULL::projects,$1::jsonb)).details,(jsonb_populate_record(NULL::projects,$1::jsonb)).tags,(jsonb_populate_record(NULL::projects,$1::jsonb)).status,(jsonb_populate_record(NULL::projects,$1::jsonb)).published,(jsonb_populate_record(NULL::projects,$1::jsonb)).period,(jsonb_populate_record(NULL::projects,$1::jsonb)).role,(jsonb_populate_record(NULL::projects,$1::jsonb)).url,(jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,COALESCE($1::jsonb->'attachments','[]'::jsonb),COALESCE($1::jsonb->'repo_languages','{}'::jsonb),COALESCE(($1::jsonb->>'repo_private')::boolean,false) RETURNING *) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201); }
+    return database.response_once(request, "WITH changed AS (UPDATE projects SET title=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).title,title),description=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).description,description),details=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).details,details),tags=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).tags,tags),status=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).status,status),published=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).published,published),period=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).period,period),role=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).role,role),url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).url,url),demo_url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,demo_url),attachments=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).attachments,attachments),updated_at=now(),repo_languages=COALESCE(NULLIF($1::jsonb->'repo_languages','null'::jsonb),repo_languages),repo_private=COALESCE(($1::jsonb->>'repo_private')::boolean,repo_private) WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
 }
 fn remove(conn: int, request: int, id: string): int { return database.response(conn, request, "DELETE FROM projects WHERE id=$1::uuid", database.args1(id), 204); }

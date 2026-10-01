@@ -6,9 +6,9 @@ to the HTTP callback and resets the Forge string arena after each request.
 
 Dependencies are pinned Git submodules:
 
-- [forge-postgres](https://github.com/Helloworld0822/forge-postgres): Forge database
+- [forge-postgres](https://github.com/forge-language/forge-postgres): Forge database
   API, transactions and SQLx-compatible migrations; libpq FFI and bounded pool.
-- [forge-web](https://github.com/Helloworld0822/forge-web): Forge HTTP/JSON helpers,
+- [forge-web](https://github.com/forge-language/forge-web): Forge HTTP/JSON helpers,
   validation, JWT, bounded uploads and HTTP clients; native library FFI.
 
 `toolchain/` pins the required Forge compiler/runtime source. Imported extern
@@ -55,6 +55,11 @@ Run the binary from the repository root so it can read `backend/migrations/`,
 `backend-forge/openapi.json` and `backend-forge/docs.html`. The container sets this
 layout automatically. DATABASE_URL and JWT_SECRET are mandatory. Existing OAuth,
 CORS, host/port and upload environment variable names are preserved.
+`DATABASE_POOL_SIZE` defaults to 5 and accepts 1–64; invalid sizes fail startup.
+DB leases are returned before OAuth/GitHub HTTP calls and detached file handlers.
+Public requests still query IP bans, preserving immediate ban/unban behavior.
+The integration suite uses one connection to verify health remains available
+while a GitHub request is deliberately delayed.
 
 ## Migration and rollback
 

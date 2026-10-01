@@ -1,5 +1,6 @@
 import postgres;
 import web;
+extern fn portfolio_pool(): int;
 fn args1(value: string): int { let values: int = web.array(); web.push(values, web.jstring(value)); return values; }
 fn args2(a: string, b: string): int { let values: int = args1(a); web.push(values, web.jstring(b)); return values; }
 fn query(conn: int, sql: string, values: int): int {
@@ -47,4 +48,12 @@ fn exists(conn: int, sql: string, values: int): int {
     if (postgres.ok(result) != 0 && postgres.rows(result) > 0) { value = web.equal(postgres.value(result, 0, 0), "t"); }
     postgres.clear(result);
     return value;
+}
+
+fn response_once(request: int, sql: string, values: int, status: int): int {
+    let conn: int = postgres.acquire(portfolio_pool());
+    if (conn == 0) { return web.error(request, 503, "unavailable"); }
+    let result: int = response(conn, request, sql, values, status);
+    postgres.release(portfolio_pool(), conn);
+    return result;
 }

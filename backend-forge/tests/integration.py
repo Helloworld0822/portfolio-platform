@@ -63,6 +63,7 @@ def request(method, path, data=None, auth=None, headers=None, raw=None):
 
 
 class MockGitHub(BaseHTTPRequestHandler):
+    pause = None
     def log_message(self, *args):
         pass
 
@@ -90,6 +91,13 @@ class MockGitHub(BaseHTTPRequestHandler):
                      'Bearer mock-blocked': 'blocked-reader'}.get(bearer)
             self.send({'login': login, 'avatar_url': 'https://avatar.test/a.png'} if login else {}, 200 if login else 401)
         elif path in ('/users/Helloworld0822/repos', '/user/repos', '/orgs/test/repos', '/users/test/repos'):
+            pause = MockGitHub.pause
+            if pause is not None:
+                with pause['lock']:
+                    pause['count'] += 1
+                    if pause['count'] >= 1:
+                        pause['ready'].set()
+                pause['release'].wait(timeout=10)
             self.send([{'name': 'public', 'full_name': 'test/public', 'html_url': 'https://github.com/test/public',
                         'description': 'demo', 'language': 'Forge', 'private': False, 'owner': {'login': 'test'}},
                        {'name': 'hidden', 'full_name': 'test/hidden', 'html_url': 'https://github.com/test/hidden',
@@ -292,6 +300,26 @@ class PortfolioTests(unittest.TestCase):
         self.assertTrue(headers['Location'].startswith('http://frontend.test/#token='))
         _, headers = self.oauth('invalid')
         self.assertEqual(headers['Location'], 'http://frontend.test/?error=unauthorized')
+
+    def test_slow_github_does_not_hold_database_pool(self):
+        pause = {'lock': threading.Lock(), 'count': 0,
+                 'ready': threading.Event(), 'release': threading.Event()}
+        MockGitHub.pause = pause
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                futures = [pool.submit(request, 'GET', '/api/admin/github/repos', auth=token())
+                           for _ in range(1)]
+                try:
+                    self.assertTrue(pause['ready'].wait(timeout=8), 'GitHub request must be waiting')
+                    start = time.perf_counter()
+                    self.call('GET', '/api/health')
+                    self.assertLess(time.perf_counter() - start, 1.5)
+                finally:
+                    pause['release'].set()
+                self.assertTrue(all(f.result()[0] == 200 for f in futures))
+        finally:
+            pause['release'].set()
+            MockGitHub.pause = None
 
     def test_github_repository_importer(self):
         repos, _ = self.call('GET', '/api/admin/github/repos', auth=token())

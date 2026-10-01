@@ -1,6 +1,8 @@
 import web;
 import abuse;
 import strings;
+import postgres;
+extern fn portfolio_pool(): int;
 fn claims(request: int): int {
     let header: string = web.header(request, "Authorization");
     if (web.starts(header, "Bearer ") == 0) { return 0; }
@@ -36,7 +38,7 @@ fn login(request: int): int {
     web.set_cookie(request, "forge_oauth_nonce", nonce, 600, web.starts(web.env("BACKEND_BASE_URL", ""), "https://"));
     return result;
 }
-fn callback(conn: int, request: int): int {
+fn callback(request: int): int {
     let state: int = web.jwt_verify(web.query(request, "state"), web.env("JWT_SECRET", ""));
     let nonce: string = web.cookie(request, "forge_oauth_nonce");
     if (web.kind(state) != 4 || web.equal(web.field_text(state, "role"), "oauth") == 0 || web.chars(nonce) == 0 || web.equal(nonce, web.field_text(state, "sub")) == 0) { return failure(request, "unauthorized"); }
@@ -52,7 +54,10 @@ fn callback(conn: int, request: int): int {
     let profile: int = web.fetch(str_concat(web.env("GITHUB_API_BASE_URL", "https://api.github.com"), "/user"), "GET", "", token);
     let login: string = web.field_text(profile, "login");
     if (web.valid(login, "login") == 0) { return failure(request, "unauthorized"); }
-    let is_blocked: int = abuse.blocked(conn, login);
+    let lease: int = postgres.acquire(portfolio_pool());
+    if (lease == 0) { return failure(request, "unauthorized"); }
+    let is_blocked: int = abuse.blocked(lease, login);
+    postgres.release(portfolio_pool(), lease);
     if (is_blocked < 0) { return failure(request, "unauthorized"); }
     if (is_blocked != 0) { return failure(request, "blocked"); }
     let role: string = "user";
