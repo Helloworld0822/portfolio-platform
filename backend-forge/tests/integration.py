@@ -5,6 +5,7 @@ import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+import subprocess
 import threading
 import time
 import unittest
@@ -283,6 +284,52 @@ class PortfolioTests(unittest.TestCase):
         self.call('POST', '/api/admin/bans/ips', {'ip': '2001:4860:4860:0000:0000:0000:0000:8888'}, 201, token())
         self.call('GET', '/api/health', expected=403, headers={'X-Real-IP': '2001:4860:4860::8888'})
         self.call('DELETE', '/api/admin/bans/ips/2001:4860:4860::8888', expected=204, auth=token())
+
+    def test_public_read_ban_changes_are_immediate(self):
+        paths = ('/api/health', '/api/posts', '/api/projects', '/api/timeline')
+        headers = {'X-Real-IP': '8.8.8.9'}
+        for path in paths:
+            self.call('GET', path, headers=headers)
+        for _ in range(2):
+            self.call('POST', '/api/admin/bans/ips', {'ip': '8.8.8.9'}, 201, token())
+            try:
+                for path in paths:
+                    self.call('GET', path, expected=403, headers=headers)
+                    self.call('GET', path, headers=headers, auth=token())
+                    self.call('GET', path, expected=403, headers=headers, auth=token(secret='wrong'))
+            finally:
+                self.call('DELETE', '/api/admin/bans/ips/8.8.8.9', expected=204, auth=token())
+            for path in paths:
+                self.call('GET', path, headers=headers)
+
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_public_read_expired_ban_and_database_failure(self):
+        database = os.environ['TEST_DATABASE_URL']
+        def sql(command):
+            subprocess.run(['psql', database, '-v', 'ON_ERROR_STOP=1', '-c', command],
+                           check=True, capture_output=True)
+        paths = ('/api/health', '/api/posts', '/api/projects', '/api/timeline')
+        headers = {'X-Real-IP': '8.8.8.10'}
+        sql("INSERT INTO banned_ips(ip,expires_at) VALUES('8.8.8.10',now()-interval '1 second')")
+        try:
+            for path in paths:
+                self.call('GET', path, headers=headers)
+            sql("UPDATE banned_ips SET expires_at=NULL WHERE ip='8.8.8.10'")
+            for path in paths:
+                self.call('GET', path, expected=403, headers=headers)
+            sql("UPDATE banned_ips SET expires_at=now()-interval '1 second' WHERE ip='8.8.8.10'")
+            for path in paths:
+                self.call('GET', path, headers=headers)
+        finally:
+            sql("DELETE FROM banned_ips WHERE ip='8.8.8.10'")
+        sql('ALTER TABLE banned_ips RENAME TO unavailable_banned_ips')
+        try:
+            for path in paths:
+                self.call('GET', path, expected=500)
+        finally:
+            sql('ALTER TABLE unavailable_banned_ips RENAME TO banned_ips')
+        for path in paths:
+            self.call('GET', path)
 
     def test_oauth_login_callback_and_safe_return(self):
         _, headers = self.call('GET', '/api/auth/github/login?state=/blog', expected=302)

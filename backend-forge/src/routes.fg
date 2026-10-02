@@ -10,6 +10,7 @@ import contact;
 import bans;
 import uploads;
 import github;
+import database;
 extern fn portfolio_pool(): int;
 fn handle(conn: int, request: int, user: int): int {
     let method: string = web.method(request); let path: string = web.path(request);
@@ -106,6 +107,8 @@ fn dispatch(request: int): int {
     if (conn == 0) { return web.error(request, 503, "unavailable"); }
     let result: int = 0;
     if (auth.admin(user) == 0) {
+        result = public_read(conn, request);
+        if (result != 0) { postgres.release(portfolio_pool(), conn); return result; }
         let banned: int = abuse.banned(conn, web.ip(request));
         if (banned < 0) { result = web.error(request, 500, "internal"); }
         if (banned > 0) { result = web.error(request, 403, "forbidden"); }
@@ -116,4 +119,13 @@ fn dispatch(request: int): int {
     }
     if (conn != 0) { postgres.release(portfolio_pool(), conn); }
     return result;
+}
+fn public_read(conn: int, request: int): int {
+    if (web.equal(web.method(request), "GET") == 0) { return 0; }
+    let path: string = web.path(request);
+    if (web.equal(path, "/api/health") != 0) { return database.guarded_response(conn, request, "SELECT '{\"status\":\"ok\"}'::json"); }
+    if (web.equal(path, "/api/posts") != 0) { return posts.public_list(conn, request); }
+    if (web.equal(path, "/api/projects") != 0) { return projects.public_list(conn, request); }
+    if (web.equal(path, "/api/timeline") != 0) { return timeline.public_list(conn, request); }
+    return 0;
 }

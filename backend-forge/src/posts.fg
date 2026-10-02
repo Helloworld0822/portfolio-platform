@@ -16,7 +16,10 @@ fn validate(body: int, create: int): int {
 }
 fn list(conn: int, request: int, all: int): int {
     if (all != 0) { return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT p.id,p.title,p.excerpt,p.created_at,COUNT(c.id) AS comment_count FROM posts p LEFT JOIN comments c ON c.post_id=p.id GROUP BY p.id ORDER BY p.created_at DESC) item", 0, 200); }
-    return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT p.id,p.title,p.excerpt,p.created_at,COUNT(c.id) AS comment_count FROM posts p LEFT JOIN comments c ON c.post_id=p.id WHERE p.published=true GROUP BY p.id ORDER BY p.created_at DESC) item", 0, 200);
+    return database.response(conn, request, public_sql(), 0, 200);
+}
+fn public_list(conn: int, request: int): int {
+    return database.guarded_response(conn, request, public_sql());
 }
 fn save(conn: int, request: int, id: string, create: int): int {
     let body: int = web.request_json(request);
@@ -29,3 +32,5 @@ fn get(conn: int, request: int, id: string, all: int): int {
     if (all != 0) { return database.response(conn, request, "SELECT row_to_json(p) FROM posts p WHERE id=$1::bigint", database.args1(id), 200); }
     return database.response(conn, request, "SELECT row_to_json(p) FROM posts p WHERE id=$1::bigint AND published=true", database.args1(id), 200);
 }
+
+fn public_sql(): string { return "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT p.id,p.title,p.excerpt,p.created_at,COUNT(c.id) AS comment_count FROM posts p LEFT JOIN comments c ON c.post_id=p.id WHERE p.published=true GROUP BY p.id ORDER BY p.created_at DESC) item"; }

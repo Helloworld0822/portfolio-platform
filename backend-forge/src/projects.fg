@@ -41,7 +41,10 @@ fn validate(body: int, create: int): int {
 }
 fn list(conn: int, request: int, all: int): int {
     if (all != 0) { return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects ORDER BY created_at DESC) item", 0, 200); }
-    return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects WHERE published=true ORDER BY created_at DESC) item", 0, 200);
+    return database.response(conn, request, public_sql(), 0, 200);
+}
+fn public_list(conn: int, request: int): int {
+    return database.guarded_response(conn, request, public_sql());
 }
 fn save(request: int, id: string, create: int): int {
     let body: int = web.request_json(request);
@@ -65,3 +68,5 @@ fn save(request: int, id: string, create: int): int {
     return database.response_once(request, "WITH changed AS (UPDATE projects SET title=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).title,title),description=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).description,description),details=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).details,details),tags=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).tags,tags),status=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).status,status),published=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).published,published),period=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).period,period),role=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).role,role),url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).url,url),demo_url=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).demo_url,demo_url),attachments=COALESCE((jsonb_populate_record(NULL::projects,$1::jsonb)).attachments,attachments),updated_at=now(),repo_languages=COALESCE(NULLIF($1::jsonb->'repo_languages','null'::jsonb),repo_languages),repo_private=COALESCE(($1::jsonb->>'repo_private')::boolean,repo_private) WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
 }
 fn remove(conn: int, request: int, id: string): int { return database.response(conn, request, "DELETE FROM projects WHERE id=$1::uuid", database.args1(id), 204); }
+
+fn public_sql(): string { return "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects WHERE published=true ORDER BY created_at DESC) item"; }

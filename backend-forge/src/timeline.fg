@@ -15,8 +15,11 @@ fn validate(body: int, create: int): int {
     return 1;
 }
 fn list(conn: int, request: int, all: int): int {
-    if (all != 0) { return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM timeline_entries ORDER BY sort_order ASC,created_at ASC) item", 0, 200); }
-    return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM timeline_entries ORDER BY sort_order ASC,created_at ASC) item", 0, 200);
+    if (all != 0) { return database.response(conn, request, public_sql(), 0, 200); }
+    return database.response(conn, request, public_sql(), 0, 200);
+}
+fn public_list(conn: int, request: int): int {
+    return database.guarded_response(conn, request, public_sql());
 }
 fn save(conn: int, request: int, id: string, create: int): int {
     let body: int = web.request_json(request);
@@ -38,3 +41,5 @@ fn reorder(conn: int, request: int): int {
     if (postgres.commit(conn) == 0) { return web.error(request, 500, "internal"); }
     return web.respond(request, 204, "");
 }
+
+fn public_sql(): string { return "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM timeline_entries ORDER BY sort_order ASC,created_at ASC) item"; }

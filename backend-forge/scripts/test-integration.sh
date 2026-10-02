@@ -32,7 +32,7 @@ ATTEMPT=0
 until docker exec "$API_NAME" curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1; do
     ATTEMPT=$((ATTEMPT + 1)); test "$ATTEMPT" -lt 60 || { docker logs "$API_NAME"; exit 1; }; sleep 1
 done
-docker run --rm --name "$CHECK_NAME" --network "$NETWORK" --network-alias checker -v "$APP_ROOT:/app:ro" -e API_BASE=http://api:8080 "$TOOL_IMAGE" python3 backend-forge/tests/integration.py
+docker run --rm --name "$CHECK_NAME" --network "$NETWORK" --network-alias checker -v "$APP_ROOT:/app:ro" -e API_BASE=http://api:8080 -e TEST_DATABASE_URL='postgres://forge:forge-test-password@postgres/forge_test' "$TOOL_IMAGE" python3 backend-forge/tests/integration.py
 MIGRATIONS=$(docker exec "$DB_NAME" psql -U forge -d forge_test -Atc 'SELECT count(*) FROM _sqlx_migrations WHERE success=true')
 test "$MIGRATIONS" = 10
 docker restart "$API_NAME" >/dev/null

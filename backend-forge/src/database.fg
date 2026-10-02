@@ -16,6 +16,21 @@ fn query(conn: int, sql: string, values: int): int {
     postgres.params_close(params);
     return result;
 }
+fn guarded_response(conn: int, request: int, sql: string): int {
+    let guarded: string = str_concat("WITH gate AS MATERIALIZED (SELECT EXISTS(SELECT 1 FROM banned_ips WHERE ip=$1 AND (expires_at IS NULL OR expires_at>now())) AS banned) SELECT banned,CASE WHEN banned THEN NULL::json ELSE (", str_concat(sql, ") END FROM gate"));
+    let params: int = postgres.params();
+    postgres.push(params, web.ip(request));
+    let result: int = postgres.query_prepared(conn, guarded, params);
+    postgres.params_close(params);
+    let success: int = 0;
+    if (postgres.ok(result) == 0 || postgres.rows(result) != 1) { success = web.error(request, 500, "internal"); }
+    else {
+        if (web.equal(postgres.value(result, 0, 0), "t") != 0) { success = web.error(request, 403, "forbidden"); }
+        else { success = web.respond(request, 200, postgres.value(result, 0, 1)); }
+    }
+    postgres.clear(result);
+    return success;
+}
 fn fetch(conn: int, sql: string, values: int): int {
     let result: int = query(conn, sql, values);
     let value: int = 0;
