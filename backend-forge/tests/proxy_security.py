@@ -17,6 +17,27 @@ def docker(*args, input=None):
     return subprocess.check_output(['docker', *args], input=input, text=True).strip()
 
 
+def create_network(name):
+    for attempt in range(5):
+        docker('network', 'create', '--label', 'forge.security=test', name)
+        try:
+            config = json.loads(docker('network', 'inspect', name))[0]['IPAM']['Config']
+            subnet = next((ipaddress.ip_network(item['Subnet']) for item in config
+                           if ipaddress.ip_network(item['Subnet']).version == 4), None)
+            if subnet is None or subnet.num_addresses < 16:
+                raise RuntimeError('Proxy test needs an IPv4 subnet with at least 16 addresses')
+        finally:
+            docker('network', 'rm', name)
+        result = subprocess.run(['docker', 'network', 'create', '--label',
+                                 'forge.security=test', '--subnet', str(subnet), name],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            return subnet
+        if 'overlap' not in result.stderr.lower() or attempt == 4:
+            raise subprocess.CalledProcessError(result.returncode, result.args,
+                                                result.stdout, result.stderr)
+
+
 def wait(check):
     for _ in range(60):
         try:
@@ -58,10 +79,8 @@ def main():
         return int(docker(*args, 'http://' + host + path))
 
     docker('image', 'inspect', options.api_image)
-    docker('network', 'create', '--label', 'forge.security=test', network)
+    addresses = create_network(network)
     try:
-        subnet = json.loads(docker('network', 'inspect', network))[0]['IPAM']['Config'][0]['Subnet']
-        addresses = ipaddress.ip_network(subnet)
         trusted = [str(addresses.network_address + n) for n in (10, 11)]
         run(database, '--network-alias', 'postgres', '--tmpfs', '/var/lib/postgresql/data',
             '-e', 'POSTGRES_USER=forge', '-e', 'POSTGRES_PASSWORD=disposable-test-only',
