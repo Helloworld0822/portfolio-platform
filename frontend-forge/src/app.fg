@@ -51,8 +51,15 @@ fn template(resource: string): string {
 }
 fn preview(unused: string): int {let body: int=web.parse(browser.value("editor-json"));let area: int=browser.find("preview");browser.clear(area);return browser.markdown(area,web.field_text(body,"content_markdown"));}
 fn save(info: string): int {let c: int=web.parse(info);let body: string=browser.value("editor-json");if(web.kind(web.parse(body))!=4){return ui.notice("JSON 형식을 확인해 주세요.");}return submit_request(web.field_text(c,"path"),web.field_text(c,"method"),body);}
-fn edit(info: string): int {
+fn show_editor(info: string): int {
  let c: int=web.parse(info);let area: int=browser.find("editor");browser.clear(area);ui.heading(area,"편집");ui.text(area,"API 필드를 JSON으로 편집합니다. 공개 여부, 프로젝트 태그·첨부 파일도 함께 수정할 수 있습니다.");ui.field(area,"editor-json","내용 (JSON)",web.field_text(c,"body"),1);ui.button(area,"저장",app.save,info);ui.button(area,"Markdown 미리보기",app.preview,"");let preview_area: int=ui.box(area,"markdown");ui.id(preview_area,"preview");return 1;
+}
+fn edit(info: string): int {
+ let c: int=web.parse(info);browser.state("editor_epoch",web.uuid());
+ if(web.equal(web.field_text(c,"method"),"PUT")!=0&&web.starts(web.field_text(c,"path"),"/api/admin/posts/")!=0){
+  web.set(c,"editor_epoch",web.jstring(browser.state_get("editor_epoch")));browser.clear(browser.find("editor"));return get(web.field_text(c,"path"),"edit_post",web.jstring(web.dump(c)));
+ }
+ return show_editor(info);
 }
 fn new_item(resource: string): int {let c: int=web.object();web.set(c,"path",web.jstring(str_concat("/api/admin/",resource)));web.set(c,"method",web.jstring("POST"));web.set(c,"body",web.jstring(template(resource)));return edit(web.dump(c));}
 fn uploaded(reply: int): int {if(valid_reply(reply)==0){return 0;}let data: int=web.get(reply,"data");if(web.field_int(reply,"status")<200||web.field_int(reply,"status")>=300){return ui.notice(web.dump(data));}return ui.notice(str_concat("업로드 완료 — 글 또는 프로젝트 첨부 URL: ",web.dump(data)));}
@@ -78,6 +85,7 @@ fn manage(parent: int,resource: string): int {
 fn received(reply: int): int {
  if(valid_reply(reply)==0){return 0;}let status: int=web.field_int(reply,"status");let data: int=web.get(reply,"data");let c: int=reply_context(reply);let kind: string=web.field_text(c,"kind");
  if(status!=200){return ui.notice(str_concat("데이터 조회 실패: ",web.dump(data)));}
+ if(web.equal(kind,"edit_post")!=0){let edit_context: int=web.parse(web.text(web.get(c,"data")));if(web.equal(web.field_text(edit_context,"editor_epoch"),browser.state_get("editor_epoch"))==0){return 0;}web.set(edit_context,"body",web.jstring(web.dump(data)));return show_editor(web.dump(edit_context));}
  if(web.equal(kind,"post")!=0){let area: int=browser.find("post");browser.clear(area);ui.el(area,"h1",web.field_text(data,"title"));browser.markdown(area,web.field_text(data,"content_markdown"));return 1;}
  if(web.equal(kind,"bans")!=0){let area: int=browser.find("admin-rows");browser.clear(area);let types: int=web.parse("[\"ips\",\"users\"]");let t: int=0;while(t<2){let typ: string=web.text(web.at(types,t));let items: int=web.get(data,typ);let i: int=0;while(i<web.count(items)){let item: int=web.at(items,i);let card: int=ui.box(area,"card");ui.text(card,web.dump(item));let key: string="ip";if(web.equal(typ,"users")!=0){key="login";}ui.button(card,"차단 해제",app.remove,str_concat(str_concat(str_concat("/api/admin/bans/",typ),"/"),web.urlencode(web.field_text(item,key))));i=i+1;}t=t+1;}return 1;}
  let area: int=browser.find(kind);if(web.equal(kind,"admin")!=0){area=browser.find("admin-rows");}if(area==0){return 0;}browser.clear(area);let i: int=0;

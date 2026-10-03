@@ -52,10 +52,10 @@ GitHub 저장소를 특정 커밋에 고정한 submodule이다. 수정은 해당
 
 ## 검증
 
-실제 PostgreSQL 16에서 HTTP 통합 테스트 18개를 실행한다. 세부 요청으로 CRUD,
+실제 PostgreSQL 16에서 HTTP 통합 테스트 26개를 실행한다. 세부 요청으로 CRUD,
 초안, SQL 주입 문자열, 잘못된 JSON/타입, 서명·알고리즘·만료 JWT, OAuth/차단,
 프로젝트 메타데이터, CORS, 파일 경로/권한/20 MiB 제한, 문의 동시 요청 및
-80개 병렬 조회를 확인한다. 서버 재시작 후 마이그레이션 기록 10개가 유지되는지
+80개 병렬 조회를 확인한다. 서버 재시작 후 마이그레이션 기록 11개가 유지되는지
 확인한다. 독립 `.fg` PostgreSQL 테스트는 SQL NULL, 매개변수, 반납 시 롤백,
 오류 복구, 마이그레이션 실패 롤백과 재실행 방지를 검사한다.
 
@@ -72,18 +72,18 @@ GIT_MASTER=1 git submodule update --init --recursive
 sh backend-forge/scripts/test-integration.sh
 ```
 
-운영 DB/업로드의 백업과 staging 검증 후 승인된 배포에서 실행할 명령:
+운영 DB/업로드의 백업과 staging 검증 후 승인된 배포에서 실행할 명령이다.
+API와 nginx를 함께 빌드하고 재생성해 Forge 전용 프록시 설정과 신뢰 주소를
+적용한다:
 
 ```sh
-docker compose -f docker-compose.yml -f docker-compose.forge.yml up -d --build api
-docker compose -f docker-compose.yml -f docker-compose.forge.yml up -d --force-recreate nginx
+docker compose -f docker-compose.yml -f docker-compose.forge.yml up -d --build --force-recreate api nginx
 ```
 
 Rust로 되돌리는 명령:
 
 ```sh
-docker compose -f docker-compose.yml up -d --build api
-docker compose -f docker-compose.yml up -d --force-recreate nginx
+docker compose -f docker-compose.yml up -d --build --force-recreate api nginx
 ```
 
 이 작업에서는 운영 Compose, 운영 DB 및 실제 `.env`를 변경하지 않았다.

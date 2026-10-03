@@ -5,7 +5,21 @@ test('Forge public pages and markdown sanitization',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await expect(page.getByRole('heading',{name:'프로젝트',exact:true})).toBeVisible();await expect(page.getByText('Grizzly Hacks 2 우승')).toBeVisible();await page.getByRole('link',{name:'블로그',exact:true}).click();await page.getByRole('link',{name:'Post 1',exact:true}).click();await expect(page.locator('.markdown')).toContainText('Benchmark body.');await expect(page.getByRole('heading',{name:'댓글',exact:true})).toBeVisible();expect(errors).toEqual([]);
 });
 test('Forge administrator creates, updates and deletes a post',async({page})=>{
- const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(value=>localStorage.setItem('auth_token',value),token());await page.goto('/admin/posts');await page.getByRole('button',{name:'새 항목',exact:true}).click();await page.locator('#editor-json').fill(JSON.stringify({title:'Forge browser test',excerpt:'E2E',content_markdown:'# Safe\n<script>window.evil=1</script>',published:true}));await page.getByRole('button',{name:'Markdown 미리보기'}).click();await expect(page.locator('#preview h1')).toHaveText('Safe');expect(await page.evaluate(()=>Reflect.get(window,'evil'))).toBeUndefined();await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('heading',{name:'Forge browser test',exact:true})).toBeVisible();let card=page.locator('.card').filter({has:page.getByRole('heading',{name:'Forge browser test',exact:true})});await card.getByRole('button',{name:'편집',exact:true}).click();const body=JSON.parse(await page.locator('#editor-json').inputValue());body.title='Updated Forge post';await page.locator('#editor-json').fill(JSON.stringify(body));await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('heading',{name:'Updated Forge post',exact:true})).toBeVisible();card=page.locator('.card').filter({has:page.getByRole('heading',{name:'Updated Forge post',exact:true})});await card.getByRole('button',{name:'삭제',exact:true}).click();await expect(page.getByRole('heading',{name:'Updated Forge post',exact:true})).toHaveCount(0);expect(errors).toEqual([]);
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const auth=token(),markdown='# Safe\n<script>window.evil=1</script>';
+ await page.addInitScript(value=>localStorage.setItem('auth_token',value),auth);await page.goto('/admin/posts');
+ await page.getByRole('button',{name:'새 항목',exact:true}).click();
+ await page.locator('#editor-json').fill(JSON.stringify({title:'Forge browser test',excerpt:'E2E',content_markdown:markdown,published:true}));
+ await page.getByRole('button',{name:'Markdown 미리보기'}).click();await expect(page.locator('#preview h1')).toHaveText('Safe');expect(await page.evaluate(()=>Reflect.get(window,'evil'))).toBeUndefined();
+ await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('heading',{name:'Forge browser test',exact:true})).toBeVisible();
+ let card=page.locator('.card').filter({has:page.getByRole('heading',{name:'Forge browser test',exact:true})});
+ await card.getByRole('button',{name:'편집',exact:true}).click();await expect(page.locator('#editor-json')).toBeVisible();
+ const body=JSON.parse(await page.locator('#editor-json').inputValue());expect(body.content_markdown).toBe(markdown);expect(body.published).toBe(true);
+ body.title='Updated Forge post';await page.locator('#editor-json').fill(JSON.stringify(body));await page.getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Updated Forge post',exact:true})).toBeVisible();
+ const stored=await page.request.get('/api/admin/posts/'+body.id,{headers:{Authorization:'Bearer '+auth}});expect(stored.status()).toBe(200);
+ expect(await stored.json()).toMatchObject({title:'Updated Forge post',content_markdown:markdown,published:true});
+ card=page.locator('.card').filter({has:page.getByRole('heading',{name:'Updated Forge post',exact:true})});await card.getByRole('button',{name:'삭제',exact:true}).click();await expect(page.getByRole('heading',{name:'Updated Forge post',exact:true})).toHaveCount(0);expect(errors).toEqual([]);
 });
 test('Forge ban administration uses IP and login identifiers',async({page})=>{
  await page.addInitScript(value=>localStorage.setItem('auth_token',value),token());await page.goto('/admin/bans');
