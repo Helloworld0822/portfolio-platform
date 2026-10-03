@@ -81,9 +81,39 @@ through FFI; this is not a pure Forge implementation of those low-level protocol
 
 ## Runtime bounds
 
-Five exclusive database connections, eight HTTP workers, 256 concurrent client
-connections, 5-second query timeout, 3-second lock timeout, 5-second PostgreSQL
+Five exclusive database connections, up to 256 client connections with one HTTP
+thread per connection, 5-second query timeout, 3-second lock timeout, 5-second PostgreSQL
 connection timeout, 2 MiB JSON body, 20 MiB file and 25 MiB multipart request.
 GitHub account language fetches use four workers and up to three pages of repos.
 The server uses synchronous native workers. It does not depend on unfinished
 Forge coroutine scheduling or supervisor recovery.
+
+`FORGE_WEB_THREADS=connection` is the default: a blocking DB or outbound call
+does not block unrelated connections on the same HTTP poller. `pool` restores
+the previous eight shared HTTP workers. Idle keepalive connections retain their
+threads and thread-local caches until disconnect or the 30-second inactivity
+timeout. Application buffers and helper threads are additional to the HTTP
+connection bound; the database pool still limits simultaneous queries.
+Connection mode uses poll/select; an epoll request falls back to a supported
+mode and the actual mode appears in startup logs. Migration 11 restores the
+comment post/date index lost during the numeric post-ID migration.
+
+## Trusted proxies and input limits
+
+`FORGE_TRUSTED_PROXIES` defaults to empty: `X-Real-IP` is ignored unless the
+direct socket peer matches the explicit comma-separated IP/CIDR allowlist. The
+Forge Compose override uses a dedicated network and trusts only nginx's fixed
+IP. Set `FORGE_PROXY_SUBNET` and `FORGE_PROXY_IP` together if its default
+`172.28.243.0/29` overlaps another network. The disposable test suite allows its
+own isolated subnet so it can exercise forwarded IPv4 and IPv6 identities.
+
+The Forge nginx configuration ignores client-supplied `CF-Connecting-IP`.
+For Cloudflare Tunnel, configure nginx `set_real_ip_from` with the exact tunnel
+peer and `real_ip_header CF-Connecting-IP` before deploying. Loopback binding
+alone does not establish that every socket peer is a trusted tunnel.
+
+Contact fields are bounded to name 200 characters, email 254 bytes and message
+10,000 characters. The request budget is 20 per IP per 10 minutes, in addition to
+the existing five per IP/email pair. Invalid fields are rejected before either
+budget is consumed. JSON keys must be unique; decoded NUL characters are
+rejected because the current Forge string ABI uses C strings.

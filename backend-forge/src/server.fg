@@ -15,6 +15,7 @@ fn migrations(conn: int): int {
     if (postgres.migrate(conn, 8, "timeline", web.read("backend/migrations/0008_timeline.sql")) == 0) { return 0; }
     if (postgres.migrate(conn, 9, "post_numeric_ids", web.read("backend/migrations/0009_post_numeric_ids.sql")) == 0) { return 0; }
     if (postgres.migrate(conn, 10, "bans", web.read("backend/migrations/0010_bans.sql")) == 0) { return 0; }
+    if (postgres.migrate(conn, 11, "restore_comment_post_index", web.read("backend/migrations/0011_restore_comment_post_index.sql")) == 0) { return 0; }
     return 1;
 }
 fn run(): int {

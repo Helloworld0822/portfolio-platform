@@ -65,6 +65,8 @@ def request(method, path, data=None, auth=None, headers=None, raw=None):
 
 class MockGitHub(BaseHTTPRequestHandler):
     pause = None
+    seen = []
+    seen_lock = threading.Lock()
     def log_message(self, *args):
         pass
 
@@ -85,6 +87,8 @@ class MockGitHub(BaseHTTPRequestHandler):
             self.send({'error': 'bad_code'})
 
     def do_GET(self):
+        with MockGitHub.seen_lock:
+            MockGitHub.seen.append(self.path)
         path = urllib.parse.urlsplit(self.path).path
         if path == '/user':
             bearer = self.headers.get('Authorization', '')
@@ -103,6 +107,10 @@ class MockGitHub(BaseHTTPRequestHandler):
                         'description': 'demo', 'language': 'Forge', 'private': False, 'owner': {'login': 'test'}},
                        {'name': 'hidden', 'full_name': 'test/hidden', 'html_url': 'https://github.com/test/hidden',
                         'description': None, 'language': None, 'private': True, 'owner': {'login': 'test'}}])
+        elif path == '/repos/test/malformed':
+            self.send({'private': False})
+        elif path == '/repos/test/malformed/languages':
+            self.send({'Forge': 'not an integer'})
         elif path == '/repos/test/public/languages':
             self.send({'Forge': 1200, 'C': 300})
         elif path == '/repos/test/hidden/languages':
@@ -204,6 +212,23 @@ class PortfolioTests(unittest.TestCase):
         private = self.project(url='https://github.com/test/hidden.git')
         self.assertTrue(private['repo_private'])
 
+    def test_github_error_metadata_and_outbound_path_validation(self):
+        for repo in ['missing', 'malformed']:
+            with self.subTest(repo=repo):
+                row = self.project(url='https://github.com/test/' + repo)
+                self.assertEqual(row['repo_languages'], {})
+                self.assertFalse(row['repo_private'])
+        for url in ['https://github.com.evil.test/test/public', 'https://github.com/test/public/extra',
+                    'https://github.com/test/public?redirect=evil', 'https://github.com/test/public#fragment',
+                    'https://github.com/test/%2e%2e', 'https://github.com/test/public%2flanguages']:
+            with self.subTest(url=url):
+                with MockGitHub.seen_lock:
+                    before = len(MockGitHub.seen)
+                row = self.project(url=url)
+                self.assertEqual(row['repo_languages'], {})
+                with MockGitHub.seen_lock:
+                    self.assertEqual(len(MockGitHub.seen), before)
+
     def test_timeline_crud_and_reorder(self):
         created = []
         for title in ('first', 'second'):
@@ -260,6 +285,20 @@ class PortfolioTests(unittest.TestCase):
         self.assertEqual(sorted(result[0] for result in results), [201, 400])
         created = next(result[1] for result in results if result[0] == 201)
         self.call('DELETE', '/api/admin/contact/' + created['id'], expected=204, auth=token())
+
+    def test_contact_length_and_ip_budget(self):
+        headers = {'X-Real-IP': '203.0.113.185'}
+        base = {'name': 'reader', 'email': 'bounded@example.test', 'message': 'hello'}
+        for field, value in [('name', '홍' * 201), ('email', 'a' * 250 + '@example.test'), ('message', '글' * 10001)]:
+            with self.subTest(field=field):
+                self.call('POST', '/api/contact', dict(base, **{field: value}), 400, headers=headers)
+        boundary = dict(base, name='홍' * 200, message='글' * 10000)
+        row, _ = self.call('POST', '/api/contact', boundary, 201, headers=headers)
+        self.call('DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
+        for index in range(19):
+            row, _ = self.call('POST', '/api/contact', dict(base, email=f'rotating-{index}@example.test'), 201, headers=headers)
+            self.call('DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
+        self.call('POST', '/api/contact', dict(base, email='another-address@example.test'), 429, headers=headers)
 
     def test_bans_and_admin_bypass(self):
         self.call('POST', '/api/admin/bans/ips', {'ip': '127.0.0.1'}, 400, token())
@@ -331,6 +370,50 @@ class PortfolioTests(unittest.TestCase):
         for path in paths:
             self.call('GET', path)
 
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_public_read_concurrent_authoritative_bans(self):
+        database = os.environ['TEST_DATABASE_URL']
+        def sql(command):
+            subprocess.run(['psql', database, '-v', 'ON_ERROR_STOP=1', '-c', command],
+                           check=True, capture_output=True)
+        paths = ('/api/health', '/api/posts', '/api/projects', '/api/timeline')
+        headers = {'X-Real-IP': '8.8.8.11'}
+        def check(status):
+            cases = [(path, auth, 200 if auth == admin else status)
+                     for path in paths for auth in (None, token(secret='wrong'), admin)]
+            def call(case):
+                path, auth, expected = case
+                return self.call('GET', path, expected=expected, auth=auth, headers=headers)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                list(executor.map(call, cases))
+        admin = token()
+        renamed = False
+        try:
+            sql("INSERT INTO banned_ips(ip) VALUES('8.8.8.11')")
+            check(403)
+            sql("UPDATE banned_ips SET expires_at=now()-interval '1 second' WHERE ip='8.8.8.11'")
+            check(200)
+            sql("DELETE FROM banned_ips WHERE ip='8.8.8.11'")
+            check(200)
+            sql('ALTER TABLE banned_ips RENAME TO unavailable_banned_ips')
+            renamed = True
+            check(500)
+            sql('ALTER TABLE unavailable_banned_ips RENAME TO banned_ips')
+            renamed = False
+            check(200)
+        finally:
+            if renamed:
+                sql('ALTER TABLE unavailable_banned_ips RENAME TO banned_ips')
+            sql("DELETE FROM banned_ips WHERE ip='8.8.8.11'")
+
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_comment_post_index_restored(self):
+        sql = "SELECT i.indisvalid AND i.indisready, pg_get_indexdef(i.indexrelid) FROM pg_index i WHERE i.indrelid='comments'::regclass AND i.indexrelid='comments_post_id_created_at_idx'::regclass"
+        result = subprocess.run(['psql', os.environ['TEST_DATABASE_URL'], '-v', 'ON_ERROR_STOP=1',
+                                 '-Atc', sql], check=True, capture_output=True, text=True)
+        self.assertTrue(result.stdout.startswith('t|'), result.stdout)
+        self.assertIn('USING btree (post_id, created_at)', result.stdout)
+
     def test_oauth_login_callback_and_safe_return(self):
         _, headers = self.call('GET', '/api/auth/github/login?state=/blog', expected=302)
         self.assertIn('/login/oauth/authorize?', headers['Location'])
@@ -347,6 +430,20 @@ class PortfolioTests(unittest.TestCase):
         self.assertTrue(headers['Location'].startswith('http://frontend.test/#token='))
         _, headers = self.oauth('invalid')
         self.assertEqual(headers['Location'], 'http://frontend.test/?error=unauthorized')
+
+    def test_oauth_return_paths_are_bounded_before_signing(self):
+        for path in ['/\\evil.test', '/%2f%2fevil.test', '/blog?next=evil', '/blog#token=attacker',
+                     '/blog\r\nX-Injected: yes', '/' + 'a' * 2048]:
+            with self.subTest(path=path[:50]):
+                _, headers = self.call('GET', '/api/auth/github/login?state=' + urllib.parse.quote(path, safe=''), expected=302)
+                state = urllib.parse.parse_qs(urllib.parse.urlsplit(headers['Location']).query)['state'][0]
+                payload = state.split('.')[1]
+                claims = json.loads(base64.urlsafe_b64decode(payload + '=' * (-len(payload) % 4)))
+                self.assertEqual(claims['path'], '/')
+                self.assertLess(len(state), 4096)
+                cookie = headers['Set-Cookie'].split(';', 1)[0]
+                _, callback = self.call('GET', '/api/auth/github/callback?code=user&state=' + urllib.parse.quote(state, safe=''), expected=302, headers={'Cookie': cookie})
+                self.assertTrue(callback['Location'].startswith('http://frontend.test/#token='))
 
     def test_slow_github_does_not_hold_database_pool(self):
         pause = {'lock': threading.Lock(), 'count': 0,
