@@ -18,3 +18,8 @@ backend-forge/build
 frontend-forge/dist
 frontend-forge/generated
 frontend-forge/test-results
+.omo
+.serena
+**/*.pyc
+**/*.pyo
+erl_crash.dump
