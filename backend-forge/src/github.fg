@@ -1,0 +1,83 @@
+import web;
+import strings;
+fn api(path: string): int { return web.fetch(str_concat(web.env("GITHUB_API_BASE_URL", "https://api.github.com"), path), "GET", "", web.env("GITHUB_TOKEN", "")); }
+fn repo_list(prefix: string): int {
+    let result: int = web.array();
+    let page: int = 1;
+    while (page <= 3) {
+        let url: string = str_concat(str_concat(prefix, "?per_page=100&sort=updated&page="), str_from_int(page));
+        let batch: int = api(url);
+        if (web.kind(batch) != 5) { return 0; }
+        let index: int = 0;
+        while (index < web.count(batch)) { web.push(result, web.at(batch, index)); index = index + 1; }
+        if (web.count(batch) < 100) { return result; }
+        page = page + 1;
+    }
+    return result;
+}
+fn user_repos(request: int): int {
+    let prefix: string = "/user/repos";
+    if (str_len(web.env("GITHUB_TOKEN", "")) == 0) { prefix = str_concat(str_concat("/users/", web.env("ADMIN_GITHUB_USERNAME", "")), "/repos"); }
+    let repos: int = repo_list(prefix);
+    if (web.kind(repos) != 5) { return web.error(request, 500, "internal"); }
+    let out: int = web.array();
+    let index: int = 0;
+    while (index < web.count(repos)) {
+        let source: int = web.at(repos, index);
+        let item: int = web.object();
+        web.set(item, "name", web.get(source, "name")); web.set(item, "full_name", web.get(source, "full_name")); web.set(item, "html_url", web.get(source, "html_url")); web.set(item, "description", web.get(source, "description")); web.set(item, "language", web.get(source, "language")); web.set(item, "is_private", web.get(source, "private")); web.set(item, "owner", web.get(web.get(source, "owner"), "login"));
+        web.push(out, item); index = index + 1;
+    }
+    web.sort(out, "full_name");
+    return web.respond(request, 200, web.dump(out));
+}
+fn languages_valid(value: int): int {
+    if (web.kind(value) != 4 || web.count(value) > 256) { return 0; }
+    let names: int = web.keys(value); let index: int = 0;
+    while (index < web.count(names)) {
+        let name: string = web.text(web.at(names, index));
+        let bytes: int = web.get(value, name);
+        if (str_len(name) == 0 || str_len(name) > 100 || web.kind(bytes) != 2 || web.integer(bytes) < 0) { return 0; }
+        index = index + 1;
+    }
+    return 1;
+}
+fn metadata(url: string): int {
+    let out: int = web.object(); let languages: int = web.object();
+    web.set(out, "languages", languages); web.set(out, "private", web.jbool(0));
+    if (web.starts(url, "https://github.com/") == 0) { return out; }
+    let path: string = str_sub(url, 19, str_len(url) - 19);
+    while (str_len(path) > 0 && str_char_at(path, str_len(path) - 1) == 47) { path = str_sub(path, 0, str_len(path) - 1); }
+    let owner: string = web.part(path, 0); let repo: string = web.part(path, 1);
+    if (web.valid(owner, "github_part") == 0 || str_len(web.part(path, 2)) != 0 || str_contains(path, "?") != 0 || str_contains(path, "#") != 0) { return out; }
+    if (str_len(repo) != 0) {
+        if (str_len(repo) > 4 && web.equal(str_sub(repo, str_len(repo) - 4, 4), ".git") != 0) { repo = str_sub(repo, 0, str_len(repo) - 4); }
+        if (web.valid(repo, "github_part") == 0) { return out; }
+        let endpoint: string = str_concat(str_concat(str_concat("/repos/", owner), "/"), repo);
+        let info: int = api(endpoint); let fetched: int = api(str_concat(endpoint, "/languages"));
+        if (web.kind(info) != 4 || web.kind(web.get(info, "private")) != 1 || languages_valid(fetched) == 0) { return out; }
+        web.set(out, "languages", fetched); web.set(out, "private", web.get(info, "private")); return out;
+    }
+    let repos: int = repo_list(str_concat(str_concat("/orgs/", owner), "/repos"));
+    if (web.kind(repos) != 5) { repos = repo_list(str_concat(str_concat("/users/", owner), "/repos")); }
+    let urls: int = web.array(); let index: int = 0;
+    while (index < web.count(repos)) {
+        let source: int = web.at(repos, index); let name: string = web.field_text(source, "full_name");
+        if (web.boolean(web.get(source, "private")) == 0 && web.valid(web.part(name, 0), "github_part") != 0 && web.valid(web.part(name, 1), "github_part") != 0 && str_len(web.part(name, 2)) == 0) { web.push(urls, web.jstring(str_concat(str_concat(str_concat(web.env("GITHUB_API_BASE_URL", "https://api.github.com"), "/repos/"), name), "/languages"))); }
+        index = index + 1;
+    }
+    let fetched: int = web.fetch_many(urls, web.env("GITHUB_TOKEN", ""));
+    index = 0;
+    while (index < web.count(fetched)) {
+        let counts: int = web.at(fetched, index);
+        if (languages_valid(counts) == 0) { index = index + 1; continue; }
+        let names: int = web.keys(counts); let position: int = 0;
+        while (position < web.count(names)) {
+            let name: string = web.text(web.at(names, position)); let bytes: int = web.integer(web.get(counts, name));
+            if (bytes > 0) { web.set(languages, name, web.number(web.integer(web.get(languages, name)) + bytes)); }
+            position = position + 1;
+        }
+        index = index + 1;
+    }
+    return out;
+}

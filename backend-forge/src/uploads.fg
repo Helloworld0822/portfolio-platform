@@ -1,0 +1,9 @@
+import web;
+import strings;
+fn create(request: int): int {
+    let name: string = web.upload(request, web.env("UPLOAD_DIR", "./uploads"));
+    if (str_len(name) == 0) { return web.validation(request, "one non-empty file with an allowed extension is required"); }
+    let out: int = web.object(); web.set(out, "url", web.jstring(str_concat("/uploads/", name)));
+    return web.respond(request, 201, web.dump(out));
+}
+fn get(request: int, name: string): int { return web.file(request, web.env("UPLOAD_DIR", "./uploads"), name); }

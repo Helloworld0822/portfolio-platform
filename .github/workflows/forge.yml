@@ -1,0 +1,26 @@
+name: Forge migration
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: forge-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build and test Forge server and modules
+        run: sh backend-forge/scripts/test-integration.sh
+      - name: Prepare example environment for Compose validation
+        run: cp .env.example .env
+      - name: Validate Forge Compose override
+        run: docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.forge.yml config --quiet
+      - name: Build Forge browser frontend
+        run: docker build -f frontend-forge/Containerfile -t forge-frontend-check .
+      - name: Validate combined frontend and backend overrides
+        run: docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.forge.yml -f docker-compose.frontend-forge.yml config --quiet

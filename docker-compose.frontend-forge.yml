@@ -1,0 +1,6 @@
+services:
+ nginx:
+  build:
+   context: .
+   dockerfile: frontend-forge/Containerfile
+  image: portfolio-platform-forge-site:latest

@@ -9,3 +9,17 @@ backend/target
 .claude
 .vscode
 .idea
+
+**/.git
+backend-forge/build
+**/__pycache__
+
+**/node_modules
+frontend-forge/dist
+frontend-forge/generated
+frontend-forge/test-results
+.omo
+.serena
+**/*.pyc
+**/*.pyo
+erl_crash.dump

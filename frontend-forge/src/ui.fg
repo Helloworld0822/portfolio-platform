@@ -1,0 +1,15 @@
+import browser;
+import web;
+import strings;
+fn el(parent: int,tag: string,text: string): int{return browser.el(parent,tag,text,"");}
+fn heading(parent: int,text: string): int{return el(parent,"h2",text);}
+fn text(parent: int,text: string): int{return el(parent,"p",text);}
+fn box(parent: int,classes: string): int{return browser.el(parent,"div","",classes);}
+fn id(node: int,value: string): int{return browser.attr(node,"id",value);}
+fn field(parent: int,name: string,label: string,value: string,multiline: int): int {
+ let title: int=el(parent,"label",label);browser.attr(title,"for",name);let tag: string="input";if(multiline!=0){tag="textarea";}let node: int=el(parent,tag,"");id(node,name);if(multiline!=0){browser.attr(node,"placeholder",label);browser.attr(node,"value",value);}else{browser.attr(node,"value",value);}return node;
+}
+fn button(parent: int,text: string,callback: int,context: string): int{let node: int=el(parent,"button",text);browser.listen(node,"click",callback,context);return node;}
+fn link(parent: int,label: string,url: string): int {let node: int=el(parent,"a",label);browser.attr(node,"href",url);return node;}
+fn item_id(value: int): string{let field: int=web.get(value,"id");if(web.kind(field)==2){return web.dump(field);}return web.text(field);}
+fn notice(message: string): int{let node: int=browser.find("notice");if(node==0){return 0;}browser.clear(node);return browser.el(node,"p",message,"");}

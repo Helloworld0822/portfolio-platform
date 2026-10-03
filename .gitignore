@@ -25,3 +25,13 @@ Cargo.lock.bak
 # Agent orchestration
 .omo/
 .serena/
+
+frontend-forge/node_modules/
+frontend-forge/dist/
+frontend-forge/generated/
+frontend-forge/test-results/
+
+__pycache__/
+*.pyc
+*.pyo
+/erl_crash.dump

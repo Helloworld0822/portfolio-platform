@@ -1,0 +1,23 @@
+import database;
+import web;
+fn list(conn: int, request: int): int {
+    return database.response(conn, request, "SELECT json_build_object('ips',COALESCE((SELECT json_agg(b) FROM (SELECT * FROM banned_ips WHERE expires_at IS NULL OR expires_at>now() ORDER BY created_at DESC) b),'[]'::json),'users',COALESCE((SELECT json_agg(u) FROM (SELECT * FROM blocked_users ORDER BY created_at DESC) u),'[]'::json))", 0, 200);
+}
+fn ip(conn: int, request: int): int {
+    let body: int = web.request_json(request);
+    if (web.required(body, "ip", 3) == 0 || web.optional(body, "reason", 3) == 0 || web.optional(body, "duration_hours", 2) == 0) { return web.validation(request, "invalid ban fields"); }
+    let ip: string = web.normalize_ip(web.trim(web.field_text(body, "ip")));
+    if (web.valid(ip, "public_ip") == 0) { return web.validation(request, "a public IPv4/IPv6 address is required"); }
+    web.set(body, "ip", web.jstring(ip));
+    return database.response(conn, request, "WITH changed AS (INSERT INTO banned_ips(ip,reason,expires_at) VALUES($1::jsonb->>'ip',$1::jsonb->>'reason',CASE WHEN $1::jsonb->>'duration_hours' IS NULL THEN NULL ELSE now()+make_interval(hours=>GREATEST(1,LEAST(8760,($1::jsonb->>'duration_hours')::bigint))::integer) END) ON CONFLICT(ip) DO UPDATE SET reason=EXCLUDED.reason,expires_at=EXCLUDED.expires_at RETURNING ip,expires_at) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201);
+}
+fn user(conn: int, request: int): int {
+    let body: int = web.request_json(request);
+    if (web.required(body, "login", 3) == 0 || web.optional(body, "reason", 3) == 0) { return web.validation(request, "invalid block fields"); }
+    let login: string = web.trim(web.field_text(body, "login"));
+    if (web.valid(login, "login") == 0 || web.equal(web.lower(login), web.lower(web.env("ADMIN_GITHUB_USERNAME", ""))) != 0) { return web.validation(request, "invalid login or configured admin account"); }
+    web.set(body, "login", web.jstring(login));
+    return database.response(conn, request, "WITH changed AS (INSERT INTO blocked_users(login,reason) VALUES($1::jsonb->>'login',$1::jsonb->>'reason') ON CONFLICT(lower(login)) DO UPDATE SET reason=EXCLUDED.reason RETURNING login) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201);
+}
+fn remove_ip(conn: int, request: int, ip: string): int { return database.response(conn, request, "DELETE FROM banned_ips WHERE ip=$1", database.args1(web.normalize_ip(ip)), 204); }
+fn remove_user(conn: int, request: int, login: string): int { return database.response(conn, request, "DELETE FROM blocked_users WHERE lower(login)=lower($1)", database.args1(login), 204); }

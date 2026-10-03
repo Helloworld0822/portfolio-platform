@@ -1,0 +1,37 @@
+import database;
+import web;
+import abuse;
+import auth;
+import strings;
+fn published(conn: int, request: int, id: string): int {
+    let exists: int = database.exists(conn, "SELECT EXISTS(SELECT 1 FROM posts WHERE id=$1::bigint AND published=true)", database.args1(id));
+    if (exists < 0) { web.error(request, 500, "internal"); return 0; }
+    if (exists == 0) { web.error(request, 404, "not_found"); return 0; }
+    return 1;
+}
+fn list(conn: int, request: int, id: string): int {
+    if (published(conn, request, id) == 0) { return 1; }
+    return database.response(conn, request, "SELECT COALESCE(json_agg(c),'[]'::json) FROM (SELECT * FROM comments WHERE post_id=$1::bigint ORDER BY created_at ASC) c", database.args1(id), 200);
+}
+fn create(conn: int, request: int, id: string, user: int): int {
+    if (web.kind(user) != 4) { return web.error(request, 401, "unauthorized"); }
+    let blocked: int = abuse.blocked(conn, web.field_text(user, "sub"));
+    if (blocked < 0) { return web.error(request, 500, "internal"); }
+    if (blocked != 0) { return web.error(request, 403, "forbidden"); }
+    let body: int = web.request_json(request);
+    if (web.required(body, "body", 3) == 0) { return web.validation(request, "body is required"); }
+    let text: string = web.trim(web.field_text(body, "body"));
+    if (web.chars(text) == 0 || web.chars(text) > 2000) { return web.validation(request, "body must contain 1-2000 characters"); }
+    if (abuse.limit(conn, request, str_concat("comment|", web.ip(request)), 10) == 0) { return 1; }
+    if (published(conn, request, id) == 0) { return 1; }
+    let values: int = database.args2(id, web.field_text(user, "sub"));
+    web.push(values, web.get(user, "avatar_url")); web.push(values, web.jstring(text));
+    return database.response(conn, request, "WITH changed AS (INSERT INTO comments(post_id,author_login,author_avatar_url,body) VALUES($1::bigint,$2,$3,$4) RETURNING *) SELECT row_to_json(changed) FROM changed", values, 201);
+}
+fn remove(conn: int, request: int, id: string, user: int): int {
+    if (web.kind(user) != 4) { return web.error(request, 401, "unauthorized"); }
+    let existing: int = database.fetch(conn, "SELECT row_to_json(c) FROM comments c WHERE id=$1::uuid", database.args1(id));
+    if (web.kind(existing) == 0) { return web.error(request, 404, "not_found"); }
+    if (auth.admin(user) == 0 && web.equal(web.lower(web.field_text(existing, "author_login")), web.lower(web.field_text(user, "sub"))) == 0) { return web.error(request, 403, "forbidden"); }
+    return database.response(conn, request, "DELETE FROM comments WHERE id=$1::uuid", database.args1(id), 204);
+}

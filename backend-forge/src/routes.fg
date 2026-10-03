@@ -1,0 +1,131 @@
+import web;
+import postgres;
+import auth;
+import abuse;
+import posts;
+import projects;
+import timeline;
+import comments;
+import contact;
+import bans;
+import uploads;
+import github;
+import database;
+extern fn portfolio_pool(): int;
+fn handle(conn: int, request: int, user: int): int {
+    let method: string = web.method(request); let path: string = web.path(request);
+    let count: int = web.segments(request);
+    if (web.equal(method, "OPTIONS") != 0) { return web.respond(request, 204, ""); }
+    if (web.equal(path, "/api/health") != 0 && web.equal(method, "GET") != 0) { return web.respond(request, 200, "{\"status\":\"ok\"}"); }
+    if (web.equal(web.segment(request, 0), "uploads") != 0 && count == 2 && web.equal(method, "GET") != 0) { return uploads.get(request, web.segment(request, 1)); }
+    if (web.equal(path, "/api/auth/github/login") != 0 && web.equal(method, "GET") != 0) { return auth.login(request); }
+    if (web.equal(path, "/api/auth/github/callback") != 0 && web.equal(method, "GET") != 0) { return auth.callback(request); }
+    if (web.equal(path, "/api/openapi.json") != 0 && web.equal(method, "GET") != 0) { return web.respond(request, 200, web.read(web.env("OPENAPI_PATH", "backend-forge/openapi.json"))); }
+    if (web.starts(path, "/api/docs") != 0 && web.equal(method, "GET") != 0) { let result: int = web.respond(request, 200, web.read(web.env("DOCS_PATH", "backend-forge/docs.html"))); web.content_type(request, "text/html; charset=utf-8"); return result; }
+    if (web.equal(path, "/api/posts") != 0 && web.equal(method, "GET") != 0) { return posts.list(conn, request, 0); }
+    if (web.equal(path, "/api/projects") != 0 && web.equal(method, "GET") != 0) { return projects.list(conn, request, 0); }
+    if (web.equal(path, "/api/timeline") != 0 && web.equal(method, "GET") != 0) { return timeline.list(conn, request, 0); }
+    if (web.equal(path, "/api/contact") != 0 && web.equal(method, "POST") != 0) { return contact.create(conn, request); }
+    if (web.equal(web.segment(request, 0), "api") != 0 && web.equal(web.segment(request, 1), "posts") != 0 && count >= 3 && count <= 4) {
+        let id: string = web.segment(request, 2);
+        if (web.valid(id, "id") == 0) { return web.error(request, 404, "not_found"); }
+        if (count == 3 && web.equal(method, "GET") != 0) { return posts.get(conn, request, id, 0); }
+        if (count == 4 && web.equal(web.segment(request, 3), "comments") != 0) {
+            if (web.equal(method, "GET") != 0) { return comments.list(conn, request, id); }
+            if (web.equal(method, "POST") != 0) { return comments.create(conn, request, id, user); }
+        }
+    }
+    if (web.equal(web.segment(request, 0), "api") != 0 && web.equal(web.segment(request, 1), "comments") != 0 && count == 3 && web.equal(method, "DELETE") != 0) {
+        let id: string = web.segment(request, 2); if (web.valid(id, "uuid") == 0) { return web.error(request, 404, "not_found"); } return comments.remove(conn, request, id, user);
+    }
+    if (web.equal(web.segment(request, 0), "api") != 0 && web.equal(web.segment(request, 1), "admin") != 0) {
+        if (auth.admin(user) == 0) { return web.error(request, 401, "unauthorized"); }
+        let resource: string = web.segment(request, 2); let id: string = web.segment(request, 3);
+        if (web.equal(resource, "posts") != 0) {
+            if (count == 3 && web.equal(method, "GET") != 0) { return posts.list(conn, request, 1); }
+            if (count == 3 && web.equal(method, "POST") != 0) { return posts.save(conn, request, "", 1); }
+            if (count == 4 && web.valid(id, "id") != 0) {
+                if (web.equal(method, "GET") != 0) { return posts.get(conn, request, id, 1); }
+                if (web.equal(method, "PUT") != 0) { return posts.save(conn, request, id, 0); }
+                if (web.equal(method, "DELETE") != 0) { return posts.remove(conn, request, id); }
+            }
+        }
+        if (web.equal(resource, "projects") != 0) {
+            if (count == 3 && web.equal(method, "GET") != 0) { return projects.list(conn, request, 1); }
+            if (count == 3 && web.equal(method, "POST") != 0) { return projects.save(request, "", 1); }
+            if (count == 4 && web.valid(id, "uuid") != 0) {
+                if (web.equal(method, "PUT") != 0) { return projects.save(request, id, 0); }
+                if (web.equal(method, "DELETE") != 0) { return projects.remove(conn, request, id); }
+            }
+        }
+        if (web.equal(resource, "timeline") != 0) {
+            if (count == 3 && web.equal(method, "GET") != 0) { return timeline.list(conn, request, 1); }
+            if (count == 3 && web.equal(method, "POST") != 0) { return timeline.save(conn, request, "", 1); }
+            if (count == 4 && web.equal(id, "reorder") != 0 && web.equal(method, "POST") != 0) { return timeline.reorder(conn, request); }
+            if (count == 4 && web.valid(id, "uuid") != 0) {
+                if (web.equal(method, "PUT") != 0) { return timeline.save(conn, request, id, 0); }
+                if (web.equal(method, "DELETE") != 0) { return timeline.remove(conn, request, id); }
+            }
+        }
+        if (web.equal(resource, "contact") != 0) {
+            if (count == 3 && web.equal(method, "GET") != 0) { return contact.list(conn, request); }
+            if (count == 4 && web.equal(id, "dedupe") != 0 && web.equal(method, "POST") != 0) { return contact.dedupe(conn, request); }
+            if (count == 4 && web.valid(id, "uuid") != 0 && web.equal(method, "DELETE") != 0) { return contact.remove(conn, request, id); }
+        }
+        if (web.equal(resource, "uploads") != 0 && count == 3 && web.equal(method, "POST") != 0) { return uploads.create(request); }
+        if (web.equal(resource, "comments") != 0 && count == 4 && web.valid(id, "uuid") != 0 && web.equal(method, "DELETE") != 0) { return comments.remove(conn, request, id, user); }
+        if (web.equal(resource, "github") != 0 && count == 4 && web.equal(id, "repos") != 0 && web.equal(method, "GET") != 0) { return github.user_repos(request); }
+        if (web.equal(resource, "bans") != 0) {
+            if (count == 3 && web.equal(method, "GET") != 0) { return bans.list(conn, request); }
+            if (count == 4 && web.equal(method, "POST") != 0) {
+                if (web.equal(id, "ips") != 0) { return bans.ip(conn, request); }
+                if (web.equal(id, "users") != 0) { return bans.user(conn, request); }
+            }
+            if (count == 5 && web.equal(method, "DELETE") != 0) {
+                if (web.equal(id, "ips") != 0) { return bans.remove_ip(conn, request, web.segment(request, 4)); }
+                if (web.equal(id, "users") != 0) { return bans.remove_user(conn, request, web.segment(request, 4)); }
+            }
+        }
+    }
+    return web.error(request, 404, "not_found");
+}
+fn detached(request: int): int {
+    let method: string = web.method(request);
+    let path: string = web.path(request);
+    if (web.equal(method, "OPTIONS") != 0) { return 1; }
+    if (web.equal(method, "GET") != 0) {
+        if (web.equal(path, "/api/health") != 0 || web.starts(path, "/uploads/") != 0 || web.equal(path, "/api/auth/github/login") != 0 || web.equal(path, "/api/auth/github/callback") != 0 || web.equal(path, "/api/openapi.json") != 0 || web.starts(path, "/api/docs") != 0 || web.equal(path, "/api/admin/github/repos") != 0) { return 1; }
+    }
+    if (web.equal(method, "POST") != 0 && web.equal(path, "/api/admin/uploads") != 0) { return 1; }
+    if ((web.equal(method, "POST") != 0 || web.equal(method, "PUT") != 0) && web.starts(path, "/api/admin/projects") != 0) { return 1; }
+    return 0;
+}
+fn dispatch(request: int): int {
+    web.cors(request, web.env("CORS_ALLOWED_ORIGINS", ""));
+    let user: int = auth.claims(request);
+    let conn: int = postgres.acquire(portfolio_pool());
+    if (conn == 0) { return web.error(request, 503, "unavailable"); }
+    let result: int = 0;
+    if (auth.admin(user) == 0) {
+        result = public_read(conn, request);
+        if (result != 0) { postgres.release(portfolio_pool(), conn); return result; }
+        let banned: int = abuse.banned(conn, web.ip(request));
+        if (banned < 0) { result = web.error(request, 500, "internal"); }
+        if (banned > 0) { result = web.error(request, 403, "forbidden"); }
+    }
+    if (result == 0) {
+        if (detached(request) != 0) { postgres.release(portfolio_pool(), conn); conn = 0; }
+        result = handle(conn, request, user);
+    }
+    if (conn != 0) { postgres.release(portfolio_pool(), conn); }
+    return result;
+}
+fn public_read(conn: int, request: int): int {
+    if (web.equal(web.method(request), "GET") == 0) { return 0; }
+    let path: string = web.path(request);
+    if (web.equal(path, "/api/health") != 0) { return database.guarded_response(conn, request, "SELECT '{\"status\":\"ok\"}'::json"); }
+    if (web.equal(path, "/api/posts") != 0) { return posts.public_list(conn, request); }
+    if (web.equal(path, "/api/projects") != 0) { return projects.public_list(conn, request); }
+    if (web.equal(path, "/api/timeline") != 0) { return timeline.public_list(conn, request); }
+    return 0;
+}

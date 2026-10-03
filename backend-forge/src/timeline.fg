@@ -1,0 +1,45 @@
+import database;
+import web;
+import postgres;
+fn validate(body: int, create: int): int {
+    if (web.kind(body) != 4) { return 0; }
+    if (create != 0 && web.required(body, "period", 3) == 0) { return 0; }
+    if (web.optional(body, "period", 3) == 0) { return 0; }
+    if (create != 0 && web.required(body, "title", 3) == 0) { return 0; }
+    if (web.optional(body, "title", 3) == 0) { return 0; }
+    if (create != 0 && web.required(body, "org", 3) == 0) { return 0; }
+    if (web.optional(body, "org", 3) == 0) { return 0; }
+    if (create != 0 && web.required(body, "description", 3) == 0) { return 0; }
+    if (web.optional(body, "description", 3) == 0) { return 0; }
+    if (web.present(body, "title") != 0 && web.chars(web.trim(web.field_text(body, "title"))) == 0) { return 0; }
+    return 1;
+}
+fn list(conn: int, request: int, all: int): int {
+    if (all != 0) { return database.response(conn, request, public_sql(), 0, 200); }
+    return database.response(conn, request, public_sql(), 0, 200);
+}
+fn public_list(conn: int, request: int): int {
+    return database.guarded_response(conn, request, public_sql());
+}
+fn save(conn: int, request: int, id: string, create: int): int {
+    let body: int = web.request_json(request);
+    if (validate(body, create) == 0) { return web.validation(request, "invalid or missing field"); }
+    if (create != 0) { return database.response(conn, request, "WITH changed AS (INSERT INTO timeline_entries(period,title,org,description,sort_order) SELECT (jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).period,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).title,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).org,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).description,COALESCE((SELECT MAX(sort_order)+1 FROM timeline_entries),0) RETURNING *) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201); }
+    return database.response(conn, request, "WITH changed AS (UPDATE timeline_entries SET period=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).period,period),title=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).title,title),org=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).org,org),description=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).description,description),updated_at=now() WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
+}
+fn remove(conn: int, request: int, id: string): int { return database.response(conn, request, "DELETE FROM timeline_entries WHERE id=$1::uuid", database.args1(id), 204); }
+fn reorder(conn: int, request: int): int {
+    let body: int = web.request_json(request);
+    let ids: int = web.get(body, "ids");
+    if (web.string_array(ids) == 0) { return web.validation(request, "ids must be a UUID array"); }
+    let index: int = 0;
+    while (index < web.count(ids)) { if (web.valid(web.text(web.at(ids, index)), "uuid") == 0) { return web.validation(request, "invalid UUID"); } index = index + 1; }
+    if (postgres.begin(conn) == 0) { return web.error(request, 500, "internal"); }
+    let result: int = database.query(conn, "UPDATE timeline_entries t SET sort_order=(i.ordinality-1)::integer,updated_at=now() FROM jsonb_array_elements_text($1::jsonb) WITH ORDINALITY AS i(id,ordinality) WHERE t.id=i.id::uuid", database.args1(web.dump(ids)));
+    let ok: int = postgres.ok(result); postgres.clear(result);
+    if (ok == 0) { postgres.rollback(conn); return web.error(request, 500, "internal"); }
+    if (postgres.commit(conn) == 0) { return web.error(request, 500, "internal"); }
+    return web.respond(request, 204, "");
+}
+
+fn public_sql(): string { return "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM timeline_entries ORDER BY sort_order ASC,created_at ASC) item"; }

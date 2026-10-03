@@ -1,0 +1,32 @@
+import database;
+import postgres;
+import web;
+import abuse;
+import strings;
+fn create(conn: int, request: int): int {
+    let body: int = web.request_json(request);
+    if (web.required(body, "name", 3) == 0 || web.required(body, "email", 3) == 0 || web.required(body, "message", 3) == 0) { return web.validation(request, "name, email and message are required"); }
+    let name: string = web.trim(web.field_text(body, "name")); let email: string = web.trim(web.field_text(body, "email")); let message: string = web.trim(web.field_text(body, "message"));
+    if (web.chars(name) == 0 || web.chars(message) == 0 || web.valid(email, "email") == 0) { return web.validation(request, "invalid name, email or message"); }
+    if (web.chars(name) > 200 || str_len(email) > 254 || web.chars(message) > 10000) { return web.validation(request, "name, email or message exceeds the length limit"); }
+    if (abuse.limit(conn, request, str_concat("contact-ip|", web.ip(request)), 20) == 0) { return 1; }
+    let key: string = str_concat(str_concat(str_concat("contact|", web.ip(request)), "|"), web.lower(email));
+    if (abuse.limit(conn, request, key, 5) == 0) { return 1; }
+    if (postgres.begin(conn) == 0) { return web.error(request, 500, "internal"); }
+    let locked: int = database.query(conn, "SELECT pg_advisory_xact_lock(hashtextextended(lower($1),1))", database.args1(email));
+    let ok: int = postgres.ok(locked); postgres.clear(locked);
+    if (ok == 0) { postgres.rollback(conn); return web.error(request, 500, "internal"); }
+    let duplicate: int = database.exists(conn, "SELECT EXISTS(SELECT 1 FROM contact_messages WHERE lower(email)=lower($1) AND message=$2 AND created_at>now()-interval '24 hours')", database.args2(email, message));
+    if (duplicate < 0) { postgres.rollback(conn); return web.error(request, 500, "internal"); }
+    if (duplicate != 0) { postgres.rollback(conn); return web.validation(request, "이미 동일한 내용의 문의가 접수되었습니다. 잠시 후 다시 시도해주세요."); }
+    let values: int = database.args2(name, email); web.push(values, web.jstring(message));
+    let stored: int = database.fetch(conn, "WITH changed AS (INSERT INTO contact_messages(name,email,message) VALUES($1,$2,$3) RETURNING *) SELECT row_to_json(changed) FROM changed", values);
+    if (web.kind(stored) == 0) { postgres.rollback(conn); return web.error(request, 500, "internal"); }
+    if (postgres.commit(conn) == 0) { return web.error(request, 500, "internal"); }
+    return web.respond(request, 201, web.dump(stored));
+}
+fn list(conn: int, request: int): int { return database.response(conn, request, "SELECT COALESCE(json_agg(c),'[]'::json) FROM (SELECT * FROM contact_messages ORDER BY created_at DESC) c", 0, 200); }
+fn remove(conn: int, request: int, id: string): int { return database.response(conn, request, "DELETE FROM contact_messages WHERE id=$1::uuid", database.args1(id), 204); }
+fn dedupe(conn: int, request: int): int {
+    return database.response(conn, request, "WITH removed AS (DELETE FROM contact_messages WHERE id IN (SELECT id FROM (SELECT id,row_number() OVER(PARTITION BY lower(email),message ORDER BY created_at,id) AS occurrence FROM contact_messages) ranked WHERE occurrence>1) RETURNING id) SELECT json_build_object('removed',count(*)) FROM removed", 0, 200);
+}
