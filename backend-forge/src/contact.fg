@@ -8,6 +8,8 @@ fn create(conn: int, request: int): int {
     if (web.required(body, "name", 3) == 0 || web.required(body, "email", 3) == 0 || web.required(body, "message", 3) == 0) { return web.validation(request, "name, email and message are required"); }
     let name: string = web.trim(web.field_text(body, "name")); let email: string = web.trim(web.field_text(body, "email")); let message: string = web.trim(web.field_text(body, "message"));
     if (web.chars(name) == 0 || web.chars(message) == 0 || web.valid(email, "email") == 0) { return web.validation(request, "invalid name, email or message"); }
+    if (web.chars(name) > 200 || str_len(email) > 254 || web.chars(message) > 10000) { return web.validation(request, "name, email or message exceeds the length limit"); }
+    if (abuse.limit(conn, request, str_concat("contact-ip|", web.ip(request)), 20) == 0) { return 1; }
     let key: string = str_concat(str_concat(str_concat("contact|", web.ip(request)), "|"), web.lower(email));
     if (abuse.limit(conn, request, key, 5) == 0) { return 1; }
     if (postgres.begin(conn) == 0) { return web.error(request, 500, "internal"); }

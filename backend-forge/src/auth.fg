@@ -23,6 +23,10 @@ fn failure(request: int, code: string): int {
     let result: int = web.redirect(request, str_concat(str_concat(frontend(), "/?error="), code));
     clear_cookie(request); return result;
 }
+fn return_path(path: string): string {
+    if (str_len(path) > 2048 || web.valid(path, "return_path") == 0) { return "/"; }
+    return path;
+}
 fn login(request: int): int {
     let client: string = web.env("GITHUB_CLIENT_ID", "");
     if (str_len(client) == 0) { return failure(request, "unauthorized"); }
@@ -32,7 +36,7 @@ fn login(request: int): int {
     url = str_concat(url, web.urlencode(str_concat(web.env("BACKEND_BASE_URL", "http://localhost:8080"), "/api/auth/github/callback")));
     url = str_concat(url, "&scope=read:user&state=");
     let state: int = web.object(); let nonce: string = web.uuid();
-    web.set(state, "sub", web.jstring(nonce)); web.set(state, "role", web.jstring("oauth")); web.set(state, "exp", web.number(web.now() + 600)); web.set(state, "path", web.jstring(web.query(request, "state")));
+    web.set(state, "sub", web.jstring(nonce)); web.set(state, "role", web.jstring("oauth")); web.set(state, "exp", web.number(web.now() + 600)); web.set(state, "path", web.jstring(return_path(web.query(request, "state"))));
     url = str_concat(url, web.urlencode(web.jwt_sign(state, web.env("JWT_SECRET", ""))));
     let result: int = web.redirect(request, url);
     web.set_cookie(request, "forge_oauth_nonce", nonce, 600, web.starts(web.env("BACKEND_BASE_URL", ""), "https://"));
@@ -61,8 +65,7 @@ fn callback(request: int): int {
     if (is_blocked < 0) { return failure(request, "unauthorized"); }
     if (is_blocked != 0) { return failure(request, "blocked"); }
     let role: string = "user";
-    let path: string = web.field_text(state, "path");
-    if (web.valid(path, "return_path") == 0) { path = "/"; }
+    let path: string = return_path(web.field_text(state, "path"));
     if (web.equal(login, web.env("ADMIN_GITHUB_USERNAME", "")) != 0) { role = "admin"; path = "/admin"; }
     let user: int = web.object(); web.set(user, "sub", web.jstring(login)); web.set(user, "role", web.jstring(role)); web.set(user, "avatar_url", web.get(profile, "avatar_url")); web.set(user, "exp", web.number(web.now() + 604800));
     let jwt: string = web.jwt_sign(user, web.env("JWT_SECRET", ""));

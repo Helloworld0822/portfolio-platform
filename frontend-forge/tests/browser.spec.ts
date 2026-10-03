@@ -12,3 +12,16 @@ test('Forge ban administration uses IP and login identifiers',async({page})=>{
  await page.locator('#ban-json').fill(JSON.stringify({ip:'203.0.113.121',reason:'browser test'}));await page.getByRole('button',{name:'IP 차단',exact:true}).click();let card=page.locator('.card').filter({hasText:'203.0.113.121'});await expect(card).toBeVisible();await card.getByRole('button',{name:'차단 해제'}).click();await expect(card).toHaveCount(0);
  await page.locator('#ban-json').fill(JSON.stringify({login:'browser-test-user',reason:'browser test'}));await page.getByRole('button',{name:'사용자 차단',exact:true}).click();card=page.locator('.card').filter({hasText:'browser-test-user'});await expect(card).toBeVisible();await card.getByRole('button',{name:'차단 해제'}).click();await expect(card).toHaveCount(0);
 });
+test('untrusted post text and Markdown cannot create executable DOM',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const title='<img src=x onerror="window.forgeXss=1">';
+ const markdown='# Safe content\n<script>window.forgeXss=1</script>\n<img src=x onerror="window.forgeXss=2">\n<svg onload="window.forgeXss=3"></svg>\n[unsafe](javascript:window.forgeXss=4)\n<a href="data:text/html,test">data link</a>';
+ await page.route('**/api/posts/1',route=>route.fulfill({json:{id:1,title,content_markdown:markdown,published:true}}));
+ await page.route('**/api/posts/1/comments',route=>route.fulfill({json:[]}));
+ await page.goto('/blog/1');
+ await expect(page.getByRole('heading',{name:title,exact:true})).toBeVisible();
+ await expect(page.locator('.markdown h1')).toHaveText('Safe content');
+ expect(await page.evaluate(()=>Reflect.get(window,'forgeXss'))).toBeUndefined();
+ await expect(page.locator('.markdown script,.markdown [onerror],.markdown [onload],.markdown a[href^="javascript:"],.markdown a[href^="data:"]')).toHaveCount(0);
+ expect(errors).toEqual([]);
+});

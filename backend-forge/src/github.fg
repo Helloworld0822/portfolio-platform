@@ -31,6 +31,17 @@ fn user_repos(request: int): int {
     web.sort(out, "full_name");
     return web.respond(request, 200, web.dump(out));
 }
+fn languages_valid(value: int): int {
+    if (web.kind(value) != 4 || web.count(value) > 256) { return 0; }
+    let names: int = web.keys(value); let index: int = 0;
+    while (index < web.count(names)) {
+        let name: string = web.text(web.at(names, index));
+        let bytes: int = web.get(value, name);
+        if (str_len(name) == 0 || str_len(name) > 100 || web.kind(bytes) != 2 || web.integer(bytes) < 0) { return 0; }
+        index = index + 1;
+    }
+    return 1;
+}
 fn metadata(url: string): int {
     let out: int = web.object(); let languages: int = web.object();
     web.set(out, "languages", languages); web.set(out, "private", web.jbool(0));
@@ -44,7 +55,7 @@ fn metadata(url: string): int {
         if (web.valid(repo, "github_part") == 0) { return out; }
         let endpoint: string = str_concat(str_concat(str_concat("/repos/", owner), "/"), repo);
         let info: int = api(endpoint); let fetched: int = api(str_concat(endpoint, "/languages"));
-        if (web.kind(info) != 4 || web.kind(fetched) != 4) { return out; }
+        if (web.kind(info) != 4 || web.kind(web.get(info, "private")) != 1 || languages_valid(fetched) == 0) { return out; }
         web.set(out, "languages", fetched); web.set(out, "private", web.get(info, "private")); return out;
     }
     let repos: int = repo_list(str_concat(str_concat("/orgs/", owner), "/repos"));
@@ -58,7 +69,9 @@ fn metadata(url: string): int {
     let fetched: int = web.fetch_many(urls, web.env("GITHUB_TOKEN", ""));
     index = 0;
     while (index < web.count(fetched)) {
-        let counts: int = web.at(fetched, index); let names: int = web.keys(counts); let position: int = 0;
+        let counts: int = web.at(fetched, index);
+        if (languages_valid(counts) == 0) { index = index + 1; continue; }
+        let names: int = web.keys(counts); let position: int = 0;
         while (position < web.count(names)) {
             let name: string = web.text(web.at(names, position)); let bytes: int = web.integer(web.get(counts, name));
             if (bytes > 0) { web.set(languages, name, web.number(web.integer(web.get(languages, name)) + bytes)); }
