@@ -37,7 +37,8 @@ sh backend-forge/scripts/test-integration.sh
 ```
 
 The test script creates uniquely named containers and a PostgreSQL tmpfs database,
-uses fixed test credentials, publishes no ports and removes its containers/network
+uses fixed test credentials, publishes only temporary loopback ports for proxy and
+health lifecycle checks, and removes its containers/network
 and image tags on exit. It verifies all existing migration versions, restarts the
 server to verify migration idempotence, tests both independent `.fg` modules and
 exercises the HTTP APIs with a mock GitHub service. It never reads `.env`.
