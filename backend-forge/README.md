@@ -37,7 +37,8 @@ sh backend-forge/scripts/test-integration.sh
 ```
 
 The test script creates uniquely named containers and a PostgreSQL tmpfs database,
-uses fixed test credentials, publishes no ports and removes its containers/network
+uses fixed test credentials, publishes only temporary loopback ports for proxy and
+health lifecycle checks, and removes its containers/network
 and image tags on exit. It verifies all existing migration versions, restarts the
 server to verify migration idempotence, tests both independent `.fg` modules and
 exercises the HTTP APIs with a mock GitHub service. It never reads `.env`.
@@ -58,8 +59,20 @@ CORS, host/port and upload environment variable names are preserved.
 `DATABASE_POOL_SIZE` defaults to 5 and accepts 1–64; invalid sizes fail startup.
 DB leases are returned before OAuth/GitHub HTTP calls and detached file handlers.
 Public requests still query IP bans, preserving immediate ban/unban behavior.
+Non-admin `GET /api/health` requests check the current PostgreSQL ban and expiry
+state. Concurrent checks share a query for up to 64 IPs, with a separate result
+for each request. Each batch immediately selects queued requests before querying
+the current DB state. Responses keep
+the existing JSON, CORS and administrator bypass behavior. Queued checks time
+out after 10 seconds with 503; selected checks finish their DB work before their
+callbacks return. Database errors fail closed and terminate pending checks,
+while subsequent requests query the database again.
 The integration suite uses one connection to verify health remains available
 while a GitHub request is deliberately delayed.
+Post summaries are serialized in the API from typed DB columns, retaining the
+live ban check in the same SQL statement and the existing timestamp format.
+Comment counts use the joined post ID, allowing the existing post/date index
+to cover the aggregate without reading comment IDs.
 
 ## Migration and rollback
 
