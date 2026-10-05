@@ -165,6 +165,55 @@ class PortfolioTests(unittest.TestCase):
                 self.call('GET', '/api/admin/posts', expected=401, auth=invalid)
         self.call('GET', '/api/admin/posts', auth=token())
 
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_health_authorization_and_error_cors(self):
+        def sql(command):
+            subprocess.run(['psql', os.environ['TEST_DATABASE_URL'], '-v', 'ON_ERROR_STOP=1', '-c', command],
+                           check=True, capture_output=True)
+        headers = {'X-Real-IP': '8.8.4.7', 'Origin': 'http://frontend.test'}
+        sql("INSERT INTO banned_ips(ip) VALUES('8.8.4.7')")
+        renamed = False
+        try:
+            for auth in (None, 'broken', token(role='user'), token(expiry=1), token(secret='wrong'), token(alg='none')):
+                with self.subTest(auth=auth):
+                    _, response_headers = self.call('GET', '/api/health', expected=403, auth=auth, headers=headers)
+                    self.assertEqual(response_headers['Access-Control-Allow-Origin'], 'http://frontend.test')
+            body, _ = self.call('GET', '/api/health', auth=token(), headers=headers)
+            self.assertEqual(body, {'status': 'ok'})
+            sql('ALTER TABLE banned_ips RENAME TO unavailable_banned_ips')
+            renamed = True
+            _, response_headers = self.call('GET', '/api/health', expected=500, headers=headers)
+            self.assertEqual(response_headers['Access-Control-Allow-Origin'], 'http://frontend.test')
+            self.call('GET', '/api/health', auth=token(), headers=headers)
+        finally:
+            if renamed:
+                sql('ALTER TABLE unavailable_banned_ips RENAME TO banned_ips')
+            sql("DELETE FROM banned_ips WHERE ip='8.8.4.7'")
+        body, _ = self.call('GET', '/api/health', headers=headers)
+        self.assertEqual(body, {'status': 'ok'})
+
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_health_concurrent_ip_results(self):
+        def sql(command):
+            subprocess.run(['psql', os.environ['TEST_DATABASE_URL'], '-v', 'ON_ERROR_STOP=1', '-c', command],
+                           check=True, capture_output=True)
+        sql("INSERT INTO banned_ips(ip) VALUES('8.8.4.8'),('8.8.4.9')")
+        sql("UPDATE banned_ips SET expires_at=now()-interval '1 second' WHERE ip='8.8.4.9'")
+        cases = [('8.8.4.8', None, 403), ('8.8.4.8', token(), 200),
+                 ('8.8.4.8', token(secret='wrong'), 403), ('8.8.4.9', None, 200),
+                 ('8.8.4.10', None, 200), ('8.8.4.10', token(role='user'), 200)] * 16
+        def check(case):
+            ip, auth, expected = case
+            self.call('GET', '/api/health', expected=expected, auth=auth, headers={'X-Real-IP': ip})
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+                list(executor.map(check, cases))
+            sql("UPDATE banned_ips SET expires_at=now()-interval '1 second' WHERE ip='8.8.4.8'")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+                list(executor.map(check, [(ip, auth, 200) for ip, auth, _ in cases]))
+        finally:
+            sql("DELETE FROM banned_ips WHERE ip IN ('8.8.4.8','8.8.4.9')")
+
     def test_post_crud_and_draft_visibility(self):
         post = self.post(False)
         path = '/api/posts/' + str(post['id'])
@@ -180,6 +229,66 @@ class PortfolioTests(unittest.TestCase):
         self.assertNotIn('content_markdown', summary)
         self.call('PUT', path.replace('/api/', '/api/admin/'), {'title': ' '}, 400, token())
         self.call('GET', '/api/posts/9223372036854775808', expected=404)
+
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_post_list_empty_drafts_and_banned_empty(self):
+        for auth in (None, token()):
+            listing, _ = self.call('GET', '/api/posts', auth=auth)
+            self.assertEqual(listing, [])
+        listing, _ = self.call('GET', '/api/admin/posts', auth=token())
+        self.assertEqual(listing, [])
+        draft = self.post(False)
+        listing, _ = self.call('GET', '/api/posts')
+        self.assertEqual(listing, [])
+        listing, _ = self.call('GET', '/api/admin/posts', auth=token())
+        self.assertEqual([row['id'] for row in listing], [draft['id']])
+        ip = '8.8.8.17'
+        self.call('POST', '/api/admin/bans/ips', {'ip': ip}, 201, token())
+        self.addCleanup(self.call, 'DELETE', '/api/admin/bans/ips/' + ip, expected=204, auth=token())
+        _, headers = self.call('GET', '/api/posts', expected=403,
+                               headers={'X-Real-IP': ip, 'Origin': 'http://frontend.test'})
+        self.assertEqual(headers['Access-Control-Allow-Origin'], 'http://frontend.test')
+        listing, _ = self.call('GET', '/api/posts', auth=token(), headers={'X-Real-IP': ip})
+        self.assertEqual(listing, [])
+
+    @unittest.skipUnless(os.environ.get('TEST_DATABASE_URL'), 'disposable DB required')
+    def test_post_list_json_types_escaping_timestamps_and_order(self):
+        database = os.environ['TEST_DATABASE_URL']
+        def sql(command):
+            subprocess.run(['psql', database, '-v', 'ON_ERROR_STOP=1', '-c', command],
+                           check=True, capture_output=True)
+        ids = (9223372036854775707, 9223372036854775708, 9223372036854775709)
+        fixture = {'title': '한글 😀 "quote" \n tab\t slash\\ single\'quote',
+                   'excerpt': '요약 \r\n "escaped" \\', 'content_markdown': 'body'}
+        fixture['title'] += ''.join(chr(value) for value in range(1, 32)) + '\u2028\u2029'
+        payload = json.dumps(fixture, ensure_ascii=False).replace("'", "''")
+        self.addCleanup(sql, 'DELETE FROM posts WHERE id IN (' + ','.join(map(str, ids)) + ')')
+        sql("INSERT INTO posts(id,title,excerpt,content_markdown,published,created_at) "
+            "SELECT item.id,data->>'title',data->>'excerpt',data->>'content_markdown',item.published,item.created_at "
+            "FROM (VALUES "
+            f"({ids[0]},true,'2026-01-02 03:04:05.123456+05:30'::timestamptz),"
+            f"({ids[1]},true,'2026-01-03 03:04:05-04:00'::timestamptz),"
+            f"({ids[2]},false,'2026-01-04 03:04:05+00'::timestamptz)) item(id,published,created_at), "
+            f"(SELECT '{payload}'::jsonb AS data) fixture")
+        sql(f"INSERT INTO comments(post_id,author_login,body) SELECT {ids[0]},'list-json-fixture','comment' "
+            "FROM generate_series(1,2)")
+        expected = {}
+        for index, post_id in enumerate(ids):
+            full, _ = self.call('GET', '/api/admin/posts/' + str(post_id), auth=token())
+            expected[post_id] = {key: full[key] for key in ('id', 'title', 'excerpt', 'created_at')}
+            expected[post_id]['comment_count'] = 2 if index == 0 else 0
+        for path, auth, ordered_ids in (('/api/posts', None, ids[1::-1]),
+                                        ('/api/posts', token(), ids[1::-1]),
+                                        ('/api/admin/posts', token(), ids[::-1])):
+            listing, _ = self.call('GET', path, auth=auth)
+            selected = [row for row in listing if row['id'] in ids]
+            self.assertEqual([row['id'] for row in selected], list(ordered_ids))
+            for row in selected:
+                self.assertEqual(row, expected[row['id']])
+                self.assertIs(type(row['id']), int)
+                self.assertIs(type(row['comment_count']), int)
+                self.assertEqual(row['title'], fixture['title'])
+                self.assertEqual(row['excerpt'], fixture['excerpt'])
 
     def test_json_and_typed_validation(self):
         invalid = [{}, {'title': 'x', 'excerpt': 'x', 'content_markdown': 'x', 'published': 'true'},
