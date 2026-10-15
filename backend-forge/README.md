@@ -37,6 +37,14 @@ changed or extra source files, packaging changes and mismatched component pins;
 CI and both Docker builds run it. It verifies consistency with the committed lock,
 not upstream authorship or a cryptographic signature.
 
+An exclusive update lock prevents two writers replacing each other's bundle.
+After a forcibly interrupted updater, inspect the local lock and staging
+directories before removing a stale `.forge-toolchain-update.lock` directory.
+
+After verification, stage the generated export with
+`GIT_MASTER=1 git add -f -A backend-forge/toolchain` so upstream files excluded by
+local editor ignore rules are still included in the hash-verified snapshot.
+
 To use already cloned sibling repositories without network access:
 
 ```sh

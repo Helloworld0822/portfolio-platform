@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Export and verify a committed, offline Forge compiler/runtime/stdlib bundle."""
 import argparse
+from contextlib import contextmanager
 import hashlib
 import io
 import json
@@ -126,6 +127,19 @@ def repository(name, args):
     return result
 
 
+@contextmanager
+def update_lock(parent):
+    lock = parent / ".forge-toolchain-update.lock"
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        raise ValueError(f"Update lock exists: {lock}; check for another updater before removing it") from None
+    try:
+        yield
+    finally:
+        lock.rmdir()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--revision", help="Compiler commit, tag or branch; runtime/stdlib follow its pins")
@@ -143,7 +157,7 @@ def main():
         print("Forge toolchain hashes and dependency pins verified")
         return
     bundle.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix=".forge-update-", dir=bundle.parent) as temporary:
+    with update_lock(bundle.parent), tempfile.TemporaryDirectory(prefix=".forge-update-", dir=bundle.parent) as temporary:
         stage = Path(temporary) / "toolchain"
         (stage / "sources").mkdir(parents=True)
         components = {}

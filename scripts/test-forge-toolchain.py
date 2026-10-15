@@ -98,6 +98,17 @@ class ToolchainTests(unittest.TestCase):
         self.assertNotEqual(self.run_update(revision).returncode, 0)
         self.assertEqual(updater.tree_hash(self.bundle), previous)
 
+    def test_another_writer_cannot_replace_the_bundle(self):
+        self.assertEqual(self.run_update().returncode, 0)
+        previous = updater.tree_hash(self.bundle)
+        lock = self.bundle.parent / ".forge-toolchain-update.lock"
+        lock.mkdir()
+        try:
+            self.assertNotEqual(self.run_update().returncode, 0)
+            self.assertEqual(updater.tree_hash(self.bundle), previous)
+        finally:
+            lock.rmdir()
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
