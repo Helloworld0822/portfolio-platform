@@ -59,6 +59,11 @@ Rollback by reverting the update commit, which restores both source and lock,
 then rebuild. Keep updates on a review branch: this repository deploys successful
 `main` CI automatically. A toolchain update does not opt production into Forge.
 
+The backend image includes `/app/forge-toolchain.json`; the Forge frontend image
+includes `/etc/forge-toolchain.json` outside its public web root. Inspect these
+files in the built containers to confirm the exact revisions included in an
+image. The health API and public frontend do not need version metadata fields.
+
 ## Build and test
 
 Initialize dependencies:

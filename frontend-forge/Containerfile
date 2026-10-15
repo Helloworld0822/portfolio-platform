@@ -10,6 +10,7 @@ COPY backend-forge/vendor/forge-web/web.fg backend-forge/vendor/forge-web/web.fg
 COPY frontend-forge frontend-forge
 RUN npm ci --prefix backend-forge/vendor/forge-browser && npm ci --prefix frontend-forge && npm run build --prefix frontend-forge
 FROM nginx:1.27-alpine
+COPY --from=builder /repo/backend-forge/toolchain/lock.json /etc/forge-toolchain.json
 COPY --from=builder /repo/frontend-forge/dist /usr/share/nginx/html
 COPY frontend-forge/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

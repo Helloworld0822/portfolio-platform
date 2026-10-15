@@ -14,6 +14,7 @@ FROM alpine:3.20 AS runtime
 RUN apk add --no-cache libpq json-c libmicrohttpd libcurl openssl ca-certificates curl
 WORKDIR /app
 COPY --from=builder /src/backend-forge/build/portfolio-api /app/portfolio-api
+COPY --from=builder /src/backend-forge/toolchain/lock.json /app/forge-toolchain.json
 COPY backend/migrations /app/backend/migrations
 COPY backend-forge/openapi.json backend-forge/docs.html /app/backend-forge/
 RUN mkdir -p /app/uploads

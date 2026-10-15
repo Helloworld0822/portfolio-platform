@@ -109,6 +109,28 @@ class ToolchainTests(unittest.TestCase):
         finally:
             lock.rmdir()
 
+    def test_windows_path_separators_are_rejected(self):
+        self.assertEqual(self.run_update().returncode, 0)
+        previous = updater.tree_hash(self.bundle)
+        repo = self.sources / "forge"
+        (repo / "nested\\..\\escape").write_text("unsafe path")
+        self.git(repo, "add", ".")
+        self.git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                 "commit", "-qm", "Unsafe Windows path")
+        revision = self.git(repo, "rev-parse", "HEAD").strip()
+        self.assertNotEqual(self.run_update(revision).returncode, 0)
+        self.assertEqual(updater.tree_hash(self.bundle), previous)
+
+    def test_file_content_cannot_impersonate_another_tree_entry(self):
+        single = self.root / "single"
+        multiple = self.root / "multiple"
+        single.mkdir()
+        multiple.mkdir()
+        (single / "x").write_bytes(b"\0y\0\0payload")
+        (multiple / "x").write_bytes(b"")
+        (multiple / "y").write_bytes(b"payload")
+        self.assertNotEqual(updater.tree_hash(single), updater.tree_hash(multiple))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

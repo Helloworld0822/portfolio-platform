@@ -53,7 +53,7 @@ def tree_hash(directory):
         if path.is_file():
             relative = path.relative_to(directory).as_posix()
             executable = bool(path.stat().st_mode & stat.S_IXUSR)
-            digest.update(relative.encode() + b"\0" + bytes([executable]) + path.read_bytes() + b"\0")
+            digest.update(relative.encode() + b"\0" + bytes([executable]) + hashlib.sha256(path.read_bytes()).digest())
     return digest.hexdigest()
 
 
@@ -67,7 +67,7 @@ def export(repository, revision, destination):
     with tarfile.open(fileobj=io.BytesIO(archive)) as source:
         for member in source.getmembers():
             path = PurePosixPath(member.name)
-            if path.is_absolute() or ".." in path.parts or not (member.isfile() or member.isdir()):
+            if path.is_absolute() or ".." in path.parts or "\\" in member.name or ":" in member.name or not (member.isfile() or member.isdir()):
                 raise ValueError("Unsafe Git archive member: " + member.name)
             target = destination.joinpath(*path.parts)
             if member.isdir():
@@ -87,7 +87,7 @@ def pin(source, name):
 
 
 def verify(bundle, lock):
-    if lock.get("schema") != 1 or set(lock.get("components", {})) != set(REPOSITORIES):
+    if lock.get("schema") != 2 or set(lock.get("components", {})) != set(REPOSITORIES):
         raise ValueError("Unsupported toolchain lock")
     for name, repository in REPOSITORIES.items():
         item = lock["components"][name]
@@ -174,7 +174,7 @@ def main():
                                     tree_sha256=tree_hash(target))
         (stage / "CMakeLists.txt").write_text(CMAKE)
         (stage / "README.md").write_text(README)
-        lock = dict(schema=1, components=components)
+        lock = dict(schema=2, components=components)
         (stage / "lock.json").write_text(json.dumps(lock, indent=2) + "\n")
         verify(stage, lock)
         backup = Path(temporary) / "previous"

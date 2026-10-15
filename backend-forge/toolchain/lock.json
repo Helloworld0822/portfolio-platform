@@ -1,20 +1,20 @@
 {
-  "schema": 1,
+  "schema": 2,
   "components": {
     "forge": {
       "repository": "https://github.com/forge-language/forge.git",
       "revision": "a750b60923bcc71adda025596664dd9a0413f80b",
-      "tree_sha256": "2eed94d8ce6e6fc561ce9f3dc72d9778b6f7f587bb51fdcb7a9f0dbefad7ef2c"
+      "tree_sha256": "8a2003aad13b122e6cbf98d3c66c23162e8bf5ebc387348877173c55e632860e"
     },
     "forge-runtime": {
       "repository": "https://github.com/forge-language/forge-runtime.git",
       "revision": "dcbb1929b17c2f1d11fd367ecf80c7c87c58a274",
-      "tree_sha256": "2df2cc31331e6d630e4efca50d27cac3922d18728148ff5c8259a856d1c792ae"
+      "tree_sha256": "386e116485755f0dbb15f15229281e655eceecdd67b7ec7440aaab26f2c2cd76"
     },
     "forge-stdlib": {
       "repository": "https://github.com/forge-language/forge-stdlib.git",
       "revision": "6aa28667b83009a415ab2d7ac13ef6c675af7012",
-      "tree_sha256": "9add3ae1bd74be55dcbc8d39cee982384ae8fd5bb4fbf26000df6ae7c0cc20d9"
+      "tree_sha256": "c3118f5e070de9626b8c9cae752e3e15cc739b24856e5e2e2da558bf105866c9"
     }
   }
 }
