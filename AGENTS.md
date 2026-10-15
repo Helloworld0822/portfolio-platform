@@ -87,6 +87,14 @@ it never reads `.env` or touches production. `.github/workflows/forge.yml` runs
 this suite separately. `backend-forge/toolchain` pins the required compiler ABI.
 Do not deploy the Forge override without staging/rollout review.
 
+Update all language components with `python3 scripts/update-forge-toolchain.py
+--revision <compiler-ref>`; use `--source-root <parent>` for committed local
+repositories. Verify with `--check` and `python3 scripts/test-forge-toolchain.py`.
+The generated `toolchain/lock.json` and `toolchain/sources/` must change together.
+Backend and frontend containers verify the bundle and use its generated SDK
+headers. Preserve user edits in the production checkout and benchmark only
+uniquely labeled disposable resources.
+
 ## Deployment
 
 The production host is this development machine (x86_64 Ubuntu, hostname

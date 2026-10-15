@@ -1,11 +1,13 @@
 FROM alpine:3.20 AS builder
 RUN apk add --no-cache build-base cmake pkgconf postgresql-dev json-c-dev libmicrohttpd-dev curl-dev openssl-dev
+RUN apk add --no-cache python3
 WORKDIR /src
 COPY backend-forge/toolchain backend-forge/toolchain
 COPY backend-forge/vendor backend-forge/vendor
 COPY backend-forge/src backend-forge/src
 COPY backend-forge/native backend-forge/native
 COPY backend-forge/scripts/build.sh backend-forge/scripts/build.sh
+COPY scripts/update-forge-toolchain.py scripts/update-forge-toolchain.py
 RUN sh backend-forge/scripts/build.sh
 
 FROM alpine:3.20 AS runtime

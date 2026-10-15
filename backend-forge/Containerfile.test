@@ -1,3 +1,4 @@
 FROM alpine:3.20
-RUN apk add --no-cache build-base cmake pkgconf postgresql-dev postgresql-client json-c-dev libmicrohttpd-dev curl-dev openssl-dev python3
+RUN apk add --no-cache build-base cmake pkgconf postgresql-dev json-c-dev libmicrohttpd-dev curl-dev openssl-dev
+RUN apk add --no-cache postgresql-client python3
 WORKDIR /app

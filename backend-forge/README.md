@@ -11,10 +11,45 @@ Dependencies are pinned Git submodules:
 - [forge-web](https://github.com/forge-language/forge-web): Forge HTTP/JSON helpers,
   validation, JWT, bounded uploads and HTTP clients; native library FFI.
 
-`toolchain/` pins the required Forge compiler/runtime source. Imported extern
-functions, module call statements, forward declarations, typed string calls and
-string escapes were implemented as part of this migration. POSIX workers release
-their string arenas when they exit.
+`toolchain/lock.json` pins the compiler, runtime and stdlib as one source bundle.
+The compiler's own dependency pins select the matching runtime and stdlib.
+Original upstream CMake files and licenses are retained, builds use the generated
+SDK's `bin/include/lib` layout, and Docker builds need no Git access for Forge.
+
+## Updating the language
+
+From the repository root, choose a compiler commit, release tag or branch:
+
+```sh
+python3 scripts/update-forge-toolchain.py --revision a750b60923bcc71adda025596664dd9a0413f80b
+python3 scripts/update-forge-toolchain.py --check
+python3 scripts/test-forge-toolchain.py
+sh backend-forge/scripts/test-integration.sh
+docker build -f frontend-forge/Containerfile -t portfolio-forge-frontend:check .
+```
+
+`--revision main` resolves the current upstream branch to an immutable commit.
+Review and commit the generated bundle and lock together; neither builds nor CI
+silently advance a branch. The updater stages and verifies all three components
+before replacing the existing bundle. Missing commits, incompatible dependency
+pins and unsafe archive entries fail before replacement. `--check` detects
+changed or extra source files, packaging changes and mismatched component pins;
+CI and both Docker builds run it. It verifies consistency with the committed lock,
+not upstream authorship or a cryptographic signature.
+
+To use already cloned sibling repositories without network access:
+
+```sh
+python3 scripts/update-forge-toolchain.py --revision a750b60923bcc71adda025596664dd9a0413f80b \
+  --source-root /path/to/parent-of-forge-repositories
+```
+
+Only committed Git objects are exported, so uncommitted local compiler edits
+cannot accidentally enter the bundle. Remote sources are cached under
+`~/.cache/portfolio-forge-toolchain`; `--cache-dir` selects another cache.
+Rollback by reverting the update commit, which restores both source and lock,
+then rebuild. Keep updates on a review branch: this repository deploys successful
+`main` CI automatically. A toolchain update does not opt production into Forge.
 
 ## Build and test
 
@@ -43,7 +78,7 @@ and image tags on exit. It verifies all existing migration versions, restarts th
 server to verify migration idempotence, tests both independent `.fg` modules and
 exercises the HTTP APIs with a mock GitHub service. It never reads `.env`.
 
-For a host build, install C11/CMake/pkg-config, libpq, libmicrohttpd, json-c,
+For a host build, install Python 3, C11/CMake/pkg-config, libpq, libmicrohttpd, json-c,
 libcurl, OpenSSL and pthread development libraries, then run:
 
 ```sh
