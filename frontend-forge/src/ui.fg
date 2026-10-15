@@ -9,7 +9,7 @@ fn id(node: int,value: string): int{return browser.attr(node,"id",value);}
 fn field(parent: int,name: string,label: string,value: string,multiline: int): int {
  let title: int=el(parent,"label",label);browser.attr(title,"for",name);let tag: string="input";if(multiline!=0){tag="textarea";}let node: int=el(parent,tag,"");id(node,name);if(multiline!=0){browser.attr(node,"placeholder",label);browser.attr(node,"value",value);}else{browser.attr(node,"value",value);}return node;
 }
-fn button(parent: int,text: string,callback: int,context: string): int{let node: int=el(parent,"button",text);browser.listen(node,"click",callback,context);return node;}
+fn button(parent: int,text: string,callback: int,context: string): int{return browser.listen(el(parent,"button",text),"click",callback,context);}
 fn link(parent: int,label: string,url: string): int {let node: int=el(parent,"a",label);browser.attr(node,"href",url);return node;}
 fn item_id(value: int): string{let field: int=web.get(value,"id");if(web.kind(field)==2){return web.dump(field);}return web.text(field);}
 fn notice(message: string): int{let node: int=browser.find("notice");if(node==0){return 0;}browser.clear(node);return browser.el(node,"p",message,"");}
