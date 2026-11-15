@@ -12,6 +12,7 @@ import uploads;
 import github;
 import database;
 extern fn portfolio_pool(): int;
+extern fn portfolio_health(request: int): int;
 fn handle(conn: int, request: int, user: int): int {
     let method: string = web.method(request); let path: string = web.path(request);
     let count: int = web.segments(request);
@@ -103,6 +104,7 @@ fn detached(request: int): int {
 fn dispatch(request: int): int {
     web.cors(request, web.env("CORS_ALLOWED_ORIGINS", ""));
     let user: int = auth.claims(request);
+    if (auth.admin(user) == 0 && web.equal(web.method(request), "GET") != 0 && web.equal(web.path(request), "/api/health") != 0) { return portfolio_health(request); }
     let conn: int = postgres.acquire(portfolio_pool());
     if (conn == 0) { return web.error(request, 503, "unavailable"); }
     let result: int = 0;
@@ -123,7 +125,6 @@ fn dispatch(request: int): int {
 fn public_read(conn: int, request: int): int {
     if (web.equal(web.method(request), "GET") == 0) { return 0; }
     let path: string = web.path(request);
-    if (web.equal(path, "/api/health") != 0) { return database.guarded_response(conn, request, "SELECT '{\"status\":\"ok\"}'::json"); }
     if (web.equal(path, "/api/posts") != 0) { return posts.public_list(conn, request); }
     if (web.equal(path, "/api/projects") != 0) { return projects.public_list(conn, request); }
     if (web.equal(path, "/api/timeline") != 0) { return timeline.public_list(conn, request); }

@@ -85,7 +85,8 @@ def main():
         run(database, '--network-alias', 'postgres', '--tmpfs', '/var/lib/postgresql/data',
             '-e', 'POSTGRES_USER=forge', '-e', 'POSTGRES_PASSWORD=disposable-test-only',
             '-e', 'POSTGRES_DB=forge_test', 'postgres:16-alpine')
-        wait(lambda: docker('exec', database, 'pg_isready', '-U', 'forge', '-d', 'forge_test'))
+        wait(lambda: docker('exec', database, 'pg_isready', '-h', '127.0.0.1',
+                           '-U', 'forge', '-d', 'forge_test'))
         run(api, '--network-alias', 'api', '-e',
             'DATABASE_URL=postgres://forge:disposable-test-only@postgres/forge_test',
             '-e', 'JWT_SECRET=' + secret, '-e', 'ADMIN_GITHUB_USERNAME=Helloworld0822',
