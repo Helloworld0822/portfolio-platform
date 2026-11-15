@@ -7,10 +7,11 @@ Guidance for AI agents working in this repository.
 Self-hosted portfolio + blog platform. React 19 + TypeScript + Vite + Tailwind 4
 frontend, Rust + Actix-web 4 + bb8/tokio-postgres backend, nginx gateway,
 PostgreSQL 16, deployed with Compose on the production host behind Cloudflare
-Tunnel. Two public hostnames share one stack:
+Tunnel. The root and two public hostnames share one stack:
 
-- **portfolio.helloworld0822.site** — `GET /`: portfolio home sections
-- **blog.helloworld0822.site** — `GET /blog*`: blog list + posts
+- **helloworld0822.xyz** — redirects to the portfolio host
+- **portfolio.helloworld0822.xyz** — `GET /`: portfolio home sections
+- **blog.helloworld0822.xyz** — `GET /blog*`: blog list + posts
 
 Host detection lives in `frontend/src/lib/site.ts` (`isBlogHost` /
 `isPortfolioHost`); on the portfolio host, `/blog*` routes redirect to the blog
@@ -143,6 +144,9 @@ can deploy by hand with `git pull --ff-only origin main && docker compose up
   `fetch_user_repos()` lists the admin's repos (org-owned included) for the
   project importer; `github_client()` builds the shared reqwest client with the
   GitHub-mandated User-Agent.
+- `backend/src/project_sync.rs`: refreshes project GitHub metadata at API startup
+  and hourly, including account aggregates; failed fetches preserve stored values.
+  Integration tests use mock GitHub responses and a disposable PostgreSQL database.
 - `backend/src/routes/uploads.rs`: `POST /api/admin/uploads` multipart upload
   (png/jpg/jpeg/gif/webp/svg/pdf, 20MB cap) → `/uploads/{uuid}.{ext}`,
   served by actix-files. Requires admin JWT.

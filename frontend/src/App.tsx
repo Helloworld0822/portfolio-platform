@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
-import { BLOG_URL, isBlogHost, isPortfolioHost } from "./lib/site";
+import { BLOG_URL, canonicalSiteUrl, isBlogHost, isPortfolioHost } from "./lib/site";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import Story from "./components/Story";
@@ -30,10 +30,17 @@ function Home() {
 }
 
 function App() {
+  const canonicalUrl = canonicalSiteUrl();
   const blogHome = isBlogHost();
   // On the portfolio host, blog content lives on the blog host, so redirect
   // there instead of serving a duplicate blog section.
   const redirectToBlogHost = isPortfolioHost();
+
+  useEffect(() => {
+    if (canonicalUrl) window.location.replace(canonicalUrl);
+  }, [canonicalUrl]);
+
+  if (canonicalUrl) return null;
 
   return (
     <BrowserRouter>

@@ -46,12 +46,17 @@ docker compose up -d --build
 | `POSTGRES_*` | postgres 컨테이너 초기화 값 |
 | `HOST_HTTP_PORT` | nginx 를 노출할 호스트 포트 |
 
+프로젝트의 GitHub 언어 비율과 비공개 여부는 API 서버 시작 시와 이후 1시간마다
+백그라운드에서 자동 갱신된다. 저장소 URL뿐 아니라 조직·계정 URL의 공개 저장소
+합산 비율도 갱신하며, GitHub 조회 실패 시에는 기존 값을 유지한다.
+갱신된 비율은 페이지를 다시 열거나 새로고침하면 표시된다.
+
 GitHub OAuth App 의 Authorization callback URL 은
 `{BACKEND_BASE_URL}/api/auth/github/callback` 로 등록해야 한다.
 
 ### 배포 후 GitHub OAuth 활성화 (1회)
 
-사이트가 이미 public 도메인에 떠 있다면 (예: `https://blog.helloworld0822.site`):
+사이트가 이미 public 도메인에 떠 있다면 (예: `https://blog.helloworld0822.xyz`):
 
 1. GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**
    - Homepage URL: `https://<your-domain>`

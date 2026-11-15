@@ -31,5 +31,5 @@ upstream DNS both refresh (recreating only api leaves nginx with a stale
 container IP -> 502)..."
 podman-compose up -d --force-recreate api nginx
 
-echo "done. Verify: open https://blog.helloworld0822.site/admin and click GitHub으로 로그인"
-echo "callback URL expected by GitHub: https://blog.helloworld0822.site/api/auth/github/callback"
+echo "done. Verify: open https://blog.helloworld0822.xyz/admin and click GitHub으로 로그인"
+echo "callback URL expected by GitHub: https://blog.helloworld0822.xyz/api/auth/github/callback"

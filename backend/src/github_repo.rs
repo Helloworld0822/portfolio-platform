@@ -49,6 +49,16 @@ pub struct RepoMeta {
     pub is_private: bool,
 }
 
+pub async fn fetch_project_meta(config: &Config, url: &str) -> Option<RepoMeta> {
+    if repo_path(url).is_some() {
+        fetch_repo_meta(config, url).await
+    } else if let Some(login) = account_path(url) {
+        fetch_org_meta(config, &login).await
+    } else {
+        None
+    }
+}
+
 /// A path segment is safe to interpolate unescaped into the `format!`-built
 /// GitHub API URLs below only if it can't introduce its own `?query` or
 /// `#fragment`, which would silently corrupt the rest of the URL.

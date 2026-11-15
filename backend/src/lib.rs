@@ -8,6 +8,7 @@ pub mod error;
 pub mod github_repo;
 pub mod models;
 pub mod openapi;
+pub mod project_sync;
 pub mod rate_limit;
 pub mod routes;
 
@@ -29,7 +30,10 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
     ban_data.reload().await?;
     let pool_data = web::Data::new(pool);
 
-    HttpServer::new(move || {
+    let sync_pool = pool_data.get_ref().clone();
+    let sync_config = config_data.get_ref().clone();
+
+    let server = HttpServer::new(move || {
         App::new()
             .app_data(web::PayloadConfig::new(25 * 1024 * 1024))
             // Uploaded files are user-supplied: `sandbox` + `nosniff` stop an
@@ -57,8 +61,12 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
             .configure(app::configure_app)
     })
     .bind(bind_addr)?
-    .run()
-    .await?;
+    .run();
+
+    let metadata_sync = actix_web::rt::spawn(project_sync::run(sync_pool, sync_config));
+    let result = server.await;
+    metadata_sync.abort();
+    result?;
 
     Ok(())
 }
