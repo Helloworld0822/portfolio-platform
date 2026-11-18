@@ -23,7 +23,7 @@ gcloud auth configure-docker "$region-docker.pkg.dev" --quiet
 resolve_image() {
   local name=$1 file=$2 context=$3
   shift 3
-  local tree tag digest
+  local tree tag digest manifest
   tree=$(git ls-tree -r HEAD -- "$@" | sha256sum | cut -d' ' -f1)
   tag="$registry/$name:src-$tree"
   if ! digest=$(gcloud artifacts docker images describe "$tag" --project "$project" --format='value(image_summary.digest)' 2>/dev/null); then
@@ -34,6 +34,12 @@ resolve_image() {
     digest=$(gcloud artifacts docker images describe "$tag" --project "$project" --format='value(image_summary.digest)') || return 1
   fi
   [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || return 1
+  manifest=$(docker buildx imagetools inspect --raw "$registry/$name@$digest") || return 1
+  if jq -e 'has("manifests")' <<<"$manifest" >/dev/null; then
+    digest=$(jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")] |
+      if length == 1 then .[0].digest else error("expected one Cloud Run platform image") end' <<<"$manifest") || return 1
+    [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || return 1
+  fi
   printf '%s/%s@%s\n' "$registry" "$name" "$digest"
 }
 
@@ -74,8 +80,10 @@ remove_staging_tag() {
   gcloud run services update-traffic "$service" "${run_args[@]}" --remove-tags="$staging_tag"
 }
 trap remove_staging_tag EXIT
-candidate=$(gcloud run services update "$service" "${run_args[@]}" --tag "$staging_tag" --no-traffic \
-  --format='value(status.latestCreatedRevisionName)' --container nginx --image "$web" --container api --image "$api")
+gcloud run services update "$service" "${run_args[@]}" --tag "$staging_tag" --no-traffic \
+  --container nginx --image "$web" --container api --image "$api"
+candidate=$(gcloud run services describe "$service" "${run_args[@]}" --format=json |
+  jq -er --arg tag "$staging_tag" '.status.traffic[] | select(.tag == $tag) | .revisionName')
 [[ -n "$candidate" && "$candidate" != "$previous" ]]
 ready=false
 for ((attempt=0; attempt<48; attempt++)); do
