@@ -13,121 +13,27 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   deploy:
-    name: Deploy to server
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: >
-      github.event_name == 'workflow_dispatch'
-      || (github.event.workflow_run.conclusion == 'success'
+    timeout-minutes: 45
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+      || (github.event.workflow_run.event == 'push'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_repository.full_name == github.repository
           && github.event.workflow_run.head_branch == 'main')
     steps:
-      - name: Verify deployment secrets are configured
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-        run: |
-          missing=()
-          [ -n "$DEPLOY_HOST" ] || missing+=("DEPLOY_HOST secret")
-          [ -n "$DEPLOY_USER" ] || missing+=("DEPLOY_USER secret")
-          [ -n "$DEPLOY_SSH_KEY" ] || missing+=("DEPLOY_SSH_KEY secret")
-          [ -n "$DEPLOY_PATH" ] || missing+=("DEPLOY_PATH variable")
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "Missing deployment configuration:" >&2
-            printf '  - %s\n' "${missing[@]}" >&2
-            echo "Set them in GitHub -> Settings -> Secrets and variables -> Actions, then re-run this workflow." >&2
-            exit 1
-          fi
-
-      - name: Install cloudflared SSH tunnel client
-        run: |
-          curl -fsSL -o /tmp/cloudflared.deb \
-            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i /tmp/cloudflared.deb
-          cloudflared --version
-
-      - name: Deploy via SSH tunnel
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          # Pin the server's host key when DEPLOY_KNOWN_HOSTS is set, so a
-          # redirect or MITM on the SSH connection cannot capture the deploy
-          # credentials. Without the secret the key is accepted on first use.
-          if [ -n "$DEPLOY_KNOWN_HOSTS" ]; then
-            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/known_hosts
-            host_key_opts=(-o StrictHostKeyChecking=yes)
-          else
-            host_key_opts=(-o StrictHostKeyChecking=accept-new)
-          fi
-          # The server's sshd sits behind a Cloudflare Tunnel, so plain TCP to
-          # the hostname never reaches sshd. cloudflared relays the session
-          # end-to-end; the host key is still verified against the tunnel.
-          cat > deploy-remote.sh <<'REMOTE'
-          set -euo pipefail
-
-          DEPLOY_PATH="${{ vars.DEPLOY_PATH }}"
-          if [ -z "$DEPLOY_PATH" ]; then
-            echo "DEPLOY_PATH repository variable is not set" >&2
-            exit 1
-          fi
-
-          cd "$DEPLOY_PATH"
-
-          # 1. Pull latest code (deploy only checked-in state)
-          git fetch --prune origin main
-          git reset --hard origin/main
-
-          # 2. Ensure .env exists; never overwrite existing secrets
-          if [ ! -f .env ]; then
-            cp .env.example .env
-            echo "WARNING: .env did not exist; copied from .env.example. Fill in real secrets and redeploy." >&2
-          fi
-
-          # 3. Pick compose implementation (docker compose, else podman-compose)
-          if command -v docker >/dev/null 2>&1; then
-            COMPOSE=(docker compose)
-          elif command -v podman-compose >/dev/null 2>&1; then
-            COMPOSE=(podman-compose)
-          else
-            echo "Neither 'docker compose' nor 'podman-compose' found on server" >&2
-            exit 1
-          fi
-
-          echo "Using: ${COMPOSE[*]}"
-
-          # 4. Rebuild and restart the stack
-          "${COMPOSE[@]}" up -d --build
-
-          # 5. Healthcheck through nginx
-          PORT="$(sed -n 's/^HOST_HTTP_PORT=//p' .env)"
-          PORT="${PORT:-80}"
-          echo "Waiting for health at http://127.0.0.1:${PORT}/api/health ..."
-          for i in $(seq 1 12); do
-            if curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
-              echo "Deploy OK: /api/health returned 200"
-              exit 0
-            fi
-            sleep 5
-          done
-
-          echo "Healthcheck failed after deploy" >&2
-          "${COMPOSE[@]}" ps
-          exit 1
-          REMOTE
-
-          ssh -i ~/.ssh/deploy_key "${host_key_opts[@]}" \
-            -o ConnectTimeout=15 -o ServerAliveInterval=15 \
-            -o ProxyCommand="cloudflared access ssh --hostname %h" \
-            "$DEPLOY_USER@$DEPLOY_HOST" bash -s < deploy-remote.sh
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: portfolio-514800
+          workload_identity_provider: projects/1024499736581/locations/global/workloadIdentityPools/portfolio-actions/providers/github
+          service_account: portfolio-deploy@portfolio-514800.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+      - name: Release containers to Cloud Run
+        run: bash scripts/deploy-cloud-run.sh

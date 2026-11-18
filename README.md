@@ -49,9 +49,9 @@ docker compose up -d --build
 GitHub OAuth App 의 Authorization callback URL 은
 `{BACKEND_BASE_URL}/api/auth/github/callback` 로 등록해야 한다.
 
-### 배포 후 GitHub OAuth 활성화 (1회)
+### Compose에서 GitHub OAuth 활성화
 
-사이트가 이미 public 도메인에 떠 있다면 (예: `https://blog.helloworld0822.site`):
+사이트가 이미 public 도메인에 떠 있다면 (예: `https://blog.helloworld0822.xyz`):
 
 1. GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**
    - Homepage URL: `https://<your-domain>`
@@ -199,35 +199,14 @@ npm run build
 
 ### CD (.github/workflows/deploy.yml)
 
-`main` 브랜치에서 CI가 성공한 뒤, 또는 수동 디스패치(GitHub → Actions → Deploy → Run workflow)로 실행된다.
-SSH로 배포 서버에 접속해 다음을 수행한다:
+`main` 푸시의 CI가 통과하면 GitHub Actions가 같은 커밋을 가져와 서울 Cloud Run `portfolio-platform`에 배포한다. Actions의 Deploy 화면에서 최신 `main`을 수동 재배포할 수도 있다.
 
-1. `git fetch` + `git reset --hard origin/main` (배포는 커밋된 상태만 반영)
-2. `.env` 가 없으면 `.env.example` 에서 복사 (기존 `.env` 는 절대 덮어쓰지 않음)
-3. `docker compose up -d --build` (서버에 docker 가 없으면 `podman-compose` 자동 사용)
-4. `HOST_HTTP_PORT` 기준 `/api/health` 헬스체크 → 실패하면 실패 종료
-
-#### 서버 사전 준비 (1회)
-
-- 배포 서버에 이 저장소를 클론해 두고, `git remote` 가 GitHub 과 연결되어 있어야 한다.
-- `.env` 에 실제 시크릿(`JWT_SECRET`, `GITHUB_CLIENT_*` 등)을 채워 둔다.
-- 배포 서버의 sshd 를 Cloudflare Tunnel (`ssh.<도메인>` → `ssh://localhost:22`) 로 노출한다.
-  GitHub Actions 러너는 `cloudflared access ssh` ProxyCommand 로 이 터널을 통해 접속한다.
-- GitHub Actions 러너에서 접속 가능한 SSH 키를 서버의 `authorized_keys` 에 등록한다.
-
-#### 필수 시크릿/변수 설정
-
-GitHub 저장소 → Settings → Secrets and variables → Actions 에서 설정한다.
-
-| 종류 | 이름 | 설명 |
-| --- | --- | --- |
-| Secret | `DEPLOY_HOST` | SSH 터널 호스트명 (예: `ssh.helloworld0822.site`) |
-| Secret | `DEPLOY_USER` | SSH 접속 사용자 |
-| Secret | `DEPLOY_SSH_KEY` | SSH private key (서버 `authorized_keys` 에 등록된 키) |
-| Secret | `DEPLOY_KNOWN_HOSTS` | 서버 호스트 키 known_hosts 줄 (미설정 시 첫 사용 시 자동 승인) |
-| Variable | `DEPLOY_PATH` | 서버에서 저장소가 클론된 절대 경로 |
-
-GitHub OAuth 콜백 URL 등 운영 설정은 코드에 커밋하지 말고 서버 `.env` 에만 둔다.
+- React 앱이나 nginx 설정을 바꾸면 `nginx`, Rust 코드나 마이그레이션을 바꾸면 `api` 이미지를 다시 빌드한다. 두 이미지의 소스 지문을 Artifact Registry에서 조회하며, 동일한 입력으로 생성된 이미지는 재사용한다.
+- 두 이미지의 SHA-256 다이제스트를 한 Cloud Run 리비전에 함께 적용한다. 시작 프로브가 통과하면 트래픽을 옮기고, 공개 도메인의 `/api/health`와 `/api/projects` 검사 실패 시 이전 리비전으로 돌린다.
+- Cloud Run의 환경 변수와 Secret Manager 참조, Neon 연결, `/app/uploads` Cloud Storage 마운트, 도메인과 인그레스 설정은 리비전 간 유지한다.
+- GitHub OIDC와 Workload Identity Federation을 사용한다. `portfolio-actions/github` 공급자는 이 저장소의 `main` 배포 워크플로만 `portfolio-deploy` 서비스 계정으로 인증한다.
+- `ops/backup`이 바뀌면 백업 이미지를 빌드하고 도쿄의 `portfolio-db-backup` 작업에 다이제스트를 반영한다.
+- 운영 API의 Neon 연결 문자열은 `portfolio-neon-database-url`에 저장하고 TLS를 요구한다. Compose는 로컬 개발용 PostgreSQL을 사용한다.
 
 ## Forge migration
 

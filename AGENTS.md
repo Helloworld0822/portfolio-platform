@@ -6,11 +6,10 @@ Guidance for AI agents working in this repository.
 
 Self-hosted portfolio + blog platform. React 19 + TypeScript + Vite + Tailwind 4
 frontend, Rust + Actix-web 4 + bb8/tokio-postgres backend, nginx gateway,
-PostgreSQL 16, deployed with Compose on the production host behind Cloudflare
-Tunnel. Two public hostnames share one stack:
+PostgreSQL 16, deployed to Cloud Run with PostgreSQL on Neon. Compose serves local development. Two public hostnames share one stack:
 
-- **portfolio.helloworld0822.site** — `GET /`: portfolio home sections
-- **blog.helloworld0822.site** — `GET /blog*`: blog list + posts
+- **portfolio.helloworld0822.xyz** — `GET /`: portfolio home sections
+- **blog.helloworld0822.xyz** — `GET /blog*`: blog list + posts
 
 Host detection lives in `frontend/src/lib/site.ts` (`isBlogHost` /
 `isPortfolioHost`); on the portfolio host, `/blog*` routes redirect to the blog
@@ -28,7 +27,7 @@ host.
 | `docker-compose.yml` | nginx (build+serve frontend) + api + postgres |
 | `.env` (not committed) | Secrets + runtime config; `.env.example` is the template |
 | `.github/workflows/ci.yml` | fmt/clippy/test + npm lint/build + compose validation |
-| `.github/workflows/deploy.yml` | SSH deploy to the host via the Cloudflare Tunnel (requires repo secrets) |
+| `.github/workflows/deploy.yml` | keyless deployment of digest-pinned images to Cloud Run via Workload Identity Federation |
 
 ## Local development
 
@@ -89,32 +88,9 @@ Do not deploy the Forge override without staging/rollout review.
 
 ## Deployment
 
-The production host is this development machine (x86_64 Ubuntu, hostname
-`helloworld0822`) running **docker compose** from the main checkout
-`/home/helloworld0822/coding/portfolio-platform`; the sibling
-`portfolio-platform-{permit,steelhead}` directories are git worktrees.
-GitHub Actions (`deploy.yml`) SSHes in through the Cloudflare Tunnel, or you
-can deploy by hand with `git pull --ff-only origin main && docker compose up
--d --build`. Key gotchas:
+The production service is `portfolio-platform` in `portfolio-514800/asia-northeast3`. The production nginx image uses `nginx/cloud-run.conf` and forwards API and upload requests to the Rust container on 127.0.0.1:8081. The API uses the Neon Secret Manager reference and mounts its existing GCS bucket at `/app/uploads`.
 
-1. Images are built locally as `portfolio-platform-{nginx,api}:latest` (the
-   frontend is built into the nginx image; there's no separate frontend
-   image or container).
-2. After rebuilding api, nginx can serve stale upstream DNS → 502.
-   Fix: `docker compose up -d --force-recreate nginx`.
-3. Cloudflare tunnels: `~/.cloudflared/portfolio-platform-config.yml` maps
-   the public domains to localhost:80; `/etc/cloudflared/config.yml` exposes
-   sshd as `ssh.helloworld0822.site`. Plain TCP to that hostname does NOT
-   reach sshd — the deploy workflow connects via a
-   `cloudflared access ssh --hostname %h` ProxyCommand.
-4. Deploy needs repo secrets `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_SSH_KEY`
-   (+ optional `DEPLOY_KNOWN_HOSTS`) and the variable `DEPLOY_PATH`; the key
-   pair's public half is in `~/.ssh/authorized_keys`.
-5. The deploy runs `git reset --hard origin/main` in the main checkout, so
-   never leave uncommitted work there while a deploy may run.
-6. Uploaded files persist in an `uploads-data` volume mounted at
-   `/app/uploads` — container recreation does not lose them.
-7. OAuth creds and secrets live only in the server `.env`; never commit `.env`.
+A successful main push through CI triggers `.github/workflows/deploy.yml`. It checks out the tested SHA, builds changed image inputs, then deploys both selected digests in one revision. The public health probe rolls traffic back if needed. Changes under `ops/backup` also release a new image to the `portfolio-db-backup` Cloud Run job in Tokyo. A manual dispatch targets the current main commit. GitHub authenticates via a repo- and workflow-restricted Workload Identity Federation principal. Keep production credentials in Secret Manager.
 
 ## Rules / conventions
 
