@@ -1,3 +1,5 @@
+use std::{collections::HashSet, time::Duration};
+
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
 use native_tls::TlsConnector;
@@ -10,7 +12,8 @@ pub async fn create_pool(database_url: &str) -> anyhow::Result<PgPool> {
     let manager = PostgresConnectionManager::new_from_stringlike(database_url, tls)?;
     let pool = Pool::builder()
         .max_size(5)
-        .min_idle(Some(1))
+        .min_idle(0)
+        .idle_timeout(Duration::from_secs(60))
         .build(manager)
         .await?;
     Ok(pool)
@@ -54,15 +57,16 @@ pub async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
         .collect();
     entries.sort_by_key(|(_, num)| *num);
 
+    let mut applied: HashSet<i64> = migrations
+        .query("SELECT version FROM _sqlx_migrations", &[])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect();
+
     for (path, version) in entries {
-        let already = migrations
-            .query_one(
-                "SELECT NOT EXISTS(SELECT 1 FROM _sqlx_migrations WHERE version = $1)",
-                &[&i64::from(version)],
-            )
-            .await?;
-        let missing: bool = already.get(0);
-        if !missing {
+        let version = i64::from(version);
+        if !applied.insert(version) {
             continue;
         }
 
@@ -72,7 +76,7 @@ pub async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
             .execute(
                 "INSERT INTO _sqlx_migrations (version, description, success, checksum, execution_time)
              VALUES ($1, $2, true, '\\x00'::bytea, 0)",
-                &[&i64::from(version), &path.display().to_string()],
+                &[&version, &path.display().to_string()],
             )
             .await?;
     }
