@@ -82,7 +82,11 @@ async fn create_update_delete_timeline_entries() {
             "period": "2026.09",
             "title": "새 경력",
             "org": "조직",
-            "description": "설명"
+            "description": "설명",
+            "attachments": [
+                { "kind": "icon", "name": "학교 로고", "url": "/uploads/b054405a-b047-4aaa-88ab-ab6fd677d1b3.svg" },
+                { "kind": "image", "name": "발표 사진", "url": "/uploads/e6c224e0-740a-4b1b-83d2-9e1c822307a6.jpg" }
+            ]
         }))
         .to_request();
     let resp = test::call_service(&app, create_req).await;
@@ -100,6 +104,16 @@ async fn create_update_delete_timeline_entries() {
     let updated: TimelineEntry = test::read_body_json(resp).await;
     assert_eq!(updated.title, "바뀐 제목");
     assert_eq!(updated.org, "조직", "untouched field stays");
+    assert_eq!(updated.attachments.len(), 2);
+    assert_eq!(updated.attachments[0].kind, "icon");
+
+    let clear_media = test::TestRequest::put()
+        .uri(&format!("/api/admin/timeline/{}", created.id))
+        .insert_header(common::auth_header())
+        .set_json(json!({ "attachments": [] }))
+        .to_request();
+    let cleared: TimelineEntry = test::call_and_read_body_json(&app, clear_media).await;
+    assert!(cleared.attachments.is_empty());
 
     let delete_req = test::TestRequest::delete()
         .uri(&format!("/api/admin/timeline/{}", created.id))

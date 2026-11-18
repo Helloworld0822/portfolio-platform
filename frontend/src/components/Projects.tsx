@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useReveal } from "../lib/useReveal";
 import ProjectModal, { type Project } from "./ProjectModal";
 
@@ -24,6 +24,7 @@ interface ApiProject {
 
 function toProject(api: ApiProject): Project {
   return {
+    id: api.id,
     title: api.title,
     description: api.description,
     details: api.details,
@@ -38,11 +39,6 @@ function toProject(api: ApiProject): Project {
     attachments: api.attachments ?? [],
   };
 }
-
-const statusStyles: Record<string, string> = {
-  "진행 중": "bg-primary/10 text-primary",
-  완료: "bg-success/10 text-success",
-};
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -79,10 +75,9 @@ const Projects = () => {
   const { ref, className } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="projects" className="bg-canvas px-4 py-20 md:px-8 md:py-24">
-      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
-        <h2 className="text-3xl font-semibold tracking-tight text-navy">프로젝트</h2>
-        <p className="mt-2 text-ink-muted">GitHub에서 진행한 주요 프로젝트.</p>
+    <section id="projects" aria-labelledby="projects-heading">
+      <div ref={ref} className={className}>
+        <h2 id="projects-heading" className="section-heading">프로젝트</h2>
 
         {loading && (
           <p className="mt-10 text-sm text-ink-muted">불러오는 중...</p>
@@ -97,46 +92,30 @@ const Projects = () => {
         )}
 
         {!loading && !error && projects.length > 0 && (
-          <div className="mt-10 overflow-hidden">
-            <div
-              className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2"
-              key={page}
-            >
-              {visibleProjects.map((project) => (
-                <button
-                  key={project.title}
-                  type="button"
-                  onClick={() => setSelected(project)}
-                  className="group flex cursor-pointer flex-col rounded-lg border border-border bg-canvas p-6 text-left shadow-card transition-shadow duration-[240ms] hover:shadow-elevated"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-semibold text-ink transition-colors duration-[240ms] group-hover:text-primary">
-                      {project.title}
-                    </h3>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[project.status]}`}
-                    >
-                      {project.status}
+          <ul key={page} className="work-list">
+            {visibleProjects.map(project => {
+              const photo = project.attachments?.find(a => a.kind === "image");
+              const icon = project.attachments?.find(a => a.kind === "icon");
+              return (
+                <li key={project.id}>
+                  <button className="work-link" type="button" onClick={() => setSelected(project)}>
+                    <span className="work-title">
+                      {icon && <img src={icon.url} alt="" width={24} height={24} loading="lazy" />}
+                      <strong>{project.title}</strong>
+                      <ArrowUpRight className="work-arrow" size={17} aria-hidden />
                     </span>
-                  </div>
-                  <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">
-                    {project.description}
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {project.tags.map((tag) => (
-                      <span key={tag} className="text-xs text-ink-subdued">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+                    {photo && <img className="work-photo" loading="lazy" decoding="async" src={photo.url} alt={photo.name} />}
+                    <span className="work-description">{project.description}</span>
+                    <span className="work-meta">{[project.status, ...project.tags].filter(Boolean).join(" · ")}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         )}
 
         {pageCount > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-4">
+          <div className="mt-5 flex items-center justify-end gap-4">
             <button
               type="button"
               onClick={() => setPage((p) => p - 1)}
@@ -155,10 +134,10 @@ const Projects = () => {
                   onClick={() => setPage(index)}
                   aria-label={`${index + 1}페이지`}
                   aria-current={page === index ? "true" : undefined}
-                  className={`size-2.5 rounded-full transition-colors duration-[240ms] ${
-                    page === index ? "bg-primary" : "bg-border hover:bg-ink-subdued"
-                  }`}
-                />
+                  className="grid size-8 place-items-center rounded hover:bg-surface-2"
+                >
+                  <span aria-hidden="true" className={`size-2 rounded-full ${page === index ? "bg-primary" : "bg-ink-muted"}`} />
+                </button>
               ))}
             </div>
 

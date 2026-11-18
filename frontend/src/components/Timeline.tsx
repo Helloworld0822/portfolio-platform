@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ProjectAttachment } from "./ProjectModal";
 import { useReveal } from "../lib/useReveal";
 
 interface TimelineEntry {
@@ -8,6 +9,7 @@ interface TimelineEntry {
   org: string;
   description: string;
   sort_order: number;
+  attachments?: ProjectAttachment[];
 }
 
 const Timeline = () => {
@@ -31,10 +33,9 @@ const Timeline = () => {
   const { ref, className } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="timeline" className="bg-canvas px-4 py-20 md:px-8 md:py-24">
-      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
-        <h2 className="text-3xl font-semibold tracking-tight text-navy">경력</h2>
-        <p className="mt-2 text-ink-muted">활동 경험과 주요 이정표.</p>
+    <section id="timeline" className="experience" aria-labelledby="experience-heading">
+      <div ref={ref} className={className}>
+        <h2 id="experience-heading" className="section-heading">경력과 활동</h2>
 
         {loading && (
           <p className="mt-10 text-sm text-ink-muted">불러오는 중...</p>
@@ -47,25 +48,26 @@ const Timeline = () => {
         )}
 
         {!loading && !error && entries.length > 0 && (
-          <div className="mt-10 space-y-0">
-            {entries.map((entry, index) => (
-              <div
-                key={entry.id}
-                className={`flex gap-6 border-l-2 border-border py-8 pl-8 ${
-                  index === 0 ? "border-l-primary" : ""
-                }`}
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-primary">{entry.period}</p>
-                  <h3 className="mt-1 text-xl font-semibold text-ink">{entry.title}</h3>
-                  {entry.org && <p className="mt-1 text-ink-muted">{entry.org}</p>}
-                  {entry.description && (
-                    <p className="mt-3 text-ink-muted">{entry.description}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <ol className="experience-list">
+            {entries.map(entry => {
+              const images = entry.attachments?.filter(a => a.kind === "image");
+              const icon = entry.attachments?.find(a => a.kind === "icon");
+              return (
+                <li key={entry.id}>
+                  <span className="experience-date">{entry.period}</span>
+                  <div>
+                    <h3>{icon && <img src={icon.url} alt="" width={26} height={26} loading="lazy" />}{entry.title}</h3>
+                    {entry.org && <p className="experience-org">{entry.org}</p>}
+                    {entry.description && <p className="experience-description">{entry.description}</p>}
+                    {!!images?.length && <div className="experience-gallery">{images.map(a =>
+                      <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
+                        <img src={a.url} alt={a.name} loading="lazy" decoding="async" />
+                      </a>)}</div>}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         )}
       </div>
     </section>

@@ -1,4 +1,5 @@
-import ProjectAttachmentsEditor from "./ProjectAttachmentsEditor";
+import { useState } from "react";
+import MediaEditor from "./MediaEditor";
 
 export interface ProjectAttachment {
   name: string;
@@ -85,13 +86,14 @@ const ProjectEditor = ({
   onSave,
   onCancel,
 }: ProjectEditorProps) => {
+  const [uploading, setUploading] = useState(false);
   return (
     <div>
       <h2 className="text-lg font-semibold text-navy">
         {editingId ? "프로젝트 수정" : "새 프로젝트"}
       </h2>
 
-      <div className="mt-5 space-y-4">
+      <fieldset disabled={saving || uploading} className="mt-5 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="project-title" className={editorLabelClass}>
@@ -219,7 +221,9 @@ const ProjectEditor = ({
           </div>
         </div>
 
-        <ProjectAttachmentsEditor
+        <MediaEditor
+          allowPdf
+          onUploading={setUploading}
           attachments={draft.attachments}
           onChange={(attachments) => onChange({ ...draft, attachments })}
         />
@@ -253,7 +257,7 @@ const ProjectEditor = ({
             취소
           </button>
         </div>
-      </div>
+      </fieldset>
     </div>
   );
 };

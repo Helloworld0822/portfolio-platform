@@ -1,44 +1,49 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
-import { BLOG_URL, isBlogHost, isPortfolioHost } from "./lib/site";
+import { BLOG_URL, canonicalSiteUrl, isBlogHost, isPortfolioHost } from "./lib/site";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
-import Story from "./components/Story";
 import Timeline from "./components/Timeline";
 import Skills from "./components/Skills";
 import Projects from "./components/Projects";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
-import ScrollControls from "./components/ScrollControls";
-import BlogList from "./components/blog/BlogList";
-import BlogPost from "./components/blog/BlogPost";
-import Admin from "./components/admin/Admin";
+const BlogList = lazy(() => import("./components/blog/BlogList"));
+const BlogPost = lazy(() => import("./components/blog/BlogPost"));
+const Admin = lazy(() => import("./components/admin/Admin"));
 
 function Home() {
   return (
-    <main>
-      <Hero />
-      <Story />
-      <Timeline />
-      <Skills />
-      <Projects />
+    <main className="portfolio-home">
+      <div className="portfolio-content">
+        <Hero />
+        <div className="work-index"><Skills /><Projects /></div>
+        <Timeline />
+      </div>
       <Contact />
-      <ScrollControls />
     </main>
   );
 }
 
 function App() {
+  const canonicalUrl = canonicalSiteUrl();
   const blogHome = isBlogHost();
   // On the portfolio host, blog content lives on the blog host, so redirect
   // there instead of serving a duplicate blog section.
   const redirectToBlogHost = isPortfolioHost();
 
+  useEffect(() => {
+    if (canonicalUrl) window.location.replace(canonicalUrl);
+  }, [canonicalUrl]);
+
+  if (canonicalUrl) return null;
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <Header />
+        <Suspense fallback={<p role="status" className="mx-auto max-w-5xl p-8">불러오는 중…</p>}>
         <Routes>
           <Route
             path="/"
@@ -58,6 +63,7 @@ function App() {
           />
           <Route path="/admin" element={<Admin />} />
         </Routes>
+        </Suspense>
         <Footer />
       </AuthProvider>
     </BrowserRouter>

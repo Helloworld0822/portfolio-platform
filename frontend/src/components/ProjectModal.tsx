@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export type ProjectAttachment = {
   name: string;
@@ -7,6 +7,7 @@ export type ProjectAttachment = {
 };
 
 export type Project = {
+  id: string;
   title: string;
   description: string;
   details: string[];
@@ -87,21 +88,18 @@ const LanguageBar = ({ languages }: LanguageBarProps) => {
 };
 
 const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
+  const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    if (!project) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-
+    if (!project || !dialog.current) return;
+    const element = dialog.current;
+    element.showModal();
+    const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", handleKeyDown);
-
     return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleKeyDown);
+      element.close();
+      document.body.style.overflow = overflow;
     };
-  }, [project, onClose]);
+  }, [project]);
 
   if (!project) return null;
 
@@ -109,26 +107,13 @@ const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
   const pdfs = project.attachments?.filter((a) => a.kind === "pdf");
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="presentation"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-navy/40 backdrop-blur-[2px]" />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="project-modal-title"
-        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-border bg-canvas shadow-elevated"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <dialog ref={dialog} aria-labelledby="project-modal-title"
+      className="project-dialog m-auto max-h-[90dvh] w-[min(32rem,calc(100%-2rem))] overflow-y-auto rounded border border-border bg-canvas"
+      onCancel={e => { e.preventDefault(); onClose(); }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div>
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface-1 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="size-3 rounded-full bg-[#ff5f57]" />
-            <span className="size-3 rounded-full bg-[#febc2e]" />
-            <span className="size-3 rounded-full bg-[#28c840]" />
-          </div>
+          <span className="text-sm text-ink-muted">프로젝트 상세</span>
           <button
             type="button"
             onClick={onClose}
@@ -145,6 +130,7 @@ const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
               id="project-modal-title"
               className="text-2xl font-semibold tracking-tight text-navy"
             >
+              {project.attachments?.filter(a => a.kind === "icon").slice(0, 1).map(a => <img key={a.url} src={a.url} alt="" className="mr-2 inline-block size-7 object-contain" />)}
               {project.title}
             </h3>
             <span
@@ -269,7 +255,7 @@ const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };
 

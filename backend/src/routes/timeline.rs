@@ -5,7 +5,8 @@ use crate::auth::middleware::AdminUser;
 use crate::db::PgPool;
 use crate::error::AppError;
 use crate::models::{
-    CreateTimelineRequest, ReorderTimelineRequest, TimelineEntry, UpdateTimelineRequest,
+    CreateTimelineRequest, ProjectAttachment, ReorderTimelineRequest, TimelineEntry,
+    UpdateTimelineRequest,
 };
 
 const DEFAULT_ORDER: &str = "ORDER BY sort_order ASC, created_at ASC";
@@ -63,6 +64,24 @@ fn validate_title(title: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+fn validate_media(attachments: &[ProjectAttachment]) -> Result<(), AppError> {
+    for item in attachments {
+        let file = item
+            .url
+            .strip_prefix("/uploads/")
+            .and_then(|name| name.rsplit_once('.'));
+        if !matches!(item.kind.as_str(), "image" | "icon")
+            || !file.is_some_and(|(name, ext)| {
+                Uuid::parse_str(name).is_ok()
+                    && matches!(ext, "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg")
+            })
+        {
+            return Err(AppError::Validation("invalid uploaded image".into()));
+        }
+    }
+    Ok(())
+}
+
 /// Append a timeline entry at the end of the list.
 #[utoipa::path(
     post,
@@ -82,15 +101,17 @@ pub async fn create_timeline(
     body: web::Json<CreateTimelineRequest>,
 ) -> Result<HttpResponse, AppError> {
     validate_title(&body.title)?;
+    validate_media(&body.attachments)?;
+    let attachments = serde_json::to_value(&body.attachments).map_err(anyhow::Error::from)?;
 
     let conn = pool.get().await?;
     let row = conn
         .query_one(
-            "INSERT INTO timeline_entries (period, title, org, description, sort_order)
-             VALUES ($1, $2, $3, $4,
+            "INSERT INTO timeline_entries (period, title, org, description, attachments, sort_order)
+             VALUES ($1, $2, $3, $4, $5,
                      (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM timeline_entries))
              RETURNING *",
-            &[&body.period, &body.title, &body.org, &body.description],
+            &[&body.period, &body.title, &body.org, &body.description, &attachments],
         )
         .await?;
 
@@ -133,15 +154,24 @@ pub async fn update_timeline(
     let period = body.period.clone().unwrap_or(existing.period);
     let org = body.org.clone().unwrap_or(existing.org);
     let description = body.description.clone().unwrap_or(existing.description);
+    if let Some(media) = &body.attachments {
+        validate_media(media)?;
+    }
+    let media = body
+        .attachments
+        .as_ref()
+        .map(serde_json::to_value)
+        .transpose()
+        .map_err(anyhow::Error::from)?;
 
     let conn = pool.get().await?;
     let row = conn
         .query_one(
             "UPDATE timeline_entries
-             SET period = $1, title = $2, org = $3, description = $4, updated_at = now()
+             SET period = $1, title = $2, org = $3, description = $4, attachments = COALESCE($6, attachments), updated_at = now()
              WHERE id = $5
              RETURNING *",
-            &[&period, &title, &org, &description, &id],
+            &[&period, &title, &org, &description, &id, &media],
         )
         .await?;
 

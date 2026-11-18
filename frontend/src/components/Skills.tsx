@@ -1,4 +1,3 @@
-import { CategoryIcon, SkillIcon } from "../lib/skillIcons";
 import { useReveal } from "../lib/useReveal";
 
 type SkillItem = {
@@ -28,7 +27,7 @@ const skillGroups: SkillGroup[] = [
     ],
   },
   {
-    category: "DataBase",
+    category: "Database",
     items: [
       { name: "PostgreSQL" },
       { name: "MySQL" },
@@ -58,59 +57,21 @@ const skillGroups: SkillGroup[] = [
   },
 ];
 
-const Skills = () => {
-  const { ref, className } = useReveal<HTMLDivElement>();
-
+export default function Skills() {
+  const { ref, className } = useReveal<HTMLElement>();
   return (
-    <section id="skills" className="px-4 py-20 md:px-8 md:py-24">
-      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
-        <h2 className="text-3xl font-semibold tracking-tight text-navy">기술</h2>
-        <p className="mt-2 text-ink-muted">사용하는 도구와 기술 스택.</p>
-      </div>
-
-      <div className="mx-auto mt-10 w-full max-w-[100rem]">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          {skillGroups.map((group) => (
-            <div
-              key={group.category}
-              className="rounded-lg border border-border bg-canvas p-8 shadow-card"
-            >
-              <h3 className="flex items-center gap-2 text-base font-semibold tracking-wide text-ink-muted uppercase">
-                <CategoryIcon category={group.category} />
-                {group.category}
-              </h3>
-              <ul className="mt-5 flex flex-col gap-3">
-                {group.items.map((skill) => (
-                  <li
-                    key={skill.name}
-                    className="rounded-md border border-border bg-surface-1 px-5 py-3.5 text-base text-ink"
-                  >
-                    <div className="flex items-center gap-3">
-                      <SkillIcon name={skill.name} className="size-5 shrink-0 text-ink-muted" />
-                      <span>{skill.name}</span>
-                    </div>
-                    {skill.children && (
-                      <ul className="mt-3 flex flex-col gap-2 border-l-2 border-border pl-4">
-                        {skill.children.map((child) => (
-                          <li
-                            key={child}
-                            className="flex items-center gap-2 text-sm text-ink-muted md:text-base"
-                          >
-                            <SkillIcon name={child} className="size-4 shrink-0" />
-                            {child}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
+    <section id="skills" ref={ref} className={className} aria-labelledby="stack-heading">
+      <h2 id="stack-heading" className="section-heading">기술 스택</h2>
+      <dl className="stack-list">
+        {skillGroups.map(group => (
+          <div key={group.category}>
+            <dt>{group.category}</dt>
+            <dd>{group.items.map(skill => (
+              <span key={skill.name}>{skill.name}{skill.children && <small> ({skill.children.join(", ")})</small>}</span>
+            ))}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   );
-};
-
-export default Skills;
+}

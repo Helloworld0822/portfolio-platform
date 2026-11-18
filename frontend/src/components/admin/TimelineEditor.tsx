@@ -1,4 +1,9 @@
+import { useState } from "react";
+import MediaEditor from "./MediaEditor";
+import type { ProjectAttachment } from "./ProjectEditor";
+
 interface EntryDraft {
+  attachments: ProjectAttachment[];
   period: string;
   title: string;
   org: string;
@@ -28,13 +33,14 @@ const TimelineEditor = ({
   onSave,
   onCancel,
 }: TimelineEditorProps) => {
+  const [uploading, setUploading] = useState(false);
   return (
     <div>
       <h2 className="text-lg font-semibold text-navy">
         {editingId ? "경력 수정" : "새 경력"}
       </h2>
 
-      <div className="mt-5 space-y-4">
+      <fieldset disabled={saving || uploading} className="mt-5 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="timeline-period" className={editorLabelClass}>
@@ -90,6 +96,9 @@ const TimelineEditor = ({
           />
         </div>
 
+        <MediaEditor attachments={draft.attachments} onUploading={setUploading}
+          onChange={attachments => onChange({ ...draft, attachments })} />
+
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex gap-2">
@@ -109,7 +118,7 @@ const TimelineEditor = ({
             취소
           </button>
         </div>
-      </div>
+      </fieldset>
     </div>
   );
 };

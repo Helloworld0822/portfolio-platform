@@ -3,7 +3,7 @@ import { useAuth } from "../lib/auth";
 import { BLOG_URL, PORTFOLIO_URL, isBlogHost } from "../lib/site";
 
 const navLinkClassName =
-  "rounded-md px-3 py-2 text-sm text-ink-muted transition-colors duration-[240ms] hover:bg-surface-1 hover:text-primary";
+  "rounded px-2 py-1.5 text-sm text-ink-muted md:px-3 transition-colors duration-[240ms] hover:bg-surface-1 hover:text-primary";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -20,19 +20,16 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-canvas/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-8">
+      <div className="mx-auto flex min-h-16 max-w-[75rem] flex-wrap items-center justify-between gap-y-1 px-5 py-2 sm:flex-nowrap md:px-12">
         <Link
           to={homeHref}
           className="text-lg font-semibold tracking-tight text-navy transition-colors duration-[240ms] hover:text-primary"
         >
           Helloworld0822
         </Link>
-        <nav className="hidden items-center gap-1 sm:flex">
+        <nav aria-label="주요 메뉴" className="order-last flex w-full flex-wrap items-center gap-0 sm:order-none sm:w-auto sm:gap-1">
           <a href={buildSectionHref("story")} className={navLinkClassName}>
             소개
-          </a>
-          <a href={buildSectionHref("timeline")} className={navLinkClassName}>
-            경력
           </a>
           <a href={buildSectionHref("skills")} className={navLinkClassName}>
             기술
@@ -40,12 +37,10 @@ const Header = () => {
           <a href={buildSectionHref("projects")} className={navLinkClassName}>
             프로젝트
           </a>
+          <a href={buildSectionHref("timeline")} className={navLinkClassName}>경력</a>
           <Link to={blogHref} className={navLinkClassName}>
             블로그
           </Link>
-          <a href={buildSectionHref("contact")} className={navLinkClassName}>
-            연락처
-          </a>
           {user?.isAdmin && (
             <Link to="/admin" className={navLinkClassName}>
               관리자

@@ -8,7 +8,7 @@ const links = [
 ];
 
 const inputClass =
-  "w-full rounded-md border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition-colors duration-[120ms] focus:border-white/50";
+  "w-full rounded border border-border bg-white px-3 py-2 text-sm text-ink focus-visible:outline-primary";
 
 const Contact = () => {
   const [name, setName] = useState("");
@@ -54,22 +54,36 @@ const Contact = () => {
   const { ref, className } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="contact" className="px-4 py-20 md:px-8 md:py-24">
-      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
-        <div className="rounded-lg bg-navy px-8 py-16 text-center md:px-16">
-          <h2 className="text-3xl font-semibold tracking-tight text-white">연락하기</h2>
-          <p className="mx-auto mt-4 max-w-md text-ink-on-navy-muted">
-            새로운 기회, 협업, 흥미로운 문제에 항상 열려 있습니다.
-            언제든 편하게 연락해 주세요.
+    <section id="contact" className="border-t border-border bg-canvas">
+      <div ref={ref} className={`portfolio-content ${className}`}>
+        <div className="contact-layout">
+          <div><h2 className="section-heading">연락하기</h2>
+          <p className="max-w-sm text-ink-muted">
+            프로젝트 협업이나 개발 관련 질문을 보내 주세요.
           </p>
+
+          <div className="mt-5 flex flex-wrap gap-4">
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("mailto") ? undefined : "_blank"}
+                rel="noopener noreferrer"
+                className="text-sm text-primary-pressed underline underline-offset-4"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+          </div>
 
           <form
             onSubmit={handleSubmit}
-            className="mx-auto mt-10 max-w-md space-y-4 text-left"
+            className="space-y-4"
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="contact-name" className="mb-1.5 block text-sm text-ink-on-navy-muted">
+                <label htmlFor="contact-name" className="mb-1.5 block text-sm text-ink-muted">
                   이름
                 </label>
                 <input
@@ -83,7 +97,7 @@ const Contact = () => {
                 />
               </div>
               <div>
-                <label htmlFor="contact-email" className="mb-1.5 block text-sm text-ink-on-navy-muted">
+                <label htmlFor="contact-email" className="mb-1.5 block text-sm text-ink-muted">
                   이메일
                 </label>
                 <input
@@ -98,7 +112,7 @@ const Contact = () => {
               </div>
             </div>
             <div>
-              <label htmlFor="contact-message" className="mb-1.5 block text-sm text-ink-on-navy-muted">
+              <label htmlFor="contact-message" className="mb-1.5 block text-sm text-ink-muted">
                 메시지
               </label>
               <textarea
@@ -115,30 +129,18 @@ const Contact = () => {
             {status === "success" && (
               <p className="text-sm text-success">메시지가 전송되었습니다. 빠른 시일 내에 답변드리겠습니다.</p>
             )}
-            {status === "error" && <p className="text-sm text-[#ff8f8f]">{errorMessage}</p>}
+            {status === "error" && <p className="text-sm text-danger">{errorMessage}</p>}
 
             <button
               type="submit"
               disabled={status === "sending"}
-              className="w-full rounded-md border border-white/30 px-6 py-3 text-sm font-medium text-white transition-colors duration-[240ms] hover:border-white/60 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded bg-ink px-5 py-2 text-sm font-medium text-white hover:bg-ink-muted disabled:opacity-60"
             >
               {status === "sending" ? "전송 중..." : "메시지 보내기"}
             </button>
           </form>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            {links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target={link.href.startsWith("mailto") ? undefined : "_blank"}
-                rel="noopener noreferrer"
-                className="rounded-md border border-white/30 px-6 py-3 text-sm font-medium text-white transition-colors duration-[240ms] hover:border-white/60 hover:bg-white/5"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
+
         </div>
       </div>
     </section>

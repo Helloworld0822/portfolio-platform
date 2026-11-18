@@ -1,37 +1,20 @@
-import { useReveal } from "../lib/useReveal";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
 
-const Hero = () => {
-  const { ref, className } = useReveal<HTMLDivElement>();
-
+export default function Hero() {
   return (
-    <section id="hero" className="bg-navy px-4 py-24 md:px-8 md:py-32">
-      <div ref={ref} className={`mx-auto max-w-5xl ${className}`}>
-        <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-white md:text-5xl md:leading-[1.15]">
-          명확함과 정교함으로
-          <br />
-          안정적인 시스템을 만듭니다.
-        </h1>
-        <p className="mt-6 max-w-xl text-lg text-ink-on-navy-muted">
-          안녕하세요, 전재민입니다. 백엔드 엔지니어링, 성능 최적화,
-          깔끔한 아키텍처에 관심을 가진 개발자입니다.
-        </p>
-        <div className="mt-10 flex flex-wrap gap-4">
-          <a
-            href="#projects"
-            className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
-          >
-            프로젝트 보기
-          </a>
-          <a
-            href="#story"
-            className="rounded-md border border-white/30 px-6 py-3 text-sm font-medium text-white transition-colors duration-[240ms] hover:border-white/60 hover:bg-white/5"
-          >
-            소개 읽기
-          </a>
+    <section id="hero" className="profile-hero">
+      <div id="story" className="profile-intro">
+        <h1>전재민<span lang="en">Jaemin Jeon</span></h1>
+        <p className="profile-lead">백엔드와 개발 도구를 만드는 풀스택 개발자입니다.</p>
+        <p className="profile-bio">선린인터넷고등학교 소프트웨어과 121기, TAPIE 4기 개발자로 활동하고 있습니다. Rust와 Elixir로 더 효율적인 시스템을 만드는 방법을 공부합니다.</p>
+        <div className="profile-links">
+          <a href="#projects">프로젝트 보기 <ArrowDown size={16} aria-hidden /></a>
+          <a href="https://github.com/Helloworld0822" rel="me">GitHub <ArrowUpRight size={16} aria-hidden /></a>
         </div>
       </div>
+      <figure className="profile-portrait">
+        <img src="/images/jaemin.jpg" alt="해질 무렵 도시를 바라보는 전재민" width={600} height={600} fetchPriority="high" />
+      </figure>
     </section>
   );
-};
-
-export default Hero;
+}

@@ -2,16 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import { authFetch } from "../../lib/api";
 import TimelineEditor, { type EntryDraft } from "./TimelineEditor";
 
-interface TimelineEntry {
+interface TimelineEntry extends EntryDraft {
   id: string;
-  period: string;
-  title: string;
-  org: string;
-  description: string;
   sort_order: number;
 }
 
 const emptyDraft: EntryDraft = {
+  attachments: [],
   period: "",
   title: "",
   org: "",
@@ -54,6 +51,7 @@ const TimelineManager = () => {
     setEditingId(entry.id);
     setSaveError(null);
     setEditing({
+      attachments: entry.attachments ?? [],
       period: entry.period,
       title: entry.title,
       org: entry.org,
