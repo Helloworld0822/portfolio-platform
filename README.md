@@ -208,6 +208,8 @@ npm run build
 - `ops/backup`이 바뀌면 백업 이미지를 빌드하고 도쿄의 `portfolio-db-backup` 작업에 다이제스트를 반영한다.
 - 운영 API의 Neon 연결 문자열은 `portfolio-neon-database-url`에 저장하고 TLS를 요구한다. Compose는 로컬 개발용 PostgreSQL을 사용한다.
 
+도메인을 Cloudflare Worker로 연결하는 구성과 전환 절차는 [게이트웨이 운영 문서](ops/edge/README.md)에 있다.
+
 ## Forge migration
 
 The Forge backend is available in [`backend-forge/`](backend-forge/README.md),
