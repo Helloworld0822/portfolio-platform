@@ -1,11 +1,13 @@
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
-use tokio_postgres::NoTls;
+use native_tls::TlsConnector;
+use postgres_native_tls::MakeTlsConnector;
 
-pub type PgPool = Pool<PostgresConnectionManager<NoTls>>;
+pub type PgPool = Pool<PostgresConnectionManager<MakeTlsConnector>>;
 
 pub async fn create_pool(database_url: &str) -> anyhow::Result<PgPool> {
-    let manager = PostgresConnectionManager::new_from_stringlike(database_url, NoTls).unwrap();
+    let tls = MakeTlsConnector::new(TlsConnector::new()?);
+    let manager = PostgresConnectionManager::new_from_stringlike(database_url, tls)?;
     let pool = Pool::builder()
         .max_size(5)
         .min_idle(Some(1))
@@ -21,9 +23,16 @@ pub async fn create_pool(database_url: &str) -> anyhow::Result<PgPool> {
 /// idempotency, mirroring the behaviour the sqlx migrate! macro had before.
 pub async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
     let mut conn = pool.get().await.map_err(anyhow::Error::from)?;
+    let migrations = conn.transaction().await?;
 
-    conn.batch_execute(
-        "CREATE TABLE IF NOT EXISTS _sqlx_migrations (
+    // Serialize instance startup before creating the migration table or extensions.
+    migrations
+        .query_one("SELECT pg_advisory_xact_lock(872134098)", &[])
+        .await?;
+
+    migrations
+        .batch_execute(
+            "CREATE TABLE IF NOT EXISTS _sqlx_migrations (
             version BIGINT PRIMARY KEY,
             description TEXT NOT NULL,
             installed_on TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -31,8 +40,8 @@ pub async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
             checksum BYTEA NOT NULL,
             execution_time BIGINT NOT NULL
         )",
-    )
-    .await?;
+        )
+        .await?;
 
     let mut entries: Vec<(std::path::PathBuf, u32)> = std::fs::read_dir("./migrations")?
         .filter_map(|e| e.ok())
@@ -46,10 +55,10 @@ pub async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
     entries.sort_by_key(|(_, num)| *num);
 
     for (path, version) in entries {
-        let already = conn
+        let already = migrations
             .query_one(
                 "SELECT NOT EXISTS(SELECT 1 FROM _sqlx_migrations WHERE version = $1)",
-                &[&(version as i64)],
+                &[&i64::from(version)],
             )
             .await?;
         let missing: bool = already.get(0);
@@ -58,16 +67,16 @@ pub async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
         }
 
         let sql = std::fs::read_to_string(&path)?;
-        let tx = conn.transaction().await?;
-        tx.batch_execute(&sql).await?;
-        tx.execute(
-            "INSERT INTO _sqlx_migrations (version, description, success, checksum, execution_time)
+        migrations.batch_execute(&sql).await?;
+        migrations
+            .execute(
+                "INSERT INTO _sqlx_migrations (version, description, success, checksum, execution_time)
              VALUES ($1, $2, true, '\\x00'::bytea, 0)",
-            &[&(version as i64), &path.display().to_string()],
-        )
-        .await?;
-        tx.commit().await?;
+                &[&i64::from(version), &path.display().to_string()],
+            )
+            .await?;
     }
 
+    migrations.commit().await?;
     Ok(())
 }

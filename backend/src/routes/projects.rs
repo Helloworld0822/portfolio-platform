@@ -21,13 +21,7 @@ async fn fetch_repo_meta(
         return default.unwrap_or((serde_json::json!({}), false));
     };
 
-    let meta = if github_repo::repo_path(url).is_some() {
-        github_repo::fetch_repo_meta(config, url).await
-    } else if let Some(login) = github_repo::account_path(url) {
-        github_repo::fetch_org_meta(config, &login).await
-    } else {
-        None
-    };
+    let meta = github_repo::fetch_project_meta(config, url).await;
 
     match meta {
         Some(meta) => (

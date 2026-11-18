@@ -47,7 +47,7 @@ pub fn user_auth_header(username: &str) -> (&'static str, String) {
     ("Authorization", format!("Bearer {}", user_token(username)))
 }
 
-pub type PgPool = Pool<PostgresConnectionManager<NoTls>>;
+pub use portfolio_blog_api::db::PgPool;
 
 pub async fn ban_store(pool: &PgPool) -> portfolio_blog_api::bans::BanStore {
     let store = portfolio_blog_api::bans::BanStore::new(pool.clone());
@@ -111,7 +111,8 @@ pub async fn setup() -> (PgPool, String) {
     // Build a pool for the test database.
     let mut pool_cfg = config;
     pool_cfg.dbname(&db_name);
-    let manager = PostgresConnectionManager::new(pool_cfg, NoTls);
+    let tls = postgres_native_tls::MakeTlsConnector::new(native_tls::TlsConnector::new().unwrap());
+    let manager = PostgresConnectionManager::new(pool_cfg, tls);
     let pool = Pool::builder().build(manager).await.expect("pool build");
     (pool, db_name)
 }
