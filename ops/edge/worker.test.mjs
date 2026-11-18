@@ -128,3 +128,110 @@ test("stage diagnostics disclose only known labels, statuses and OAuth codes", a
   const unknown = await forward(req(), f.env, () => Response.json({error:"private details"}, {status:401}));
   assert.equal(unknown.headers.get("X-Portfolio-Stage-Error"), "token-exchange/401/other");
 });
+
+const bundle = "/assets/index-DList-D9.js";
+
+function staticAsset(headers = {}, status = 200) {
+  return new Response("bundle contents", { status, headers: {
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "Content-Type": "application/javascript; charset=utf-8",
+    Vary: "Accept-Encoding",
+    ...headers,
+  }});
+}
+
+function edgeCache() {
+  const entries = new Map();
+  const reads = [];
+  const pending = [];
+  return {
+    entries, reads, pending,
+    cache: {
+      async match(key) {
+        reads.push(key.url);
+        assert.equal(key.headers.get("Accept-Encoding"), "identity");
+        return entries.get(key.url)?.clone();
+      },
+      async put(key, response) {
+        entries.set(key.url, response);
+      },
+    },
+    context: { waitUntil(task) { pending.push(task); } },
+  };
+}
+
+test("an immutable bundle is cached per hostname and a hit needs no token or origin", async () => {
+  const f = fixture({ reply: () => staticAsset() });
+  const { cache, context, pending, entries } = edgeCache();
+  const first = await forward(req(bundle, {headers: {"Accept-Encoding": "br, gzip"}}), f.env, f.send, cache, context);
+  assert.equal(first.headers.get("X-Portfolio-Asset-Cache"), "MISS");
+  assert.equal(await first.text(), "bundle contents");
+  assert.equal(f.upstream[0].init.headers.get("Accept-Encoding"), "identity");
+  assert.equal(pending.length, 1);
+  await Promise.all(pending);
+  assert.deepEqual([...entries.keys()], ["https://" + host + bundle]);
+  const cold = fixture();
+  const hit = await forward(req(bundle), cold.env, cold.send, cache, context);
+  assert.equal(await hit.text(), "bundle contents");
+  assert.equal(hit.headers.get("X-Portfolio-Asset-Cache"), "HIT");
+  assert.equal(hit.headers.get("Vary"), "Accept-Encoding");
+  assert.equal(cold.exchanges.length + cold.upstream.length, 0);
+
+  const blog = new Request("https://blog.helloworld0822.xyz" + bundle, {headers: req().headers});
+  assert.equal((await forward(blog, f.env, f.send, cache, context)).headers.get("X-Portfolio-Asset-Cache"), "MISS");
+  assert.equal(f.upstream.length, 2);
+});
+
+test("only plain anonymous bundle GETs use the shared cache", async () => {
+  const f = fixture({reply: () => staticAsset()});
+  const { cache, context, reads, pending } = edgeCache();
+  const requests = [
+    req(bundle + "?v=2"), req(bundle + "?"), req("/index.html"), req("/api/assets/index-DList-D9.js"),
+    req("/uploads/index-DList-D9.js"), req("/assets/index.js"), req("/assets/index-DList-D9.html"),
+    req(bundle, {method:"HEAD"}), req(bundle, {method:"POST"}),
+    ...[{Cookie:"s=1"}, {Authorization:"Bearer user"}, {"Proxy-Authorization":"Basic x"},
+      {"X-Serverless-Authorization":"Bearer x"}, {Range:"bytes=0-9"}, {"If-Modified-Since":new Date().toUTCString()},
+      {"If-None-Match":'"123"'}, {"If-Match":"*"}, {"Cache-Control":"no-cache"}, {Pragma:"no-cache"},
+      {"Accept-Encoding":"gzip, identity;q=0"}, {"Accept-Encoding":"br, *;q=0.00"},
+    ].map(headers => req(bundle, {headers})),
+  ];
+  for (const request of requests) {
+    const response = await forward(request, f.env, f.send, cache, context);
+    assert.equal(response.headers.has("X-Portfolio-Asset-Cache"), false, request.url);
+  }
+  assert.equal(f.upstream.length, requests.length);
+  assert.deepEqual(reads, []);
+  assert.deepEqual(pending, []);
+});
+
+test("only the expected public, unencoded representation can enter the cache", async () => {
+  const { cache, context, entries, pending } = edgeCache();
+  for (const response of [
+    staticAsset({"Content-Type":"text/html"}), staticAsset({"Set-Cookie":"s=1"}),
+    staticAsset({"Cache-Control":"public, max-age=300"}), staticAsset({"Cache-Control":"private, immutable"}),
+    staticAsset({"Cache-Control":"public, immutable, no-store"}), staticAsset({"Content-Encoding":"gzip"}),
+    staticAsset({Vary:"*"}), staticAsset({Vary:"Accept-Encoding, Cookie"}), staticAsset({}, 500),
+    staticAsset({}, 404), staticAsset({Location:"/elsewhere"}, 302), staticAsset({"Content-Range":"bytes 0-1/5"}),
+  ]) {
+    const f = fixture({reply: () => response});
+    const result = await forward(req(bundle), f.env, f.send, cache, context);
+    assert.equal(result.headers.has("X-Portfolio-Asset-Cache"), false);
+  }
+  assert.equal(pending.length, 0);
+  assert.equal(entries.size, 0);
+  const f = fixture({reply: () => staticAsset({"Content-Type":"text/css"})});
+  const css = await forward(req("/assets/index-NNxoA5Ss.css"), f.env, f.send, cache, context);
+  assert.equal(css.headers.get("X-Portfolio-Asset-Cache"), "MISS");
+  await Promise.all(pending);
+  assert.equal(entries.size, 1);
+});
+
+test("cache service errors leave the upstream response usable", async () => {
+  const {context, pending} = edgeCache();
+  const fail = async () => { throw new Error("cache down"); };
+  const f = fixture({reply: () => staticAsset()});
+  const response = await forward(req(bundle), f.env, f.send, {match:fail, put:fail}, context);
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), "bundle contents");
+  await Promise.all(pending);
+});

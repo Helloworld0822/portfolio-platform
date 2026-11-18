@@ -1,6 +1,8 @@
 # Portfolio 도메인 게이트웨이
 
-Cloudflare Worker가 세 도메인의 요청을 서울 Cloud Run의 고정 HTTPS 주소로 전달한다. Worker는 방문자의 로그인 헤더와 쿠키를 보존하고 Cloud Run 호출용 Google ID 토큰을 별도 헤더에 담는다. nginx가 신뢰하는 `X-Portfolio-Client-IP`는 Cloudflare가 기록한 방문자 IP로 덮어쓴다. Worker의 원본 요청은 캐시를 우회하고, 인증·쿠키·API 응답에는 `private, no-store`를 설정한다.
+Cloudflare Worker가 세 도메인의 요청을 서울 Cloud Run의 고정 HTTPS 주소로 전달한다. Worker는 방문자의 로그인 헤더와 쿠키를 보존하고 Cloud Run 호출용 Google ID 토큰을 별도 헤더에 담는다. nginx가 신뢰하는 `X-Portfolio-Client-IP`는 Cloudflare가 기록한 방문자 IP로 덮어쓴다. 인증·쿠키·API 응답에는 `private, no-store`를 설정한다.
+
+각 Cloudflare 데이터센터는 익명 GET 요청의 `/assets/` 해시 JS·CSS를 호스트별로 저장한다. nginx가 올바른 콘텐츠 형식과 `public, immutable`을 반환한 경우에만 저장한다. 캐시는 압축하지 않은 원본을 사용하며 방문자에게 전송하는 압축은 Cloudflare가 협상한다. 쿼리·쿠키·인증·범위·조건부 요청은 직접 원본으로 전달한다. 번들의 `X-Portfolio-Asset-Cache: HIT`는 해당 요청이 Google 토큰 발급과 Cloud Run 호출을 모두 생략했음을 나타낸다.
 
 | 설정 | 값 |
 |---|---|

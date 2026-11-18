@@ -78,7 +78,33 @@ function plainError(status, message) {
   return new Response(message, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-export async function forward(request, env, send = fetch) {
+function assetKey(request, url) {
+  const headers = request.headers;
+  if (request.method !== "GET" || url.href.includes("?") ||
+      !/^\/assets\/[A-Za-z0-9][A-Za-z0-9._-]*-[A-Za-z0-9_-]{8}\.(js|css)$/.test(url.pathname) ||
+      ["authorization", "proxy-authorization", "x-serverless-authorization", "cookie", "range",
+       "cache-control", "pragma"].some(name => headers.has(name)) ||
+      [...headers.keys()].some(name => name.startsWith("if-"))) return null;
+  const encodings = request.cf?.clientAcceptEncoding ?? headers.get("Accept-Encoding") ?? "";
+  if (/(?:^|,)\s*(?:identity|\*)\s*;\s*q\s*=\s*0(?:\.0*)?\s*(?:,|$)/i.test(encodings)) return null;
+  // A single identity representation per public URL remains valid across compression preferences.
+  return new Request(url.origin + url.pathname, { headers: { "Accept-Encoding": "identity" } });
+}
+
+function publicBundle(response, pathname) {
+  const headers = response.headers;
+  const directives = (headers.get("Cache-Control") || "").toLowerCase().split(",").map(s => s.trim());
+  const encoding = headers.get("Content-Encoding")?.toLowerCase();
+  const vary = (headers.get("Vary") || "").toLowerCase().split(",").map(s => s.trim());
+  const mime = (headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
+  return response.status === 200 && !headers.has("Set-Cookie") && !headers.has("Content-Range") &&
+    (!encoding || encoding === "identity") && vary.every(name => !name || name === "accept-encoding") &&
+    directives.includes("public") && directives.includes("immutable") &&
+    !directives.some(value => /^(?:private|no-store|no-cache)(?:=|$)|^(?:s-maxage|max-age)=0$/.test(value)) &&
+    (pathname.endsWith(".css") ? mime === "text/css" : ["text/javascript", "application/javascript"].includes(mime));
+}
+
+export async function forward(request, env, send = fetch, cache, context) {
   const incoming = new URL(request.url);
   if ((!publicHosts.has(incoming.hostname) && incoming.hostname !== env.TEST_HOST) ||
       incoming.port || incoming.username || incoming.password) return plainError(404, "Not found");
@@ -93,6 +119,15 @@ export async function forward(request, env, send = fetch) {
   const diagnostic = { stage: "origin-config" };
   try {
     const origin = runOrigin(env.RUN_ORIGIN);
+    const key = cache && context && assetKey(request, incoming);
+    if (key) {
+      const cached = await cache.match(key).catch(() => undefined);
+      if (cached && publicBundle(cached, incoming.pathname)) {
+        const hit = new Response(cached.body, cached);
+        hit.headers.set("X-Portfolio-Asset-Cache", "HIT");
+        return hit;
+      }
+    }
     const upstream = new URL(origin);
     upstream.pathname = incoming.pathname;
     upstream.search = incoming.search;
@@ -107,6 +142,7 @@ export async function forward(request, env, send = fetch) {
         headers.delete(name);
       }
     }
+    if (key) headers.set("Accept-Encoding", "identity");
     headers.set("X-Portfolio-Client-IP", ip);
     headers.set("X-Forwarded-Host", incoming.hostname);
     headers.set("X-Forwarded-Proto", "https");
@@ -130,6 +166,11 @@ export async function forward(request, env, send = fetch) {
       result.headers.set("Cache-Control", "private, no-store");
     }
     if (incoming.hostname === env.TEST_HOST) result.headers.set("X-Robots-Tag", "noindex");
+    if (key && publicBundle(result, incoming.pathname)) {
+      const copy = result.clone();
+      context.waitUntil(cache.put(key, copy).catch(() => {}));
+      result.headers.set("X-Portfolio-Asset-Cache", "MISS");
+    }
     return result;
   } catch {
     console.warn("portfolio-edge", diagnostic);
@@ -141,4 +182,4 @@ export async function forward(request, env, send = fetch) {
   }
 }
 
-export default { fetch: (request, env) => forward(request, env) };
+export default { fetch: (request, env, ctx) => forward(request, env, fetch, caches.default, ctx) };
