@@ -97,7 +97,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
           <p className="text-sm text-ink-muted">첫 댓글을 남겨보세요.</p>
         )}
         {comments?.map((comment) => (
-          <div key={comment.id} className="flex gap-3">
+          <div key={comment.id} className="flex gap-3 rounded-lg bg-surface-1 p-4">
             {comment.author_avatar_url ? (
               <img
                 src={comment.author_avatar_url}
@@ -107,8 +107,8 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             ) : (
               <div className="size-9 shrink-0 rounded-full bg-surface-2" />
             )}
-            <div>
-              <div className="flex items-baseline gap-2">
+            <div className="min-w-0 wrap-anywhere">
+              <div className="flex flex-wrap items-baseline gap-2">
                 <span className="text-sm font-semibold text-ink">
                   {comment.author_login}
                 </span>
@@ -159,7 +159,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
           <button
             type="button"
             onClick={() => login(`/blog/${postId}`)}
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-ink transition-colors duration-[240ms] hover:bg-surface-1"
+            className="rounded-md border border-border bg-canvas px-4 py-2 text-sm font-medium text-ink transition-colors duration-[240ms] hover:bg-surface-1"
           >
             GitHub으로 로그인하고 댓글 남기기
           </button>

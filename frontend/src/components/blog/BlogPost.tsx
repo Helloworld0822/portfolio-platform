@@ -46,34 +46,34 @@ const BlogPost = () => {
 
   if (notFound) {
     return (
-      <section className="px-4 py-20 md:px-8 md:py-24">
+      <main className="site-container py-10 md:py-14">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-ink-muted">글을 찾을 수 없습니다.</p>
           <Link to="/blog" className="mt-4 inline-block text-primary hover:underline">
             블로그 목록으로 돌아가기
           </Link>
         </div>
-      </section>
+      </main>
     );
   }
 
   if (!post) {
     return (
-      <section className="px-4 py-20 md:px-8 md:py-24">
+      <main className="site-container py-10 md:py-14">
         <div className="mx-auto max-w-3xl text-center text-sm text-ink-muted">
           불러오는 중...
         </div>
-      </section>
+      </main>
     );
   }
 
   return (
-    <section className="px-4 py-20 md:px-8 md:py-24">
-      <article className="mx-auto max-w-3xl">
+    <main className="site-container py-10 md:py-14">
+      <article className="surface-card mx-auto max-w-3xl px-5 py-6 sm:p-9">
         <Link to="/blog" className="text-sm text-ink-muted hover:text-primary">
           ← 블로그 목록
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy">
+        <h1 className="section-heading mt-4 !mb-0 wrap-anywhere">
           {post.title}
         </h1>
         <p className="mt-2 text-xs text-ink-subdued">
@@ -81,19 +81,19 @@ const BlogPost = () => {
         </p>
 
         <div
-          className="mt-10 text-ink [&_a]:text-primary [&_a]:underline [&_code]:rounded [&_code]:bg-surface-1 [&_code]:px-1 [&_code]:py-0.5
+          className="mt-8 wrap-anywhere text-ink [&_img]:my-5 [&_img]:rounded-lg [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_a]:text-primary [&_a]:underline [&_code]:rounded [&_code]:bg-surface-1 [&_code]:px-1 [&_code]:py-0.5
           [&_h1]:mt-8 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold
-          [&_p]:mt-4 [&_p]:leading-relaxed [&_pre]:mt-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-navy [&_pre]:p-4 [&_pre]:text-white
+          [&_p]:mt-4 [&_p]:leading-relaxed [&_pre]:mt-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-navy [&_pre]:p-4 [&_pre]:text-white
           [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6"
         >
           <ReactMarkdown components={markdownComponents}>{post.content_markdown}</ReactMarkdown>
         </div>
 
-        <div className="mt-16 border-t border-border pt-10">
+        <div className="mt-10 border-t border-border pt-7">
           <CommentSection postId={post.id} />
         </div>
       </article>
-    </section>
+    </main>
   );
 };
 

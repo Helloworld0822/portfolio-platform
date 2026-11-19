@@ -8,7 +8,7 @@ const links = [
 ];
 
 const inputClass =
-  "w-full rounded border border-border bg-white px-3 py-2 text-sm text-ink focus-visible:outline-primary";
+  "w-full rounded-md border border-border bg-canvas px-3 py-2 text-sm text-ink focus-visible:outline-primary";
 
 const Contact = () => {
   const [name, setName] = useState("");
@@ -55,7 +55,7 @@ const Contact = () => {
 
   return (
     <section id="contact" className="border-t border-border bg-canvas">
-      <div ref={ref} className={`portfolio-content ${className}`}>
+      <div ref={ref} className={`site-container portfolio-content ${className}`}>
         <div className="contact-layout">
           <div><h2 className="section-heading">연락하기</h2>
           <p className="max-w-sm text-ink-muted">
@@ -134,7 +134,7 @@ const Contact = () => {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded bg-ink px-5 py-2 text-sm font-medium text-white hover:bg-ink-muted disabled:opacity-60"
+              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-60"
             >
               {status === "sending" ? "전송 중..." : "메시지 보내기"}
             </button>

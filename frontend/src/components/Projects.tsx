@@ -97,7 +97,7 @@ const Projects = () => {
               const photo = project.attachments?.find(a => a.kind === "image");
               const icon = project.attachments?.find(a => a.kind === "icon");
               return (
-                <li key={project.id}>
+                <li key={project.id} className="surface-card">
                   <button className="work-link" type="button" onClick={() => setSelected(project)}>
                     <span className="work-title">
                       {icon && <img src={icon.url} alt="" width={24} height={24} loading="lazy" />}

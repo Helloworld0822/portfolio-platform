@@ -16,7 +16,7 @@ const Admin = lazy(() => import("./components/admin/Admin"));
 function Home() {
   return (
     <main className="portfolio-home">
-      <div className="portfolio-content">
+      <div className="site-container portfolio-content">
         <Hero />
         <Timeline />
         <Skills />

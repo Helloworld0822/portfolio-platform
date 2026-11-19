@@ -1,6 +1,8 @@
-# Portfolio
+# Portfolio and blog
 
 The introduction pairs Jaemin’s rooftop portrait with his Korean and English names in one forest-green panel. The photograph keeps its natural proportions. Its dusk colors, a warm paper background and ink-green headings give the portfolio its palette.
+
+The portfolio and blog share the green ink, ivory page, warm white cards, and muted sage surfaces. Use 12px corners for controls, 16px for cards and article images, and 24px for the introductory panel and project dialog. Keep the header and footer on the same site container. Blog articles use a narrower reading column.
 
 Experience follows the introduction. Keep the API’s order. Place the date and organization together above each entry and let the description and uploaded media determine its height. The five technology categories follow with their original logos and nested framework lists. Use deeper variants of the brand colors on the logo glyphs. Keep the category cards neutral so the labels and hierarchy stay legible. Projects are selectable and keep their photos, details and keyboard-accessible dialog.
 

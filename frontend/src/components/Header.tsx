@@ -1,14 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { BLOG_URL, PORTFOLIO_URL, isBlogHost } from "../lib/site";
 
 const navLinkClassName =
-  "rounded px-2 py-1.5 text-sm text-ink-muted md:px-3 transition-colors duration-[240ms] hover:bg-surface-1 hover:text-primary";
+  "rounded-md px-2 py-1.5 text-sm text-ink-muted md:px-3 transition-colors duration-[240ms] hover:bg-surface-1 hover:text-primary";
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { pathname } = useLocation();
-  const portfolioHome = !isBlogHost() && pathname === "/";
 
   const buildSectionHref = (id: string) => {
     // On the blog host, section anchors only exist on the portfolio site, so
@@ -21,8 +19,8 @@ const Header = () => {
   const homeHref = isBlogHost() ? PORTFOLIO_URL : "/";
 
   return (
-    <header className={`sticky top-0 z-50 border-b border-border bg-canvas/95 backdrop-blur-sm ${portfolioHome ? "portfolio-header" : ""}`}>
-      <div className="mx-auto flex min-h-16 max-w-[75rem] flex-wrap items-center justify-between gap-y-1 px-5 py-2 sm:flex-nowrap md:px-12">
+    <header className="sticky top-0 z-50 border-b border-border bg-page/95 backdrop-blur-sm">
+      <div className="site-container flex min-h-16 flex-wrap items-center justify-between gap-y-1 py-2 sm:flex-nowrap">
         <Link
           to={homeHref}
           className="text-lg font-semibold tracking-tight text-navy transition-colors duration-[240ms] hover:text-primary"
@@ -70,7 +68,7 @@ const Header = () => {
           )}
           <a
             href={buildSectionHref("contact")}
-            className="header-contact rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
           >
             연락하기
           </a>

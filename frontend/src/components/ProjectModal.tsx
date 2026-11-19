@@ -110,7 +110,7 @@ const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
 
   return (
     <dialog ref={dialog} aria-labelledby="project-modal-title"
-      className="project-dialog m-auto max-h-[90dvh] w-[min(32rem,calc(100%-2rem))] overflow-y-auto rounded border border-border bg-canvas"
+      className="project-dialog m-auto max-h-[90dvh] w-[min(32rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-border bg-canvas"
       onCancel={e => { e.preventDefault(); onClose(); }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div>

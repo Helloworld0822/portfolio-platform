@@ -65,7 +65,7 @@ export default function Skills() {
       <h2 id="stack-heading" className="section-heading">기술 스택</h2>
       <div className="skill-groups">
         {skillGroups.map(group => (
-          <div className="skill-group" key={group.category}>
+          <div className="surface-card skill-group" key={group.category}>
             <h3><CategoryIcon category={group.category} className="skill-category-icon" />{group.category}</h3>
             <ul className="skill-items">
               {group.items.map(skill => (
