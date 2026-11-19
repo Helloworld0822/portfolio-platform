@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { BLOG_URL, PORTFOLIO_URL, isBlogHost } from "../lib/site";
 
@@ -7,6 +7,8 @@ const navLinkClassName =
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { pathname } = useLocation();
+  const portfolioHome = !isBlogHost() && pathname === "/";
 
   const buildSectionHref = (id: string) => {
     // On the blog host, section anchors only exist on the portfolio site, so
@@ -19,7 +21,7 @@ const Header = () => {
   const homeHref = isBlogHost() ? PORTFOLIO_URL : "/";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-canvas/95 backdrop-blur-sm">
+    <header className={`sticky top-0 z-50 border-b border-border bg-canvas/95 backdrop-blur-sm ${portfolioHome ? "portfolio-header" : ""}`}>
       <div className="mx-auto flex min-h-16 max-w-[75rem] flex-wrap items-center justify-between gap-y-1 px-5 py-2 sm:flex-nowrap md:px-12">
         <Link
           to={homeHref}
@@ -31,13 +33,13 @@ const Header = () => {
           <a href={buildSectionHref("story")} className={navLinkClassName}>
             소개
           </a>
+          <a href={buildSectionHref("timeline")} className={navLinkClassName}>경력</a>
           <a href={buildSectionHref("skills")} className={navLinkClassName}>
             기술
           </a>
           <a href={buildSectionHref("projects")} className={navLinkClassName}>
             프로젝트
           </a>
-          <a href={buildSectionHref("timeline")} className={navLinkClassName}>경력</a>
           <Link to={blogHref} className={navLinkClassName}>
             블로그
           </Link>
@@ -68,7 +70,7 @@ const Header = () => {
           )}
           <a
             href={buildSectionHref("contact")}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
+            className="header-contact rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
           >
             연락하기
           </a>

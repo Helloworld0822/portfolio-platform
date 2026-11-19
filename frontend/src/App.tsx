@@ -18,8 +18,9 @@ function Home() {
     <main className="portfolio-home">
       <div className="portfolio-content">
         <Hero />
-        <div className="work-index"><Skills /><Projects /></div>
         <Timeline />
+        <Skills />
+        <Projects />
       </div>
       <Contact />
     </main>

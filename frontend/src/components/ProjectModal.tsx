@@ -92,12 +92,14 @@ const ProjectModal = ({ project, onClose }: ProjectModalProps) => {
   useEffect(() => {
     if (!project || !dialog.current) return;
     const element = dialog.current;
+    const opener = document.activeElement;
     element.showModal();
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       element.close();
       document.body.style.overflow = overflow;
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true });
     };
   }, [project]);
 

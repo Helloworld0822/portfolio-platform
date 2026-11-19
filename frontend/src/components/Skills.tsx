@@ -1,3 +1,4 @@
+import { CategoryIcon, SkillIcon } from "../lib/skillIcons";
 import { useReveal } from "../lib/useReveal";
 
 type SkillItem = {
@@ -62,16 +63,27 @@ export default function Skills() {
   return (
     <section id="skills" ref={ref} className={className} aria-labelledby="stack-heading">
       <h2 id="stack-heading" className="section-heading">기술 스택</h2>
-      <dl className="stack-list">
+      <div className="skill-groups">
         {skillGroups.map(group => (
-          <div key={group.category}>
-            <dt>{group.category}</dt>
-            <dd>{group.items.map(skill => (
-              <span key={skill.name}>{skill.name}{skill.children && <small> ({skill.children.join(", ")})</small>}</span>
-            ))}</dd>
+          <div className="skill-group" key={group.category}>
+            <h3><CategoryIcon category={group.category} className="skill-category-icon" />{group.category}</h3>
+            <ul className="skill-items">
+              {group.items.map(skill => (
+                <li key={skill.name}>
+                  <div className="skill-name"><SkillIcon name={skill.name} />{skill.name}</div>
+                  {skill.children && (
+                    <ul className="skill-children">
+                      {skill.children.map(child => (
+                        <li key={child}><SkillIcon name={child} className="size-4 shrink-0" />{child}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
-      </dl>
+      </div>
     </section>
   );
 }

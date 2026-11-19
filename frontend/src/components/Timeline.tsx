@@ -54,10 +54,12 @@ const Timeline = () => {
               const icon = entry.attachments?.find(a => a.kind === "icon");
               return (
                 <li key={entry.id}>
-                  <span className="experience-date">{entry.period}</span>
+                  <div className="experience-meta">
+                    <span className="experience-date">{entry.period}</span>
+                    {entry.org && <span className="experience-org">{entry.org}</span>}
+                  </div>
                   <div>
                     <h3>{icon && <img src={icon.url} alt="" width={26} height={26} loading="lazy" />}{entry.title}</h3>
-                    {entry.org && <p className="experience-org">{entry.org}</p>}
                     {entry.description && <p className="experience-description">{entry.description}</p>}
                     {!!images?.length && <div className="experience-gallery">{images.map(a =>
                       <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
