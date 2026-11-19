@@ -88,6 +88,14 @@ it never reads `.env` or touches production. `.github/workflows/forge.yml` runs
 this suite separately. `backend-forge/toolchain` pins the required compiler ABI.
 Do not deploy the Forge override without staging/rollout review.
 
+Update all language components with `python3 scripts/update-forge-toolchain.py
+--revision <compiler-ref>`; use `--source-root <parent>` for committed local
+repositories. Verify with `--check` and `python3 scripts/test-forge-toolchain.py`.
+The generated `toolchain/lock.json` and `toolchain/sources/` must change together.
+Backend and frontend containers verify the bundle and use its generated SDK
+headers. Preserve user edits in the production checkout and benchmark only
+uniquely labeled disposable resources.
+
 ## Deployment
 
 The production service is `portfolio-platform` in `portfolio-514800/asia-northeast3`. The production nginx image uses `nginx/cloud-run.conf` and forwards API and upload requests to the Rust container on 127.0.0.1:8081. The API uses the Neon Secret Manager reference and mounts its existing GCS bucket at `/app/uploads`.

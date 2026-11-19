@@ -1,0 +1,14 @@
+.git
+.codegraph
+.serena
+.omo
+.omc
+.vscode
+.env
+.env.*
+build*
+**/node_modules
+**/target
+**/__pycache__
+**/*.pyc
+**/.venv
