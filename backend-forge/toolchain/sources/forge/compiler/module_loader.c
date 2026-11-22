@@ -1,0 +1,365 @@
+#define _GNU_SOURCE
+#include "module_loader.h"
+#include "lexer.h"
+#include "mod_registry.h"
+#include "parser.h"
+#include "forge/platform.h"
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#if defined(FORGE_OS_WINDOWS)
+#include <io.h>
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
+#define FORGE_MAX_IMPORT_DEPTH 64
+
+typedef struct {
+    char **paths;
+    size_t count;
+    size_t cap;
+} LoadedPaths;
+
+typedef struct {
+    const ForgeModuleConfig *cfg;
+    char entry_dir[PATH_MAX];
+    LoadedPaths loaded;
+    size_t import_depth;
+} ModuleResolver;
+
+static void *extend_decls(void *data, size_t count, size_t extra, size_t size);
+
+static char *read_file(const char *path, size_t *out_len) {
+    FILE *f = fopen(path, "rb");
+    if (!f) return NULL;
+#if defined(FORGE_OS_WINDOWS)
+    struct _stat info;
+    bool regular = _fstat(_fileno(f), &info) == 0 &&
+        (info.st_mode & _S_IFMT) == _S_IFREG;
+#else
+    struct stat info;
+    bool regular = fstat(fileno(f), &info) == 0 && S_ISREG(info.st_mode);
+#endif
+    if (!regular) { fclose(f); return NULL; }
+    if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return NULL; }
+    long sz = ftell(f);
+    if (sz < 0 || (uintmax_t)sz >= SIZE_MAX || fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return NULL;
+    }
+    char *buf = (char *)malloc((size_t)sz + 1);
+    if (!buf) forge_die("out of memory");
+    size_t n = fread(buf, 1, (size_t)sz, f);
+    if (ferror(f)) { free(buf); fclose(f); return NULL; }
+    buf[n] = '\0';
+    fclose(f);
+    *out_len = n;
+    return buf;
+}
+
+static void dirname_of(const char *path, char *out, size_t cap) {
+    strncpy(out, path, cap - 1);
+    out[cap - 1] = '\0';
+    char *slash = strrchr(out, '/');
+#if defined(FORGE_OS_WINDOWS)
+    char *bslash = strrchr(out, '\\');
+    if (!slash || (bslash && bslash > slash)) slash = bslash;
+#endif
+    if (slash) *slash = '\0';
+    else strcpy(out, ".");
+}
+
+static ForgeStr basename_module(ForgeStr path) {
+    const char *start = path.data;
+    for (size_t i = 0; i < path.len; i++) {
+        if (path.data[i] == '/' || path.data[i] == '\\') start = path.data + i + 1;
+    }
+    size_t len = path.len - (size_t)(start - path.data);
+    if (len > 3 && start[len - 3] == '.' && start[len - 2] == 'f' && start[len - 1] == 'g')
+        len -= 3;
+    ForgeStr r = { (char *)start, len };
+    return r;
+}
+
+static bool path_already_loaded(ModuleResolver *r, const char *path) {
+    for (size_t i = 0; i < r->loaded.count; i++) {
+        if (strcmp(r->loaded.paths[i], path) == 0) return true;
+    }
+    return false;
+}
+
+static void mark_loaded(ModuleResolver *r, const char *path) {
+    r->loaded.paths = forge_array_reserve(r->loaded.paths, r->loaded.count,
+        &r->loaded.cap, sizeof(*r->loaded.paths), 8);
+    char *copy = strdup(path);
+    if (!copy) forge_die("out of memory");
+    r->loaded.paths[r->loaded.count++] = copy;
+}
+
+static bool try_candidate(const char *path, char *out, size_t cap) {
+    if (fr_path_exists(path)) {
+        strncpy(out, path, cap - 1);
+        out[cap - 1] = '\0';
+        return true;
+    }
+    return false;
+}
+
+static bool is_prebuilt_lib(const char *lib_dir, ForgeStr name) {
+    if (!lib_dir) return false;
+    char path[PATH_MAX];
+    snprintf(path, sizeof(path), "%s/libforge_%.*s.a", lib_dir, (int)name.len, name.data);
+    return fr_path_exists(path) != 0;
+}
+
+static bool resolve_module_path(ModuleResolver *r, ForgeStr name, ForgeStr rel_path,
+                              char *out, size_t cap) {
+    char candidate[PATH_MAX];
+    const char *bases[257];
+    size_t base_count = 0;
+    bases[base_count++] = r->entry_dir;
+    for (size_t i = 0; i < r->cfg->include_dir_count && base_count < 257; i++)
+        bases[base_count++] = r->cfg->include_dirs[i];
+
+    if (rel_path.len > 0) {
+        for (size_t i = 0; i < base_count; i++) {
+            snprintf(candidate, sizeof(candidate), "%s/%.*s", bases[i], (int)rel_path.len, rel_path.data);
+            if (try_candidate(candidate, out, cap)) return true;
+        }
+        if (rel_path.len > 0 &&
+            (rel_path.data[0] == '/' || memchr(rel_path.data, ':', rel_path.len))) {
+            char abs_path[PATH_MAX];
+            snprintf(abs_path, sizeof(abs_path), "%.*s", (int)rel_path.len, rel_path.data);
+            return try_candidate(abs_path, out, cap);
+        }
+        return false;
+    }
+
+    for (size_t i = 0; i < base_count; i++) {
+        snprintf(candidate, sizeof(candidate), "%s/%.*s.fg", bases[i], (int)name.len, name.data);
+        if (try_candidate(candidate, out, cap)) return true;
+        snprintf(candidate, sizeof(candidate), "%s/%.*s/%.*s.fg",
+                 bases[i], (int)name.len, name.data, (int)name.len, name.data);
+        if (try_candidate(candidate, out, cap)) return true;
+    }
+    return false;
+}
+
+static bool import_present(ForgeStr *imports, size_t count, ForgeStr name) {
+    for (size_t i = 0; i < count; i++) {
+        if (forge_str_eq(imports[i], name)) return true;
+    }
+    return false;
+}
+
+static void merge_import(Program *prog, ForgeStr name) {
+    if (import_present(prog->imports, prog->import_count, name)) return;
+    prog->imports = extend_decls(prog->imports, prog->import_count, 1, sizeof(*prog->imports));
+    prog->imports[prog->import_count++] = name;
+}
+
+static FileModule *find_module(Program *prog, ForgeStr name) {
+    for (size_t i = 0; i < prog->module_count; i++) {
+        if (forge_str_eq(prog->modules[i].name, name)) return &prog->modules[i];
+    }
+    return NULL;
+}
+
+static void *extend_decls(void *data, size_t count, size_t extra, size_t size) {
+    if (!extra) return data;
+    if (extra > SIZE_MAX - count || count + extra > SIZE_MAX / size)
+        forge_die("too many module declarations");
+    void *result = realloc(data, (count + extra) * size);
+    if (!result) forge_die("out of memory");
+    return result;
+}
+
+static void merge_program_decls(Program *dst, Program *src) {
+    dst->source_files = extend_decls(dst->source_files,dst->source_count,
+                                     src->source_count,sizeof(*dst->source_files));
+    if (src->source_count) memcpy(dst->source_files + dst->source_count, src->source_files,
+                                  src->source_count * sizeof(*dst->source_files));
+    dst->source_count += src->source_count;
+    free(src->source_files); src->source_files = NULL; src->source_count = 0;
+
+    if (src->const_count) {
+        dst->consts = extend_decls(dst->consts, dst->const_count,
+                                  src->const_count, sizeof(ConstDecl));
+        memcpy(dst->consts + dst->const_count, src->consts,
+               src->const_count * sizeof(ConstDecl));
+        dst->const_count += src->const_count;
+    }
+    src->const_count = 0;
+    free(src->consts);
+    src->consts = NULL;
+
+    if (src->struct_count) {
+        dst->structs = extend_decls(dst->structs, dst->struct_count,
+                                   src->struct_count, sizeof(StructDecl));
+        memcpy(dst->structs + dst->struct_count, src->structs,
+               src->struct_count * sizeof(StructDecl));
+        dst->struct_count += src->struct_count;
+    }
+    src->struct_count = 0;
+    free(src->structs);
+    src->structs = NULL;
+
+    if (src->enum_count) {
+        dst->enums = extend_decls(dst->enums, dst->enum_count,
+                                src->enum_count, sizeof(EnumDecl));
+        memcpy(dst->enums + dst->enum_count, src->enums,
+               src->enum_count * sizeof(EnumDecl));
+        dst->enum_count += src->enum_count;
+    }
+    src->enum_count = 0;
+    free(src->enums);
+    src->enums = NULL;
+}
+
+static void load_module_file(ModuleResolver *r, Program *prog, ForgeStr name, ForgeStr rel_path);
+
+static void load_parsed_module(ModuleResolver *r, Program *prog, ForgeStr name,
+                               const char *resolved_path, Program *mod, char *src) {
+    if (mod->library.present)
+        fprintf(stderr, "forge: module '%.*s' cannot contain a library block\n",
+                (int)name.len, name.data), exit(1);
+    if (mod->process_count > 0)
+        fprintf(stderr, "forge: module '%.*s' cannot contain a process\n",
+                (int)name.len, name.data), exit(1);
+    if (mod->native_count > 0)
+        fprintf(stderr, "forge: module '%.*s' cannot contain native blocks\n",
+                (int)name.len, name.data), exit(1);
+
+    for (size_t i = 0; i < mod->import_count; i++) {
+        ForgeStr imp = mod->imports[i];
+        if (forge_import_is_stdlib(imp) || is_prebuilt_lib(r->cfg->lib_dir, imp)) {
+            merge_import(prog, imp);
+            continue;
+        }
+        load_module_file(r, prog, imp, forge_str(""));
+    }
+
+    for (size_t i = 0; i < mod->path_import_count; i++)
+        load_module_file(r, prog, basename_module(mod->path_imports[i]), mod->path_imports[i]);
+
+    FileModule *fm = find_module(prog, name);
+    if (!fm) {
+        prog->modules = extend_decls(prog->modules, prog->module_count, 1, sizeof(*prog->modules));
+        fm = &prog->modules[prog->module_count++];
+        fm->name = name;
+        fm->path = strdup(resolved_path);
+        if (!fm->path) forge_die("out of memory");
+        fm->source = src;
+        fm->functions = NULL;
+        fm->fn_count = 0;
+    } else {
+        /* fm already exists for this module name. Do NOT free src here:
+         * the imports/decls merged above (merge_import) and the decls
+         * about to be merged below (merge_program_decls) may hold ForgeStr
+         * slices pointing directly into this buffer. Freeing it now would
+         * be a use-after-free once those slices are read later (codegen,
+         * symbol printing, etc). Intentionally leak it for the remaining
+         * lifetime of the process instead, matching the lifetime of the
+         * AST it feeds. */
+    }
+
+    size_t extern_count = 0;
+    for (size_t i = 0; i < mod->fn_count; i++)
+        extern_count += mod->functions[i].is_extern != 0;
+    prog->functions = extend_decls(prog->functions, prog->fn_count,
+                                   extern_count, sizeof(FnDecl));
+    fm->functions = extend_decls(fm->functions, fm->fn_count,
+                                mod->fn_count - extern_count, sizeof(FnDecl));
+    for (size_t i = 0; i < mod->fn_count; i++) {
+        if (mod->functions[i].is_extern) {
+            prog->functions[prog->fn_count++] = mod->functions[i];
+            continue;
+        }
+        fm->functions[fm->fn_count++] = mod->functions[i];
+    }
+    mod->fn_count = 0;
+    free(mod->functions);
+    mod->functions = NULL;
+
+    merge_program_decls(prog, mod);
+}
+
+static void load_module_file(ModuleResolver *r, Program *prog, ForgeStr name, ForgeStr rel_path) {
+    if (find_module(prog, name)) return;
+
+    char resolved[PATH_MAX];
+    if (!resolve_module_path(r, name, rel_path, resolved, sizeof(resolved))) {
+        fprintf(stderr, "forge: cannot find module '%.*s'", (int)name.len, name.data);
+        if (rel_path.len > 0)
+            fprintf(stderr, " (%.*s)", (int)rel_path.len, rel_path.data);
+        fprintf(stderr, "\n");
+        exit(1);
+    }
+    if (path_already_loaded(r, resolved)) return;
+    if (r->import_depth >= FORGE_MAX_IMPORT_DEPTH)
+        forge_die("module import nesting too deep (maximum 64)");
+    mark_loaded(r, resolved);
+
+    size_t len = 0;
+    char *src = read_file(resolved, &len);
+    if (!src) {
+        fprintf(stderr, "forge: cannot read module '%s'\n", resolved);
+        exit(1);
+    }
+
+    Lexer lx;
+    lexer_init(&lx, src, len);
+    Program mod = parse_program_named(&lx,resolved);
+
+    r->import_depth++;
+    load_parsed_module(r, prog, name, resolved, &mod, src);
+    r->import_depth--;
+    program_free(&mod);
+}
+
+static ForgeStr *filter_imports(Program *prog, const ForgeModuleConfig *cfg, size_t *out_count) {
+    ForgeStr *kept = extend_decls(NULL, 0, prog->import_count, sizeof(*kept));
+    size_t kept_count = 0;
+    for (size_t i = 0; i < prog->import_count; i++) {
+        ForgeStr imp = prog->imports[i];
+        if (forge_import_is_stdlib(imp) || is_prebuilt_lib(cfg->lib_dir, imp)) {
+            kept[kept_count++] = imp;
+            continue;
+        }
+        if (find_module(prog, imp)) continue;
+        kept[kept_count++] = imp;
+    }
+    *out_count = kept_count;
+    return kept;
+}
+
+void forge_load_modules(Program *prog, const ForgeModuleConfig *cfg) {
+    ModuleResolver r = { .cfg = cfg };
+    dirname_of(cfg->entry_path, r.entry_dir, sizeof(r.entry_dir));
+
+    for (size_t i = 0; i < prog->import_count; i++) {
+        ForgeStr imp = prog->imports[i];
+        if (forge_import_is_stdlib(imp) || is_prebuilt_lib(cfg->lib_dir, imp)) continue;
+        char resolved[PATH_MAX];
+        if (resolve_module_path(&r, imp, forge_str(""), resolved, sizeof(resolved)))
+            load_module_file(&r, prog, imp, forge_str(""));
+    }
+
+    for (size_t i = 0; i < prog->path_import_count; i++) {
+        ForgeStr path = prog->path_imports[i];
+        load_module_file(&r, prog, basename_module(path), path);
+    }
+
+    size_t kept_count = 0;
+    ForgeStr *kept = filter_imports(prog, cfg, &kept_count);
+    free(prog->imports);
+    prog->imports = kept;
+    prog->import_count = kept_count;
+
+    for (size_t i = 0; i < r.loaded.count; i++) free(r.loaded.paths[i]);
+    free(r.loaded.paths);
+}
