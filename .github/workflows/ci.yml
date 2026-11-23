@@ -90,6 +90,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify Cloud Run API runtime selection and rollback (offline)
+        run: python3 scripts/test-cloud-run-api-runtime.py
+
       - name: Prepare .env for build
         run: cp .env.example .env
 

@@ -98,11 +98,11 @@ uniquely labeled disposable resources.
 
 ## Deployment
 
-The production service is `portfolio-platform` in `portfolio-514800/asia-northeast3`. The production nginx image uses `nginx/cloud-run.conf` and forwards API and upload requests to the Rust container on 127.0.0.1:8081. The API uses the Neon Secret Manager reference and mounts its existing GCS bucket at `/app/uploads`.
+The production service is `portfolio-platform` in `portfolio-514800/asia-northeast3`. The production nginx image uses `nginx/cloud-run.conf` and forwards API and upload requests to the selected API container on 127.0.0.1:8081. The API uses the Neon Secret Manager reference and mounts its existing GCS bucket at `/app/uploads`.
 
 Three exact Cloudflare Worker Routes cover the apex, portfolio and blog hosts. Their proxied A records point at the placeholder 192.0.2.1. The Worker authenticates to the fixed Cloud Run origin using a Google ID token. Cloud Run enforces invoker IAM. nginx trusts the `X-Portfolio-Client-IP` header replaced by the authenticated Worker. See `ops/edge/README.md` for deployment and temporary staging.
 
-A successful main push through CI triggers `.github/workflows/deploy.yml`. It checks out the tested SHA, builds changed image inputs, then deploys both selected digests in one revision. The public health probe rolls traffic back if needed. Changes under `ops/backup` also release a new image to the `portfolio-db-backup` Cloud Run job in Tokyo. A manual dispatch targets the current main commit. GitHub authenticates via a repo- and workflow-restricted Workload Identity Federation principal. Keep production credentials in Secret Manager.
+A successful main push through CI triggers `.github/workflows/deploy.yml`. It checks out the tested SHA, builds changed image inputs, then deploys both selected digests in one revision. The public health probe rolls traffic back if needed. Changes under `ops/backup` also release a new image to the `portfolio-db-backup` Cloud Run job in Tokyo. A manual dispatch targets the current main commit. See [Forge Cloud Run rollout](docs/forge-cloud-run.md) for the staged API-only opt-in, exact digest gate and rollback. GitHub authenticates via a repo- and workflow-restricted Workload Identity Federation principal. Keep production credentials in Secret Manager.
 
 ## Rules / conventions
 
