@@ -95,13 +95,13 @@ async fn contact_form_enforces_forge_field_boundaries_after_trimming() {
     let valid = json!({
         "name": format!(" {} ", "홍".repeat(200)),
         "email": format!(" {email} "),
-        "message": format!(" {} ", "글".repeat(10_000)),
+        "message": format!(" {} ", "글".repeat(1_000)),
     });
 
-    for (field, value) in [
-        ("name", "홍".repeat(201)),
-        ("email", format!("b{email}")),
-        ("message", "글".repeat(10_001)),
+    for (field, value, limit) in [
+        ("name", "홍".repeat(201), "200 characters"),
+        ("email", format!("b{email}"), "254 UTF-8 bytes"),
+        ("message", "글".repeat(1_001), "1000 characters"),
     ] {
         let mut input = valid.clone();
         input[field] = json!(value);
@@ -109,7 +109,10 @@ async fn contact_form_enforces_forge_field_boundaries_after_trimming() {
             .uri("/api/contact")
             .set_json(input)
             .to_request();
-        assert_eq!(test::call_service(&app, req).await.status(), 400, "{field}");
+        let response = test::call_service(&app, req).await;
+        assert_eq!(response.status(), 400, "{field}");
+        let error: serde_json::Value = test::read_body_json(response).await;
+        assert!(error["message"].as_str().unwrap().ends_with(limit));
     }
 
     let req = test::TestRequest::post()
@@ -121,7 +124,7 @@ async fn contact_form_enforces_forge_field_boundaries_after_trimming() {
     let stored: ContactMessage = test::read_body_json(response).await;
     assert_eq!(stored.name.chars().count(), 200);
     assert_eq!(stored.email, email);
-    assert_eq!(stored.message.chars().count(), 10_000);
+    assert_eq!(stored.message.chars().count(), 1_000);
     let conn = pool.get().await.unwrap();
     let row = conn
         .query_one("SELECT count(*) FROM contact_messages", &[])

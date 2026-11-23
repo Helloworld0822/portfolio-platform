@@ -20,6 +20,12 @@ const Contact = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    if (Array.from(message.trim()).length > 1000) {
+      setErrorMessage("문의 본문은 1,000자까지 입력할 수 있습니다.");
+      setStatus("error");
+      return;
+    }
+
     setStatus("sending");
     setErrorMessage("");
 

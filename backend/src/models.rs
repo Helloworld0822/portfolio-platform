@@ -215,8 +215,11 @@ impl TryFrom<&Row> for ContactMessage {
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct CreateContactRequest {
+    /// After trimming, 1–200 Unicode code points.
     pub name: String,
+    /// After trimming, an email address of at most 254 UTF-8 bytes.
     pub email: String,
+    /// After trimming, 1–1,000 Unicode code points.
     pub message: String,
 }
 
@@ -252,6 +255,7 @@ impl TryFrom<&Row> for Comment {
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct CreateCommentRequest {
+    /// After trimming, 1–200 Unicode code points.
     pub body: String,
 }
 

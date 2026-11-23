@@ -169,7 +169,7 @@ async fn create_comment_enforces_trimmed_unicode_character_limit() {
     let app = build_app(pool).await;
     let uri = format!("/api/posts/{post_id}/comments");
 
-    for (length, expected) in [(2_000, 201), (2_001, 400)] {
+    for (length, expected) in [(200, 201), (201, 400)] {
         let req = test::TestRequest::post()
             .uri(&uri)
             .insert_header(common::user_auth_header("reader"))

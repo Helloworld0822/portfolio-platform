@@ -3,14 +3,19 @@ import postgres;
 import web;
 import abuse;
 import strings;
+extern fn portfolio_contact_email_digest(email: string): string;
 fn create(conn: int, request: int): int {
     let body: int = web.request_json(request);
     if (web.required(body, "name", 3) == 0 || web.required(body, "email", 3) == 0 || web.required(body, "message", 3) == 0) { return web.validation(request, "name, email and message are required"); }
     let name: string = web.trim(web.field_text(body, "name")); let email: string = web.trim(web.field_text(body, "email")); let message: string = web.trim(web.field_text(body, "message"));
     if (web.chars(name) == 0 || web.chars(message) == 0 || web.valid(email, "email") == 0) { return web.validation(request, "invalid name, email or message"); }
-    if (web.chars(name) > 200 || str_len(email) > 254 || web.chars(message) > 10000) { return web.validation(request, "name, email or message exceeds the length limit"); }
+    if (web.chars(name) > 200) { return web.validation(request, "name must be at most 200 characters"); }
+    if (str_len(email) > 254) { return web.validation(request, "email must be at most 254 UTF-8 bytes"); }
+    if (web.chars(message) > 1000) { return web.validation(request, "message must be at most 1000 characters"); }
     if (abuse.limit(conn, request, str_concat("contact-ip|", web.ip(request)), 20) == 0) { return 1; }
-    let key: string = str_concat(str_concat(str_concat("contact|", web.ip(request)), "|"), web.lower(email));
+    let digest: string = portfolio_contact_email_digest(web.lower(email));
+    if (str_len(digest) != 64) { return web.error(request, 500, "internal"); }
+    let key: string = str_concat(str_concat(str_concat("contact|", web.ip(request)), "|"), digest);
     if (abuse.limit(conn, request, key, 5) == 0) { return 1; }
     if (postgres.begin(conn) == 0) { return web.error(request, 500, "internal"); }
     let locked: int = database.query(conn, "SELECT pg_advisory_xact_lock(hashtextextended(lower($1),1))", database.args1(email));

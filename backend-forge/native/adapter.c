@@ -4,11 +4,29 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <limits.h>
+#include <openssl/sha.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+/* forge-web limits each rate key to 255 bytes; the full email can be 254
+ * bytes alone. Copy deterministic hex into the current Forge string arena. */
+const char *portfolio_contact_email_digest(const char *email) {
+    if (!email) return "";
+    unsigned char digest[SHA256_DIGEST_LENGTH];
+    if (!SHA256((const unsigned char *)email, strlen(email), digest)) return "";
+    static const char digits[] = "0123456789abcdef";
+    char hex[SHA256_DIGEST_LENGTH * 2 + 1];
+    for (size_t i = 0; i < sizeof digest; i++) {
+        hex[2 * i] = digits[digest[i] >> 4];
+        hex[2 * i + 1] = digits[digest[i] & 15];
+    }
+    hex[sizeof hex - 1] = '\0';
+    const char *stored = fr_str_concat(hex, "");
+    return stored ? stored : "";
+}
+
 static int64_t active_pool;
 int64_t portfolio_pool(void) { return active_pool; }
 int64_t portfolio_pool_set(int64_t pool) { active_pool=pool; return 1; }
