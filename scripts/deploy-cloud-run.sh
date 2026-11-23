@@ -47,14 +47,18 @@ if [[ "$runtime" == forge ]]; then
     | ((.command // []) | length)==0 and ((.args // []) | length)==0 and
       any(.volumeMounts[]?; .mountPath=="/app/uploads")
   ' <<<"$state" >/dev/null || { echo 'Unexpected API command or uploads mount; refusing Forge rollout.' >&2; exit 1; }
+  workflow_succeeded() {
+    local checks
+    checks=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$1" --commit "$commit" \
+      --branch main --event push --status success --limit 1 --json headSha) || return 1
+    jq -e --arg commit "$commit" 'any(.[]; .headSha == $commit)' <<<"$checks" >/dev/null
+  }
   for ((attempt=0; attempt<80; attempt++)); do
-    checks=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow forge.yml --commit "$commit" \
-      --branch main --event push --status success --limit 1 --json headSha)
-    if jq -e --arg commit "$commit" 'any(.[]; .headSha == $commit)' <<<"$checks" >/dev/null; then
+    if workflow_succeeded ci.yml && workflow_succeeded forge.yml; then
       break
     fi
     if ((attempt == 79)); then
-      echo 'No successful Forge migration CI run for the exact main commit.' >&2
+      echo 'No successful CI and Forge migration runs for the exact main commit.' >&2
       exit 1
     fi
     sleep 15

@@ -43,7 +43,8 @@ def containers(image, proxy=True):
 if tool == 'git':
     print(sha + ('\trefs/heads/main' if args[0] == 'ls-remote' else ''))
 elif tool == 'gh':
-    print(json.dumps([{'headSha': sha}]) if os.environ.get('CI_PENDING') != '1' else '[]')
+    workflow = args[args.index('--workflow') + 1]
+    print(json.dumps([{'headSha': sha}]) if os.environ.get('CI_PENDING') != workflow else '[]')
 elif tool == 'docker':
     print('{}')
 elif tool == 'curl':
@@ -108,11 +109,13 @@ class DeployRuntimeTests(unittest.TestCase):
         result, calls = self.run_fixture(serving='forge')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('API: forge', result.stdout)
-        self.assertTrue(any(call[0] == 'gh' and '--commit' in call for call in calls))
+        workflows = {call[call.index('--workflow') + 1] for call in calls if call[0] == 'gh'}
+        self.assertEqual(workflows, {'ci.yml', 'forge.yml'})
         self.assertFalse(any('update-traffic' in call for call in calls))
 
     def test_explicit_forge_is_blocked_without_staging_or_ci(self):
-        for kwargs in ({}, {'verified': True, 'CI_PENDING': '1'}):
+        for kwargs in ({}, {'verified': True, 'CI_PENDING': 'ci.yml'},
+                       {'verified': True, 'CI_PENDING': 'forge.yml'}):
             with self.subTest(kwargs=kwargs):
                 result, calls = self.run_fixture(choice='forge', **kwargs)
                 self.assertNotEqual(result.returncode, 0)
