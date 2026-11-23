@@ -372,6 +372,14 @@ class PortfolioTests(unittest.TestCase):
         comment, _ = self.call('POST', path, {'body': 'moderate'}, 201, token('reader', 'user'))
         self.call('DELETE', '/api/admin/comments/' + comment['id'], expected=204, auth=token())
 
+    def test_comment_trimmed_unicode_length(self):
+        post = self.post()
+        path = f"/api/posts/{post['id']}/comments"
+        auth = token('reader', 'user')
+        row, _ = self.call('POST', path, {'body': ' ' + '한' * 2000 + ' '}, 201, auth)
+        self.assertEqual(row['body'], '한' * 2000)
+        self.call('POST', path, {'body': '한' * 2001}, 400, auth)
+
     def test_contact_duplicate_rate_and_admin(self):
         data = {'name': '  reader ', 'email': 'ContactCase@example.test', 'message': '  hello  '}
         row, _ = self.call('POST', '/api/contact', data, 201, headers={'X-Real-IP': '8.8.4.4'})
@@ -398,10 +406,10 @@ class PortfolioTests(unittest.TestCase):
     def test_contact_length_and_ip_budget(self):
         headers = {'X-Real-IP': '203.0.113.185'}
         base = {'name': 'reader', 'email': 'bounded@example.test', 'message': 'hello'}
-        for field, value in [('name', '홍' * 201), ('email', 'a' * 250 + '@example.test'), ('message', '글' * 10001)]:
+        for field, value in [('name', '홍' * 201), ('email', 'a' * 242 + '@example.test'), ('message', '글' * 10001)]:
             with self.subTest(field=field):
                 self.call('POST', '/api/contact', dict(base, **{field: value}), 400, headers=headers)
-        boundary = dict(base, name='홍' * 200, message='글' * 10000)
+        boundary = dict(base, name=' ' + '홍' * 200 + ' ', email='a' * 241 + '@example.test', message='글' * 10000)
         row, _ = self.call('POST', '/api/contact', boundary, 201, headers=headers)
         self.call('DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
         for index in range(19):
