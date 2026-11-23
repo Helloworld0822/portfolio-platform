@@ -163,6 +163,28 @@ async fn create_comment_rejects_an_empty_body() {
 }
 
 #[tokio::test]
+async fn create_comment_enforces_trimmed_unicode_character_limit() {
+    let (pool, _db) = common::setup().await;
+    let post_id = seed_post(&pool, "Comment Length", true).await;
+    let app = build_app(pool).await;
+    let uri = format!("/api/posts/{post_id}/comments");
+
+    for (length, expected) in [(200, 201), (201, 400)] {
+        let req = test::TestRequest::post()
+            .uri(&uri)
+            .insert_header(common::user_auth_header("reader"))
+            .set_json(json!({ "body": format!(" {} ", "한".repeat(length)) }))
+            .to_request();
+        let response = test::call_service(&app, req).await;
+        assert_eq!(response.status(), expected);
+        if expected == 201 {
+            let stored: Comment = test::read_body_json(response).await;
+            assert_eq!(stored.body, "한".repeat(length));
+        }
+    }
+}
+
+#[tokio::test]
 async fn create_comment_404s_for_an_unpublished_post() {
     let (pool, _db) = common::setup().await;
     let post_id = seed_post(&pool, "Still A Draft", false).await;

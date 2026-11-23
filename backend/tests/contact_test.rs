@@ -87,6 +87,53 @@ async fn contact_form_rejects_an_empty_message() {
 }
 
 #[tokio::test]
+async fn contact_form_enforces_forge_field_boundaries_after_trimming() {
+    let (pool, _db) = common::setup().await;
+    let app = build_app(pool.clone()).await;
+    let email = format!("{}@example.test", "a".repeat(241));
+    assert_eq!(email.len(), 254);
+    let valid = json!({
+        "name": format!(" {} ", "홍".repeat(200)),
+        "email": format!(" {email} "),
+        "message": format!(" {} ", "글".repeat(1_000)),
+    });
+
+    for (field, value, limit) in [
+        ("name", "홍".repeat(201), "200 characters"),
+        ("email", format!("b{email}"), "254 UTF-8 bytes"),
+        ("message", "글".repeat(1_001), "1000 characters"),
+    ] {
+        let mut input = valid.clone();
+        input[field] = json!(value);
+        let req = test::TestRequest::post()
+            .uri("/api/contact")
+            .set_json(input)
+            .to_request();
+        let response = test::call_service(&app, req).await;
+        assert_eq!(response.status(), 400, "{field}");
+        let error: serde_json::Value = test::read_body_json(response).await;
+        assert!(error["message"].as_str().unwrap().ends_with(limit));
+    }
+
+    let req = test::TestRequest::post()
+        .uri("/api/contact")
+        .set_json(valid)
+        .to_request();
+    let response = test::call_service(&app, req).await;
+    assert_eq!(response.status(), 201);
+    let stored: ContactMessage = test::read_body_json(response).await;
+    assert_eq!(stored.name.chars().count(), 200);
+    assert_eq!(stored.email, email);
+    assert_eq!(stored.message.chars().count(), 1_000);
+    let conn = pool.get().await.unwrap();
+    let row = conn
+        .query_one("SELECT count(*) FROM contact_messages", &[])
+        .await
+        .unwrap();
+    assert_eq!(row.get::<_, i64>(0), 1);
+}
+
+#[tokio::test]
 async fn the_inbox_is_admin_only() {
     let (pool, _db) = common::setup().await;
 

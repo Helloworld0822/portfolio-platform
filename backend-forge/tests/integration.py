@@ -360,7 +360,7 @@ class PortfolioTests(unittest.TestCase):
         path = f"/api/posts/{post['id']}/comments"
         self.call('POST', path, {'body': 'x'}, 401)
         self.call('POST', path, {'body': ' '}, 400, token('reader', 'user'))
-        self.call('POST', path, {'body': '한' * 2001}, 400, token('reader', 'user'))
+        self.call('POST', path, {'body': '한' * 201}, 400, token('reader', 'user'))
         comment, _ = self.call('POST', path, {'body': '  한글 댓글  '}, 201, token('reader', 'user'))
         self.assertEqual(comment['body'], '한글 댓글')
         comments, _ = self.call('GET', path)
@@ -371,6 +371,14 @@ class PortfolioTests(unittest.TestCase):
         self.call('DELETE', '/api/comments/' + comment['id'], expected=204, auth=token('READER', 'user'))
         comment, _ = self.call('POST', path, {'body': 'moderate'}, 201, token('reader', 'user'))
         self.call('DELETE', '/api/admin/comments/' + comment['id'], expected=204, auth=token())
+
+    def test_comment_trimmed_unicode_length(self):
+        post = self.post()
+        path = f"/api/posts/{post['id']}/comments"
+        auth = token('reader', 'user')
+        row, _ = self.call('POST', path, {'body': ' ' + '한' * 200 + ' '}, 201, auth)
+        self.assertEqual(row['body'], '한' * 200)
+        self.call('POST', path, {'body': '한' * 201}, 400, auth)
 
     def test_contact_duplicate_rate_and_admin(self):
         data = {'name': '  reader ', 'email': 'ContactCase@example.test', 'message': '  hello  '}
@@ -398,16 +406,33 @@ class PortfolioTests(unittest.TestCase):
     def test_contact_length_and_ip_budget(self):
         headers = {'X-Real-IP': '203.0.113.185'}
         base = {'name': 'reader', 'email': 'bounded@example.test', 'message': 'hello'}
-        for field, value in [('name', '홍' * 201), ('email', 'a' * 250 + '@example.test'), ('message', '글' * 10001)]:
+        for field, value in [('name', '홍' * 201), ('email', 'a' * 242 + '@example.test'), ('message', '글' * 1001)]:
             with self.subTest(field=field):
-                self.call('POST', '/api/contact', dict(base, **{field: value}), 400, headers=headers)
-        boundary = dict(base, name='홍' * 200, message='글' * 10000)
+                rejected, _ = self.call('POST', '/api/contact', dict(base, **{field: value}), 400, headers=headers)
+                self.assertIn({'name': '200 characters', 'email': '254 UTF-8 bytes', 'message': '1000 characters'}[field], rejected['message'])
+        boundary = dict(base, name=' ' + '홍' * 200 + ' ', email='a' * 241 + '@example.test', message='글' * 1000)
         row, _ = self.call('POST', '/api/contact', boundary, 201, headers=headers)
         self.call('DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
         for index in range(19):
             row, _ = self.call('POST', '/api/contact', dict(base, email=f'rotating-{index}@example.test'), 201, headers=headers)
             self.call('DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
         self.call('POST', '/api/contact', dict(base, email='another-address@example.test'), 429, headers=headers)
+
+    def test_contact_long_email_budget_keeps_normalization_and_isolation(self):
+        first_ip = {'X-Real-IP': '203.0.113.186'}
+        second_ip = {'X-Real-IP': '203.0.113.187'}
+        email = 'b' * 64 + '@' + '.'.join(['b' * 63, 'b' * 63, 'b' * 56, 'test'])
+        self.assertEqual(len(email), 254)
+        data = {'name': 'reader', 'email': email, 'message': 'hello'}
+        for index in range(5):
+            variant = email if index % 2 == 0 else email.upper()
+            row, _ = self.call('POST', '/api/contact', dict(data, email=variant, message=str(index)), 201, headers=first_ip)
+            self.addCleanup(self.call, 'DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
+        self.call('POST', '/api/contact', dict(data, email=email.upper()), 429, headers=first_ip)
+        other_email = 'c' + email[1:]
+        for address, headers in [(other_email, first_ip), (email, second_ip)]:
+            row, _ = self.call('POST', '/api/contact', dict(data, email=address), 201, headers=headers)
+            self.addCleanup(self.call, 'DELETE', '/api/admin/contact/' + row['id'], expected=204, auth=token())
 
     def test_bans_and_admin_bypass(self):
         self.call('POST', '/api/admin/bans/ips', {'ip': '127.0.0.1'}, 400, token())

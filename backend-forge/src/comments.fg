@@ -21,7 +21,7 @@ fn create(conn: int, request: int, id: string, user: int): int {
     let body: int = web.request_json(request);
     if (web.required(body, "body", 3) == 0) { return web.validation(request, "body is required"); }
     let text: string = web.trim(web.field_text(body, "body"));
-    if (web.chars(text) == 0 || web.chars(text) > 2000) { return web.validation(request, "body must contain 1-2000 characters"); }
+    if (web.chars(text) == 0 || web.chars(text) > 200) { return web.validation(request, "body must contain 1-200 characters"); }
     if (abuse.limit(conn, request, str_concat("comment|", web.ip(request)), 10) == 0) { return 1; }
     if (published(conn, request, id) == 0) { return 1; }
     let values: int = database.args2(id, web.field_text(user, "sub"));

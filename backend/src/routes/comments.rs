@@ -9,7 +9,7 @@ use crate::error::AppError;
 use crate::models::{Comment, CreateCommentRequest};
 use crate::rate_limit::CommentLimiter;
 
-const MAX_COMMENT_LENGTH: usize = 2000;
+const MAX_COMMENT_LENGTH: usize = 200;
 
 async fn published_post_id(pool: &PgPool, id: i64) -> Result<i64, AppError> {
     let conn = pool.get().await?;

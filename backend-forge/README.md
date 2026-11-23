@@ -173,8 +173,9 @@ For Cloudflare Tunnel, configure nginx `set_real_ip_from` with the exact tunnel
 peer and `real_ip_header CF-Connecting-IP` before deploying. Loopback binding
 alone does not establish that every socket peer is a trusted tunnel.
 
-Contact fields are bounded to name 200 characters, email 254 bytes and message
-10,000 characters. The request budget is 20 per IP per 10 minutes, in addition to
-the existing five per IP/email pair. Invalid fields are rejected before either
+After trimming, comment bodies are limited to 200 Unicode code points. Contact
+fields are limited to 200 Unicode code points for the name, 254 UTF-8 bytes for
+the email address, and 1,000 Unicode code points for the message. The request
+budget is 20 per IP per 10 minutes, plus five per IP and normalized email. Invalid fields are rejected before either
 budget is consumed. JSON keys must be unique; decoded NUL characters are
 rejected because the current Forge string ABI uses C strings.

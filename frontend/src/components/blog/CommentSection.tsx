@@ -44,6 +44,11 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       return;
     }
 
+    if (Array.from(draft.trim()).length > 200) {
+      setError("댓글은 200자까지 입력할 수 있습니다.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -143,7 +148,6 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
               onChange={(event) => setDraft(event.target.value)}
               placeholder="댓글을 남겨보세요"
               rows={3}
-              maxLength={2000}
               className="w-full rounded-md border border-border bg-canvas p-3 text-sm text-ink outline-none focus-visible:border-primary"
             />
             {error && <p className="mt-2 text-sm text-danger">{error}</p>}

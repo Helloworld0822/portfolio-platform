@@ -9,6 +9,10 @@ use crate::error::AppError;
 use crate::models::{ContactMessage, CreateContactRequest};
 use crate::rate_limit::RateLimiter;
 
+const MAX_NAME_CHARS: usize = 200;
+const MAX_EMAIL_BYTES: usize = 254;
+const MAX_MESSAGE_CHARS: usize = 1_000;
+
 /// Store a message from the portfolio's contact form.
 ///
 /// Messages are persisted only — no email is sent from here. Requests are
@@ -41,6 +45,21 @@ pub async fn create_contact_message(
     }
     if message.is_empty() {
         return Err(AppError::Validation("message must not be empty".into()));
+    }
+    if name.chars().count() > MAX_NAME_CHARS {
+        return Err(AppError::Validation(format!(
+            "name must be at most {MAX_NAME_CHARS} characters"
+        )));
+    }
+    if email.len() > MAX_EMAIL_BYTES {
+        return Err(AppError::Validation(format!(
+            "email must be at most {MAX_EMAIL_BYTES} UTF-8 bytes"
+        )));
+    }
+    if message.chars().count() > MAX_MESSAGE_CHARS {
+        return Err(AppError::Validation(format!(
+            "message must be at most {MAX_MESSAGE_CHARS} characters"
+        )));
     }
     if !is_plausible_email(email) {
         return Err(AppError::Validation("email is not a valid address".into()));

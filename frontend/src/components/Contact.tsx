@@ -20,6 +20,13 @@ const Contact = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    const normalizedMessage = message.trim();
+    if (Array.from(normalizedMessage).length > 1000) {
+      setErrorMessage("문의 본문은 1,000자까지 입력할 수 있습니다.");
+      setStatus("error");
+      return;
+    }
+
     setStatus("sending");
     setErrorMessage("");
 
@@ -27,7 +34,7 @@ const Contact = () => {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify({ name, email, message: normalizedMessage }),
       });
 
       if (res.status === 201) {

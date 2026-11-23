@@ -127,7 +127,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "type": "object",
+                "required": [
+                  "body"
+                ],
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "description": "After trimming, 1–200 Unicode code points."
+                  }
+                }
               }
             }
           }
@@ -225,7 +234,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "message"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "After trimming, 1–200 Unicode code points."
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "After trimming, an email address of at most 254 UTF-8 bytes."
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "After trimming, 1–1,000 Unicode code points."
+                  }
+                }
               }
             }
           }
