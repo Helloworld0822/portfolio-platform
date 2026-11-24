@@ -17,8 +17,8 @@ the same ordinary health JSON; do not infer the runtime from it.
    per-IP/contact and comment budgets, bans/admin bypass, uploads/readback and
    cleanup, and root/portfolio/blog routes and static assets. Confirm all 16
    migrations are already applied by Rust before switching runtimes against live data.
-   Forge preserves existing SQLx checksums but records placeholder checksums for
-   migrations it applies, which prevents a later Rust startup from validating them.
+   Both migration runners track applied versions in the same table and preserve
+   existing SQLx checksums.
    Their migration locks also differ. Recheck the actual running probe/sidecar
    configuration, not only the Docker health check. An interrupted OAuth flow
    may require a fresh login across a runtime switch.
