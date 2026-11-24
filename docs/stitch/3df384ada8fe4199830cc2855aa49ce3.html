@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>전재민 (Jaemin Jeon) | Helloworld0822</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-primary":"#ffffff","surface-container-low":"#f4f4f1","tertiary-fixed-dim":"#c2c8bf","primary-fixed-dim":"#aecdc7","tertiary-container":"#2f352e","tier-gold":"#EC9A00","on-primary-fixed-variant":"#304c47","primary":"#05231f","surface-tint":"#47645f","on-surface":"#1a1c1b","on-tertiary-container":"#979e95","surface-container-high":"#e8e8e5","on-background":"#1a1c1b","outline":"#727877","primary-fixed":"#cae9e3","text-secondary":"#4B5563","error":"#ba1a1a","tertiary-fixed":"#dee4da","text-primary":"#111827","on-secondary-fixed":"#00201c","error-container":"#ffdad6","on-error-container":"#93000a","secondary-fixed-dim":"#a1d0c7","on-primary-fixed":"#02201c","on-secondary":"#ffffff","tier-diamond":"#00B4FC","on-secondary-fixed-variant":"#204e47","inverse-primary":"#aecdc7","secondary-container":"#bcece3","surface-card":"#FFFFFF","surface-subtle":"#F0F3ED","surface":"#f9f9f6","secondary":"#39665f","inverse-surface":"#2f312f","surface-container":"#eeeeeb","surface-dim":"#dadad7","secondary-fixed":"#bcece3","border-accent":"#D1DDD6","surface-container-highest":"#e2e3e0","border-subtle":"#E5E7EB","outline-variant":"#c1c8c6","tier-platinum":"#27E2A4","surface-bright":"#f9f9f6","on-primary-container":"#84a19c","inverse-on-surface":"#f1f1ee","primary-container":"#1c3834","background":"#f9f9f6","on-tertiary-fixed-variant":"#424841","on-tertiary-fixed":"#171d17","tier-silver":"#435F7A","on-surface-variant":"#414847","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","tier-ruby":"#FF0062","tier-bronze":"#AD5600","surface-variant":"#e2e3e0","on-secondary-container":"#406c65","tertiary":"#1a201a","on-error":"#ffffff","text-muted":"#9CA3AF"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin-lg":"4rem","space-sm":"0.5rem","margin":"1.25rem","space-xs":"0.25rem","gutter-lg":"2rem","space-lg":"1.5rem","space-2xl":"4rem","margin-md":"2rem","gutter":"1.5rem","space-3xl":"6rem","space-md":"1rem","space-xl":"2.5rem"},fontFamily:{"code-md":["JetBrains Mono"],"headline-md":["Inter"],"display":["Inter"],"body-lg":["Inter"],"display-mobile":["Inter"],"label-caps":["JetBrains Mono"],"body-sm":["Inter"],"code-sm":["JetBrains Mono"],"headline-sm":["Inter"],"body-md":["Inter"],"headline-lg":["Inter"]},fontSize:{"code-md":["13px",{lineHeight:"20px",fontWeight:"500"}],"headline-md":["22px",{lineHeight:"30px",letterSpacing:"-0.015em",fontWeight:"600"}],"display":["48px",{lineHeight:"56px",letterSpacing:"-0.03em",fontWeight:"700"}],"body-lg":["16px",{lineHeight:"26px",fontWeight:"400"}],"display-mobile":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"700"}],"label-caps":["12px",{lineHeight:"16px",letterSpacing:"0.06em",fontWeight:"600"}],"body-sm":["13px",{lineHeight:"18px",fontWeight:"400"}],"code-sm":["11px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"500"}],"headline-sm":["18px",{lineHeight:"26px",letterSpacing:"-0.01em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"22px",fontWeight:"400"}],"headline-lg":["30px",{lineHeight:"38px",letterSpacing:"-0.02em",fontWeight:"700"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col justify-between"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 max-w-[1160px] mx-auto px-margin md:px-margin-md lg:px-margin-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><span class="font-code-md text-code-md text-on-primary font-semibold">//</span></div><a class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold" data-path="portfolio" href="#">Helloworld0822</a><span class="font-body-sm text-body-sm text-text-muted">/</span><span class="font-body-sm text-body-sm text-text-secondary">전재민</span></div><nav class="hidden lg:flex items-center gap-space-xs" data-active-classes="bg-surface-subtle text-primary font-semibold rounded-lg"><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="about" href="#about">소개</a><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="education" href="#education">학력</a><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="experience" href="#experience">경력 및 활동</a><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="tech-stack" href="#tech-stack">기술 스택</a><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="activity-and-stats" href="#activity-and-stats">활동 지표</a><a aria-current="page" class="px-space-sm py-space-xs transition-colors bg-surface-subtle text-primary font-semibold rounded-lg" data-path="projects" href="#projects">프로젝트</a><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="blog" href="#blog">블로그</a><a class="px-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="contact" href="#contact">연락하기</a></nav><div class="flex items-center gap-space-xs sm:gap-space-sm"><button aria-label="Theme Switcher" class="p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors flex items-center justify-center"><span class="material-symbols-outlined text-[20px]">light_mode</span></button><a aria-label="GitHub Profile" class="p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors flex items-center justify-center" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank"><span class="material-symbols-outlined text-[20px]">terminal</span></a><a aria-label="Solved.ac Profile" class="p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors flex items-center justify-center" href="https://solved.ac/profile/helloworld0822" rel="noreferrer" target="_blank"><span class="material-symbols-outlined text-[20px]">code_blocks</span></a><div class="w-8 h-8 rounded-full overflow-hidden border border-border-accent flex items-center justify-center bg-surface-subtle ml-space-xs flex-shrink-0"><img alt="전재민 프로필 사진" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ALJJyrBf8HUxBlUTONxnjX5JU1u0yh3Kb58UnnEmMwqr9P6lkZtisqhKNngBcDlbWszIAosE2-p2gIUBeWUp0xacjBFwZiJrSS_tF8sedGdcE0dnh0yeY6ErEE5oFr7cJWd732XYegaEAI1Sao97BwFMLXrc8dSioz2UQs3bLHGBCXuMz1kC22DWuLiX3V9aZlQjxZGhuULV7YBAdaFlzEhDLCgDqWEQ_LwKw2be7h61PONj"/></div></div></div></header><main class="w-full pt-16 bg-surface flex-1"><div class="flex flex-col w-full">
+<!-- Top Background Ambient Glow Layer -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-40 right-1/4 w-[500px] h-[500px] bg-secondary-container/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-20 -left-20 w-[420px] h-[420px] bg-primary-fixed/25 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Inner Page Container -->
+<div class="max-w-[1160px] mx-auto px-margin md:px-margin-md lg:px-margin-lg pt-space-xl pb-space-3xl">
+<!-- 1. Header & Navigation Context -->
+<section class="space-y-space-md mb-space-2xl">
+<!-- Breadcrumb & Metadata Badge -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs font-code-sm text-code-sm text-text-muted">
+<span class="hover:text-primary transition-colors cursor-pointer">home</span>
+<span>/</span>
+<span class="text-primary font-semibold">projects.helloworld0822.xyz</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-subtle border border-border-accent text-primary font-code-sm text-code-sm tracking-wider uppercase font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum animate-pulse"></span>
+            ENGINEERING ARCHIVES &amp; PRODUCTION SYSTEMS
+          </div>
+</div>
+<!-- Main Title & Bio Intro -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg pt-space-xs">
+<div class="max-w-2xl space-y-space-xs">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">
+              Projects / 주요 프로젝트
+            </h1>
+<p class="font-body-lg text-body-lg text-text-secondary leading-relaxed">
+              Rust 기반 고성능 비동기 시스템, LLM 지능형 라우팅 인프라, 네이티브 개발 도구 등 
+              실무와 글로벌 해커톤에서 견고한 아키텍처 원칙을 바탕으로 직접 설계·구현한 시스템 기록입니다.
+            </p>
+</div>
+<!-- Top Quick Access Buttons -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<a class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-surface-card border border-border-subtle hover:bg-surface-subtle font-code-sm text-code-sm text-text-primary transition-all shadow-sm" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[16px] text-text-secondary">code</span>
+<span>GitHub 전체 저장소</span>
+<span class="text-text-muted">↗</span>
+</a>
+<a class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-secondary transition-all font-body-sm text-body-sm font-semibold shadow-sm" href="#featured-spotlight">
+<span class="material-symbols-outlined text-[16px]">slideshow</span>
+<span>아키텍처 슬라이드 모음</span>
+</a>
+</div>
+</div>
+<!-- Metric Summary Bar -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-md">
+<div class="p-space-md bg-surface-card rounded-xl border border-border-subtle shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-text-muted font-code-sm text-code-sm">
+<span>TOTAL PROJECTS</span>
+<span class="material-symbols-outlined text-[16px]">folder_copy</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-bold">6</span>
+<span class="font-code-sm text-code-sm text-text-secondary">Repositories</span>
+</div>
+</div>
+<div class="p-space-md bg-surface-card rounded-xl border border-border-subtle shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-text-muted font-code-sm text-code-sm">
+<span>CORE PRODUCTION</span>
+<span class="material-symbols-outlined text-[16px] text-tier-platinum">verified</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-bold">3</span>
+<span class="font-code-sm text-code-sm text-text-secondary">Active Engines</span>
+</div>
+</div>
+<div class="p-space-md bg-surface-card rounded-xl border border-border-subtle shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-text-muted font-code-sm text-code-sm">
+<span>HACKATHON WIN</span>
+<span class="material-symbols-outlined text-[16px] text-tier-gold">trophy</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-tier-gold font-bold">1st</span>
+<span class="font-code-sm text-code-sm text-text-secondary">Grizzly Hacks II</span>
+</div>
+</div>
+<div class="p-space-md bg-surface-card rounded-xl border border-border-subtle shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-text-muted font-code-sm text-code-sm">
+<span>OPEN SOURCE &amp; TOOLS</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">tune</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-bold">2</span>
+<span class="font-code-sm text-code-sm text-text-secondary">Zero-Copy &amp; GUI</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Search & Filtering Toolbar -->
+<section class="mb-space-xl p-2 md:p-3 bg-surface-card rounded-xl border border-border-subtle shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Search Input with Keyboard shortcut -->
+<div class="relative flex-1 min-w-[280px]">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+<input class="w-full pl-10 pr-20 py-2 bg-surface-subtle border border-border-subtle rounded-lg text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" id="project-search-input" placeholder="프로젝트명, 기술 스택 (Rust, Tokio, MCP, Axum, React, Python)..." type="text"/>
+<div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-card border border-border-subtle text-[10px] font-code-sm text-text-muted shadow-xs pointer-events-none">
+<span>⌘</span>
+<span>K</span>
+</div>
+</div>
+<!-- Filter Chips Carousel / Bar -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none" id="filter-container">
+<button class="px-3 py-1.5 rounded-lg text-code-sm font-code-sm whitespace-nowrap bg-primary text-on-primary transition-colors filter-tab" data-filter="all">
+            전체 (6)
+          </button>
+<button class="px-3 py-1.5 rounded-lg text-code-sm font-code-sm whitespace-nowrap bg-surface-subtle text-text-secondary hover:text-text-primary hover:bg-surface-container-high transition-colors filter-tab" data-filter="systems">
+            분산 시스템 &amp; 백엔드 (3)
+          </button>
+<button class="px-3 py-1.5 rounded-lg text-code-sm font-code-sm whitespace-nowrap bg-surface-subtle text-text-secondary hover:text-text-primary hover:bg-surface-container-high transition-colors filter-tab" data-filter="ai">
+            AI &amp; LLM 인프라 (2)
+          </button>
+<button class="px-3 py-1.5 rounded-lg text-code-sm font-code-sm whitespace-nowrap bg-surface-subtle text-text-secondary hover:text-text-primary hover:bg-surface-container-high transition-colors filter-tab" data-filter="tools">
+            개발자 도구 &amp; UI (2)
+          </button>
+<button class="px-3 py-1.5 rounded-lg text-code-sm font-code-sm whitespace-nowrap bg-surface-subtle text-text-secondary hover:text-text-primary hover:bg-surface-container-high transition-colors filter-tab" data-filter="opensource">
+            오픈소스 &amp; 최적화 (1)
+          </button>
+</div>
+<!-- Right Side View Toggle & Sort -->
+<div class="flex items-center justify-between lg:justify-end gap-space-xs border-t lg:border-t-0 pt-2 lg:pt-0 border-border-subtle">
+<div class="flex items-center gap-1 bg-surface-subtle p-1 rounded-lg border border-border-subtle">
+<button aria-label="Grid View" class="p-1 rounded bg-surface-card text-primary shadow-xs flex items-center justify-center" id="view-grid-btn">
+<span class="material-symbols-outlined text-[16px]">grid_view</span>
+</button>
+<button aria-label="Architecture List View" class="p-1 rounded text-text-muted hover:text-text-primary transition-colors flex items-center justify-center" id="view-compact-btn">
+<span class="material-symbols-outlined text-[16px]">table_rows</span>
+</button>
+</div>
+<div class="relative">
+<select class="pl-2 pr-7 py-1 text-code-sm font-code-sm bg-surface-subtle border border-border-subtle rounded-lg text-text-secondary focus:outline-none focus:border-primary appearance-none cursor-pointer">
+<option>최신순 정렬 (2026-2024)</option>
+<option>핵심 기여도순 (Desc)</option>
+<option>지연시간 최적화순 (p99)</option>
+</select>
+<span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-text-muted text-[14px] pointer-events-none">expand_more</span>
+</div>
+</div>
+</section>
+<!-- 3. Featured Spotlight Project (waynudge) -->
+<section class="mb-space-2xl" id="featured-spotlight">
+<div class="relative rounded-2xl bg-primary text-on-primary overflow-hidden border border-primary-container shadow-xl">
+<!-- Background Abstract Code / Graph Texture -->
+<div class="absolute inset-0 opacity-10 bg-[radial-gradient(#cae9e3_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-0 relative z-10">
+<!-- Left Info Panel (5 cols) -->
+<div class="lg:col-span-5 p-space-lg md:p-space-xl flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/10">
+<div class="space-y-space-md">
+<!-- Status Badges -->
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2.5 py-1 rounded-md bg-white/10 text-white font-code-sm text-code-sm font-medium tracking-wide">
+                    FEATURED ARCHITECTURE
+                  </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-tier-platinum/20 text-tier-platinum font-code-sm text-code-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum animate-ping"></span>
+                    CORE PRODUCTION READY
+                  </span>
+<span class="px-2 py-0.5 rounded text-white/60 font-code-sm text-code-sm bg-white/5">
+                    기여도 85%
+                  </span>
+</div>
+<!-- Project Title -->
+<div>
+<h2 class="font-headline-lg text-headline-lg font-bold tracking-tight text-white mb-1">
+                    waynudge
+                  </h2>
+<p class="font-headline-sm text-headline-sm text-primary-fixed font-normal">
+                    Rust 기반 대중교통 출퇴근 의사결정 비동기 어시스턴트
+                  </p>
+</div>
+<!-- Architectural Description -->
+<p class="font-body-md text-body-md text-white/80 leading-relaxed">
+                  Tokio 비동기 런타임과 MCP(Model Context Protocol) 기반 실시간 공공 교통 API 지연 극복 엔진. 
+                  대용량 배차 데이터 수집과 상태 전이를 락프리 인메모리 샤딩으로 분산 처리하여 단일 컨테이너 3,200 RPS와 p99 지연 시간 14ms 이하를 안정적으로 보장합니다.
+                </p>
+<!-- Architectural Metrics Grid -->
+<div class="grid grid-cols-2 gap-2 pt-2">
+<div class="p-2.5 rounded-lg bg-white/5 border border-white/10">
+<div class="font-code-sm text-code-sm text-white/50">p99 Tail Latency</div>
+<div class="font-headline-sm text-headline-sm text-white font-semibold mt-0.5">14.2 ms</div>
+<div class="font-code-sm text-code-sm text-tier-platinum">Active Defense</div>
+</div>
+<div class="p-2.5 rounded-lg bg-white/5 border border-white/10">
+<div class="font-code-sm text-code-sm text-white/50">Throughput</div>
+<div class="font-headline-sm text-headline-sm text-white font-semibold mt-0.5">3,200 RPS</div>
+<div class="font-code-sm text-code-sm text-tier-platinum">Single Node</div>
+</div>
+<div class="p-2.5 rounded-lg bg-white/5 border border-white/10">
+<div class="font-code-sm text-code-sm text-white/50">Memory Footprint</div>
+<div class="font-headline-sm text-headline-sm text-white font-semibold mt-0.5">28.4 MB</div>
+<div class="font-code-sm text-code-sm text-white/70">RSS Base</div>
+</div>
+<div class="p-2.5 rounded-lg bg-white/5 border border-white/10">
+<div class="font-code-sm text-code-sm text-white/50">Core Stack</div>
+<div class="font-headline-sm text-headline-sm text-white font-semibold mt-0.5">Rust 74%</div>
+<div class="font-code-sm text-code-sm text-primary-fixed">Tokio + Tonic</div>
+</div>
+</div>
+</div>
+<!-- Action Links CTA -->
+<div class="pt-space-lg flex flex-wrap items-center gap-space-sm">
+<a class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-tier-platinum text-primary font-body-sm text-body-sm font-semibold hover:bg-white transition-all shadow-md" href="#projects">
+<span>상세 분석 및 슬라이드 보기</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+<a class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-white/10 text-white hover:bg-white/20 font-code-sm text-code-sm transition-all border border-white/10" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">
+<span>GitHub</span>
+<span class="text-white/60">↗</span>
+</a>
+<a class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-white/5 text-white/80 hover:text-white font-code-sm text-code-sm transition-all" href="#">
+<span>Live Demo</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+</div>
+<!-- Right Architecture Slides / Interactive Mockup Preview (7 cols) -->
+<div class="lg:col-span-7 bg-[#0c1816] p-space-md md:p-space-lg flex flex-col justify-between relative group">
+<!-- Slide Header Bar / Presenter controls -->
+<div class="flex items-center justify-between pb-space-sm border-b border-white/10 text-white/60 font-code-sm text-code-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-green-500/80 inline-block"></span>
+<span class="text-white/80 ml-2">waynudge :: Core Architecture Slide [1/12]</span>
+</div>
+<div class="flex items-center gap-2 text-white/50 text-[11px]">
+<span class="px-2 py-0.5 rounded bg-white/5">Session 1 | Module 3</span>
+<button class="hover:text-white transition-colors" title="Expand Diagram">
+<span class="material-symbols-outlined text-[16px]">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Architecture Diagram Representation -->
+<div class="my-space-md relative rounded-xl overflow-hidden border border-white/10 bg-[#111e1c] p-space-md shadow-2xl">
+<!-- Visual Screenshot / Architecture Schematic -->
+<div class="w-full relative aspect-[16/9] rounded-lg overflow-hidden border border-white/5 bg-[#091211]">
+<img class="w-full h-full object-cover" data-alt="Technical architectural diagram for waynudge showing microservices breakdown in dark IDE theme. Diagram displays API Gateway in Rust Actix-web, User Service Tonic, and Nudge Engine in Tokio streaming to Kafka event bus, ClickHouse analytics, and PostgreSQL database with Redis cache layer." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0F6mJYTu8Hlaqu9x34wY2N6oy9K9ynmdJAstIPmRIsrZB18nUxkRtuGuPzYO9z_05kDohafBbx0uCJsRF81uhMAGWkpfrtbc276yyGPn6ZmDwUAz0dWfo_KTczwOXTSYg13RhgmNFcxCRTnzZcG9x3fO1mSB7Kxoh1DWzx3nhnf8gQTjtry1eGvZU0WDZmoS4y2reqlD0snrdvJgkMQHQ6gI7nZ18pqitRtzr8sg"/>
+<!-- Glass Overlay Badge with Node Health -->
+<div class="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/10 flex items-center gap-3">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tier-platinum"></span>
+<span class="font-code-sm text-code-sm text-white">Tokio Worker: 8 Threads</span>
+</div>
+<span class="text-white/30 text-xs">|</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tier-diamond"></span>
+<span class="font-code-sm text-code-sm text-white">Zero Copy mpsc</span>
+</div>
+</div>
+</div>
+<!-- Slide Thumbnails Strip -->
+<div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
+<div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
+<button class="px-2 py-1 rounded bg-white/10 text-white font-code-sm text-code-sm text-[11px] border border-tier-platinum/40 flex items-center gap-1">
+<span>01. Overall Topology</span>
+</button>
+<button class="px-2 py-1 rounded bg-white/5 text-white/60 hover:text-white font-code-sm text-code-sm text-[11px] flex items-center gap-1">
+<span>02. MCP Engine Pipeline</span>
+</button>
+<button class="px-2 py-1 rounded bg-white/5 text-white/60 hover:text-white font-code-sm text-code-sm text-[11px] flex items-center gap-1">
+<span>03. Benchmarks &amp; RPS</span>
+</button>
+</div>
+<span class="font-code-sm text-code-sm text-white/40 text-[11px] flex-shrink-0">MacBook Pro View</span>
+</div>
+</div>
+<!-- Interactive Controls Footer -->
+<div class="flex items-center justify-between text-white/70 font-code-sm text-code-sm pt-2">
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-1 text-[11px]">
+<span class="material-symbols-outlined text-[14px]">chevron_left</span>
+<span>Previous</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-1 text-[11px]">
+<span>Next</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-3 text-[11px] text-white/50">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">sticky_note_2</span> 12 Architect Notes</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">present_to_all</span> Presenter Ready</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Project Grid Section (5 Detailed Engineering Projects) -->
+<section class="mb-space-3xl" id="projects">
+<div class="flex items-center justify-between mb-space-lg">
+<div>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">PROJECT CATALOGUE</span>
+<h3 class="font-headline-md text-headline-md text-primary font-bold tracking-tight">
+              전체 프로젝트 아카이브
+            </h3>
+</div>
+<div class="font-code-sm text-code-sm text-text-muted">
+            SHOWING <span class="text-primary font-semibold font-code-md">5 ARCHIVED</span> PROJECTS
+          </div>
+</div>
+<!-- Dynamic Grid Container -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg" id="project-cards-grid">
+<!-- Card 1: Search UI -->
+<article class="project-card group bg-surface-card rounded-xl border border-border-subtle p-space-lg flex flex-col justify-between hover:shadow-lg transition-all duration-200" data-category="tools systems">
+<div>
+<!-- Header info & external link -->
+<div class="flex items-start justify-between gap-space-xs mb-space-sm">
+<div>
+<span class="px-2 py-0.5 rounded bg-surface-subtle border border-border-accent text-primary font-code-sm text-code-sm font-medium">
+                    Native Desktop GUI
+                  </span>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold mt-1.5 group-hover:text-secondary transition-colors">
+                    Search UI
+                  </h4>
+</div>
+<a class="p-1 rounded text-text-muted hover:text-primary transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank" title="GitHub Repository">
+<span class="material-symbols-outlined text-[20px]">north_east</span>
+</a>
+</div>
+<!-- Subtitle badge -->
+<p class="font-code-sm text-code-sm text-text-secondary mb-space-sm font-medium">
+                고성능 네이티브 GUI 그래프 탐색기 &amp; 알고리즘 시각화
+              </p>
+<!-- Description -->
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed line-clamp-3 mb-space-md">
+                복잡한 그래프 탐색(BFS, DFS, Dijkstra, A*) 및 정렬 알고리즘의 동작 과정을 60fps 네이티브 GUI로 시각화하여 메모리 할당 병목을 최소화한 학습/디버깅 도구입니다.
+              </p>
+<!-- Metrics Pills -->
+<div class="p-2.5 bg-surface-subtle rounded-lg border border-border-subtle mb-space-md space-y-1">
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">렌더링 성능:</span>
+<span class="text-primary font-semibold">60 FPS 무감속 유지</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">메모리 오버헤드:</span>
+<span class="text-primary font-semibold">4.2 MB (SIMD 최적화)</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">기여도:</span>
+<span class="text-tier-platinum font-semibold">100% Solo Engineering</span>
+</div>
+</div>
+</div>
+<!-- Footer Tech Tags & Links -->
+<div class="pt-space-sm border-t border-border-subtle space-y-space-sm">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Rust</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Iced GUI</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Graph Algorithms</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">SIMD</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-tier-platinum">
+<span class="w-2 h-2 rounded-full bg-tier-platinum"></span>
+<span>배포 완료 v0.9.1</span>
+</div>
+<a class="font-code-sm text-code-sm text-primary hover:underline font-semibold flex items-center gap-0.5" href="#">
+                  상세 보기 →
+                </a>
+</div>
+</div>
+</article>
+<!-- Card 2: Openrouter (Hackathon Champion) -->
+<article class="project-card group bg-surface-card rounded-xl border border-border-subtle p-space-lg flex flex-col justify-between hover:shadow-lg transition-all duration-200 relative overflow-hidden" data-category="ai systems">
+<!-- Top Corner Trophy Ribbon Indicator -->
+<div class="absolute -right-8 top-5 rotate-45 bg-tier-gold text-on-primary font-code-sm text-[10px] font-bold py-0.5 px-8 shadow-xs">
+              1ST WINNER
+            </div>
+<div>
+<!-- Header info & external link -->
+<div class="flex items-start justify-between gap-space-xs mb-space-sm pr-12">
+<div>
+<span class="px-2 py-0.5 rounded bg-tier-gold/15 text-tier-gold font-code-sm text-code-sm font-semibold border border-tier-gold/30">
+                    Grizzly Hacks II Champion
+                  </span>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold mt-1.5 group-hover:text-secondary transition-colors">
+                    Openrouter
+                  </h4>
+</div>
+<a class="p-1 rounded text-text-muted hover:text-primary transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank" title="GitHub Repository">
+<span class="material-symbols-outlined text-[20px]">north_east</span>
+</a>
+</div>
+<!-- Subtitle badge -->
+<p class="font-code-sm text-code-sm text-text-secondary mb-space-sm font-medium">
+                실시간 지연시간 최소화 LLM 지능형 라우팅 엔진
+              </p>
+<!-- Description -->
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed line-clamp-3 mb-space-md">
+                Grizzly Hacks II 글로벌 해커톤 종합 우승(1위) 프로젝트. 프롬프트 복잡도와 제공사별 API 상태를 실시간 평가하여 최적의 저비용·저지연 LLM으로 트래픽을 지능형 스케줄링합니다.
+              </p>
+<!-- Metrics Pills -->
+<div class="p-2.5 bg-surface-subtle rounded-lg border border-border-subtle mb-space-md space-y-1">
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">해커톤 성과:</span>
+<span class="text-tier-gold font-bold">1st Place Overall Winner</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">지연시간 개선:</span>
+<span class="text-primary font-semibold">평균 34% 응답시간 단축</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">기여도:</span>
+<span class="text-primary font-semibold">70% (Core Pipeline)</span>
+</div>
+</div>
+</div>
+<!-- Footer Tech Tags & Links -->
+<div class="pt-space-sm border-t border-border-subtle space-y-space-sm">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Python</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">FastAPI</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">AsyncIO</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Docker</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Redis</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-tier-gold">
+<span class="w-2 h-2 rounded-full bg-tier-gold"></span>
+<span>상용 평가 완료</span>
+</div>
+<a class="font-code-sm text-code-sm text-primary hover:underline font-semibold flex items-center gap-0.5" href="#">
+                  상세 보기 →
+                </a>
+</div>
+</div>
+</article>
+<!-- Card 3: DayFlow -->
+<article class="project-card group bg-surface-card rounded-xl border border-border-subtle p-space-lg flex flex-col justify-between hover:shadow-lg transition-all duration-200" data-category="tools">
+<div>
+<!-- Header info & external link -->
+<div class="flex items-start justify-between gap-space-xs mb-space-sm">
+<div>
+<span class="px-2 py-0.5 rounded bg-surface-subtle border border-border-accent text-primary font-code-sm text-code-sm font-medium">
+                    Productivity Web Platform
+                  </span>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold mt-1.5 group-hover:text-secondary transition-colors">
+                    DayFlow
+                  </h4>
+</div>
+<a class="p-1 rounded text-text-muted hover:text-primary transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank" title="GitHub Repository">
+<span class="material-symbols-outlined text-[20px]">north_east</span>
+</a>
+</div>
+<!-- Subtitle badge -->
+<p class="font-code-sm text-code-sm text-text-secondary mb-space-sm font-medium">
+                키보드 지향 현대적 워크스페이스 칸반 &amp; 타임라인
+              </p>
+<!-- Description -->
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed line-clamp-3 mb-space-md">
+                개발자와 팀의 분산된 일정 및 작업 흐름을 칸반 보드와 키보드 단축키 우선의 인터랙션으로 제어하는 오프라인 퍼스트 생산성 도구입니다.
+              </p>
+<!-- Metrics Pills -->
+<div class="p-2.5 bg-surface-subtle rounded-lg border border-border-subtle mb-space-md space-y-1">
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">데이터 아키텍처:</span>
+<span class="text-primary font-semibold">CRDT 오프라인 동기화</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">접근성 제어:</span>
+<span class="text-primary font-semibold">키보드 네비게이션 100%</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">기여도:</span>
+<span class="text-primary font-semibold">80% (Lead Front-End)</span>
+</div>
+</div>
+</div>
+<!-- Footer Tech Tags & Links -->
+<div class="pt-space-sm border-t border-border-subtle space-y-space-sm">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">TypeScript</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">React</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Next.js</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Zustand</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Tailwind</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-tier-platinum">
+<span class="w-2 h-2 rounded-full bg-tier-platinum"></span>
+<span>운영 및 지속 유지보수</span>
+</div>
+<a class="font-code-sm text-code-sm text-primary hover:underline font-semibold flex items-center gap-0.5" href="#">
+                  상세 보기 →
+                </a>
+</div>
+</div>
+</article>
+<!-- Card 4: ChatGend -->
+<article class="project-card group bg-surface-card rounded-xl border border-border-subtle p-space-lg flex flex-col justify-between hover:shadow-lg transition-all duration-200" data-category="ai systems">
+<div>
+<!-- Header info & external link -->
+<div class="flex items-start justify-between gap-space-xs mb-space-sm">
+<div>
+<span class="px-2 py-0.5 rounded bg-surface-subtle border border-border-accent text-primary font-code-sm text-code-sm font-medium">
+                    Fullstack AI Platform
+                  </span>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold mt-1.5 group-hover:text-secondary transition-colors">
+                    ChatGend
+                  </h4>
+</div>
+<a class="p-1 rounded text-text-muted hover:text-primary transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank" title="GitHub Repository">
+<span class="material-symbols-outlined text-[20px]">north_east</span>
+</a>
+</div>
+<!-- Subtitle badge -->
+<p class="font-code-sm text-code-sm text-text-secondary mb-space-sm font-medium">
+                생성형 AI 모델 멀티 세션 스트리밍 웹 서비스
+              </p>
+<!-- Description -->
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed line-clamp-3 mb-space-md">
+                다중 LLM 스트리밍 응답을 세션별로 격리 관리하고 토큰 사용량과 마크다운 코드 블록 렌더링을 실시간 지원하는 풀스택 인터페이스입니다.
+              </p>
+<!-- Metrics Pills -->
+<div class="p-2.5 bg-surface-subtle rounded-lg border border-border-subtle mb-space-md space-y-1">
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">스트리밍 반응속도:</span>
+<span class="text-primary font-semibold">SSE 지연 &lt; 50ms</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">백엔드 서버:</span>
+<span class="text-primary font-semibold">Axum High-Concurrence</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">기여도:</span>
+<span class="text-primary font-semibold">90% Architecture</span>
+</div>
+</div>
+</div>
+<!-- Footer Tech Tags & Links -->
+<div class="pt-space-sm border-t border-border-subtle space-y-space-sm">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">TypeScript</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">React</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">SSE (Streaming)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Rust Axum</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-tier-platinum">
+<span class="w-2 h-2 rounded-full bg-tier-platinum"></span>
+<span>내부 테스트 배포</span>
+</div>
+<a class="font-code-sm text-code-sm text-primary hover:underline font-semibold flex items-center gap-0.5" href="#">
+                  상세 보기 →
+                </a>
+</div>
+</div>
+</article>
+<!-- Card 5: XERJ Compiler Token Parser -->
+<article class="project-card group bg-surface-card rounded-xl border border-border-subtle p-space-lg flex flex-col justify-between hover:shadow-lg transition-all duration-200" data-category="opensource systems">
+<div>
+<!-- Header info & external link -->
+<div class="flex items-start justify-between gap-space-xs mb-space-sm">
+<div>
+<span class="px-2 py-0.5 rounded bg-surface-subtle border border-border-accent text-primary font-code-sm text-code-sm font-medium">
+                    Open Source Optimization
+                  </span>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold mt-1.5 group-hover:text-secondary transition-colors">
+                    XERJ Compiler Token Parser
+                  </h4>
+</div>
+<a class="p-1 rounded text-text-muted hover:text-primary transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank" title="GitHub Repository">
+<span class="material-symbols-outlined text-[20px]">north_east</span>
+</a>
+</div>
+<!-- Subtitle badge -->
+<p class="font-code-sm text-code-sm text-text-secondary mb-space-sm font-medium">
+                오픈소스 코퍼스 파서 제로카피 최적화 기여
+              </p>
+<!-- Description -->
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed line-clamp-3 mb-space-md">
+                XERJ 코퍼스 허브 오픈소스 기여 프로젝트. 거대 데이터셋을 신속하게 분할/전처리하기 위한 불필요한 String allocation 제거 및 제로카피 바이트 슬라이싱으로 파싱 처리량을 3.8배 끌어올렸습니다.
+              </p>
+<!-- Metrics Pills -->
+<div class="p-2.5 bg-surface-subtle rounded-lg border border-border-subtle mb-space-md space-y-1">
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">파싱 처리 속도:</span>
+<span class="text-primary font-semibold">3.8x Throughput Boost</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">기여 상태:</span>
+<span class="text-tier-platinum font-semibold">공식 Main Branch Merged</span>
+</div>
+<div class="flex items-center justify-between text-code-sm font-code-sm">
+<span class="text-text-muted">기여도:</span>
+<span class="text-primary font-semibold">100% (Core Tokenizer)</span>
+</div>
+</div>
+</div>
+<!-- Footer Tech Tags & Links -->
+<div class="pt-space-sm border-t border-border-subtle space-y-space-sm">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Rust</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Zero-Copy</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Byte Slicing</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-sm text-code-sm">Open Source</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-tier-platinum">
+<span class="w-2 h-2 rounded-full bg-tier-platinum"></span>
+<span>PR #142 Merged</span>
+</div>
+<a class="font-code-sm text-code-sm text-primary hover:underline font-semibold flex items-center gap-0.5" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">
+                  GitHub PR ↗
+                </a>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- 5. Architecture & Engineering Philosophy Callout Box -->
+<section class="mb-space-3xl">
+<div class="p-space-lg md:p-space-xl rounded-2xl bg-surface-card border border-border-subtle shadow-sm relative overflow-hidden">
+<div class="max-w-3xl mb-space-lg">
+<div class="flex items-center gap-2 text-secondary font-code-sm text-code-sm mb-1">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+<span>ENGINEERING PRINCIPLES</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-primary font-bold">
+              어떤 기준과 원칙으로 시스템을 설계하는가?
+            </h3>
+<p class="font-body-md text-body-md text-text-secondary mt-2">
+              단순히 작동하는 코드를 넘어, 컴파일 타임에 안전성을 증명하고 극한의 트래픽에서도 예측 가능한 지연시간(Deterministic Latency)을 제공하는 시스템을 지향합니다.
+            </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Pillar 1 -->
+<div class="p-space-md rounded-xl bg-surface-subtle border border-border-accent/40 space-y-2">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-code-md text-code-md font-bold">
+                01
+              </div>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                Zero-Cost Abstraction &amp; Memory Safety
+              </h4>
+<p class="font-body-sm text-body-sm text-text-secondary leading-relaxed">
+                Rust의 소유권(Ownership) 모델과 수명 주기(Lifetime) 규칙을 활용해 GC 멈춤(Stop-The-World) 없이 런타임 오버헤드를 원천 차단합니다.
+              </p>
+</div>
+<!-- Pillar 2 -->
+<div class="p-space-md rounded-xl bg-surface-subtle border border-border-accent/40 space-y-2">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-code-md text-code-md font-bold">
+                02
+              </div>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                Non-blocking Reactive Pipelines
+              </h4>
+<p class="font-body-sm text-body-sm text-text-secondary leading-relaxed">
+                Tokio MPSC 비동기 채널과 락프리 인메모리 샤딩 구조를 우선하여 동시성 경합(Thread Contention)을 최소화하고 높은 처리량을 달성합니다.
+              </p>
+</div>
+<!-- Pillar 3 -->
+<div class="p-space-md rounded-xl bg-surface-subtle border border-border-accent/40 space-y-2">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-code-md text-code-md font-bold">
+                03
+              </div>
+<h4 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                Observability &amp; p99 Tail Latency
+              </h4>
+<p class="font-body-sm text-body-sm text-text-secondary leading-relaxed">
+                평균값의 착시에 빠지지 않고 p99 꼬리 지연시간을 계측합니다. 실측 벤치마크와 Flame Graph 프로파일링을 통한 정밀 튜닝을 고수합니다.
+              </p>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Bottom Contact CTA Section -->
+<section class="rounded-2xl bg-surface-container-low border border-border-subtle p-space-lg md:p-space-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg">
+<div class="space-y-space-xs max-w-xl">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tier-platinum"></span>
+<span class="font-code-sm text-code-sm text-primary font-semibold uppercase tracking-wider">COLLABORATION &amp; INQUIRY</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary font-bold">
+            프로젝트 협업이나 시스템 아키텍처 논의가 필요하신가요?
+          </h4>
+<p class="font-body-md text-body-md text-text-secondary">
+            고성능 백엔드 파이프라인 설계, Rust 기반 도구 개발, 해커톤 제안 등 언제든 편하게 이야기를 나눠보세요.
+          </p>
+</div>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm w-full md:w-auto">
+<button class="px-4 py-2.5 rounded-lg bg-surface-card border border-border-subtle hover:bg-surface-subtle text-text-primary font-code-sm text-code-sm transition-all flex items-center justify-center gap-1.5 shadow-sm" id="copy-email-btn">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span id="copy-text">이메일 복사</span>
+</button>
+<a class="px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-secondary transition-all font-body-sm text-body-sm font-semibold flex items-center justify-center gap-1.5 shadow-sm" href="mailto:contact@helloworld0822.xyz">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+<span>연락하기 (Send Email)</span>
+</a>
+</div>
+</section>
+</div>
+</div>
+</div>
+<script>
+  // Search & Filter Interactions
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('project-search-input');
+    const filterButtons = document.querySelectorAll('.filter-tab');
+    const projectCards = document.querySelectorAll('.project-card');
+    const copyBtn = document.getElementById('copy-email-btn');
+    const copyText = document.getElementById('copy-text');
+    const viewGridBtn = document.getElementById('view-grid-btn');
+    const viewCompactBtn = document.getElementById('view-compact-btn');
+    const gridContainer = document.getElementById('project-cards-grid');
+
+    let currentFilter = 'all';
+
+    function applyFilterAndSearch() {
+      const query = (searchInput.value || '').toLowerCase().trim();
+
+      projectCards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const categories = card.getAttribute('data-category') || '';
+        
+        const matchesFilter = (currentFilter === 'all') || categories.includes(currentFilter);
+        const matchesQuery = !query || text.includes(query);
+
+        if (matchesFilter && matchesQuery) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Filter Button Click
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-primary', 'text-on-primary');
+          b.classList.add('bg-surface-subtle', 'text-text-secondary');
+        });
+
+        btn.classList.add('bg-primary', 'text-on-primary');
+        btn.classList.remove('bg-surface-subtle', 'text-text-secondary');
+
+        currentFilter = btn.getAttribute('data-filter');
+        applyFilterAndSearch();
+      });
+    });
+
+    // Search Keypress
+    if (searchInput) {
+      searchInput.addEventListener('input', applyFilterAndSearch);
+
+      // Keyboard shortcut ⌘K / Ctrl+K
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      });
+    }
+
+    // Layout Toggle
+    if (viewCompactBtn && viewGridBtn && gridContainer) {
+      viewCompactBtn.addEventListener('click', () => {
+        gridContainer.classList.remove('lg:grid-cols-3', 'md:grid-cols-2');
+        gridContainer.classList.add('grid-cols-1');
+        viewCompactBtn.classList.add('bg-surface-card', 'text-primary', 'shadow-xs');
+        viewCompactBtn.classList.remove('text-text-muted');
+        viewGridBtn.classList.remove('bg-surface-card', 'text-primary', 'shadow-xs');
+        viewGridBtn.classList.add('text-text-muted');
+      });
+
+      viewGridBtn.addEventListener('click', () => {
+        gridContainer.classList.add('lg:grid-cols-3', 'md:grid-cols-2');
+        gridContainer.classList.remove('grid-cols-1');
+        viewGridBtn.classList.add('bg-surface-card', 'text-primary', 'shadow-xs');
+        viewGridBtn.classList.remove('text-text-muted');
+        viewCompactBtn.classList.remove('bg-surface-card', 'text-primary', 'shadow-xs');
+        viewCompactBtn.classList.add('text-text-muted');
+      });
+    }
+
+    // Email Copy Button
+    if (copyBtn && copyText) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText('contact@helloworld0822.xyz').then(() => {
+          const original = copyText.innerText;
+          copyText.innerText = '복사 완료!';
+          setTimeout(() => {
+            copyText.innerText = original;
+          }, 2000);
+        });
+      });
+    }
+  });
+</script></main><footer class="w-full bg-surface-container-low shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="max-w-[1160px] mx-auto px-margin md:px-margin-md lg:px-margin-lg py-space-2xl"><div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg mb-space-xl"><div class="space-y-space-xs"><div class="flex items-center gap-space-sm"><span class="w-2.5 h-2.5 rounded-full bg-tier-platinum"></span><span class="font-code-sm text-code-sm text-primary font-medium tracking-wide uppercase">Sunrin High School · TAPIE 4th</span></div><p class="font-body-md text-body-md text-text-secondary max-w-md">백엔드와 개발 도구를 만드는 풀스택 개발자 전재민(Helloworld0822)입니다.</p></div><div class="flex flex-wrap items-center gap-space-md"><a class="font-code-md text-code-md text-on-surface-variant hover:text-on-surface transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">GitHub</a><a class="font-code-md text-code-md text-on-surface-variant hover:text-on-surface transition-colors" href="https://solved.ac/profile/helloworld0822" rel="noreferrer" target="_blank">Solved.ac</a><a class="font-code-md text-code-md text-on-surface-variant hover:text-on-surface transition-colors" href="#contact">Contact</a></div></div><div class="pt-space-lg border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-space-sm"><p class="font-code-sm text-code-sm text-text-muted">© 2026 Helloworld0822 (Jaemin Jeon). All rights reserved.</p><div class="flex items-center gap-space-sm text-text-muted font-code-sm text-code-sm"><span>RUST · ELIXIR</span><span>•</span><span>SEOUL, KR</span></div></div></div></footer></body></html>

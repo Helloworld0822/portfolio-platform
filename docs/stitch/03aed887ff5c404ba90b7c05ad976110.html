@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-tint":"#47645f","background":"#f9f9f6","secondary-fixed":"#bcece3","tertiary-container":"#2f352e","on-error":"#ffffff","secondary-container":"#bcece3","on-secondary-container":"#406c65","primary-container":"#1c3834","outline":"#727877","tier-platinum":"#27E2A4","on-tertiary":"#ffffff","primary-fixed-dim":"#aecdc7","primary":"#05231f","surface-container-low":"#f4f4f1","surface-dim":"#dadad7","inverse-on-surface":"#f1f1ee","secondary":"#39665f","on-primary-fixed-variant":"#304c47","on-primary-fixed":"#02201c","on-primary-container":"#84a19c","surface-container":"#eeeeeb","surface-variant":"#e2e3e0","tertiary-fixed":"#dee4da","inverse-surface":"#2f312f","on-tertiary-container":"#979e95","border-accent":"#D1DDD6","tier-gold":"#EC9A00","surface-subtle":"#F0F3ED","error-container":"#ffdad6","on-error-container":"#93000a","on-secondary-fixed":"#00201c","error":"#ba1a1a","border-subtle":"#E5E7EB","text-primary":"#111827","tier-silver":"#435F7A","text-secondary":"#4B5563","on-primary":"#ffffff","on-surface":"#1a1c1b","on-tertiary-fixed":"#171d17","surface-container-lowest":"#ffffff","surface-container-high":"#e8e8e5","tier-diamond":"#00B4FC","surface-bright":"#f9f9f6","primary-fixed":"#cae9e3","surface":"#f9f9f6","text-muted":"#9CA3AF","on-background":"#1a1c1b","secondary-fixed-dim":"#a1d0c7","inverse-primary":"#aecdc7","on-tertiary-fixed-variant":"#424841","on-surface-variant":"#414847","surface-card":"#FFFFFF","on-secondary":"#ffffff","tertiary-fixed-dim":"#c2c8bf","surface-container-highest":"#e2e3e0","tier-bronze":"#AD5600","tertiary":"#1a201a","tier-ruby":"#FF0062","on-secondary-fixed-variant":"#204e47"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","gutter":"1.5rem","space-3xl":"6rem","space-md":"1rem","space-2xl":"4rem","space-sm":"0.5rem","margin-lg":"4rem","space-xl":"2.5rem","space-lg":"1.5rem","margin":"1.25rem","gutter-lg":"2rem","margin-md":"2rem"},"fontFamily":{"body-lg":["Inter"],"code-md":["JetBrains Mono"],"body-sm":["Inter"],"display-mobile":["Inter"],"headline-lg":["Inter"],"code-sm":["JetBrains Mono"],"body-md":["Inter"],"headline-md":["Inter"],"headline-sm":["Inter"],"display":["Inter"],"label-caps":["JetBrains Mono"]},"fontSize":{"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"code-md":["13px",{"lineHeight":"20px","fontWeight":"500"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"display-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-lg":["30px",{"lineHeight":"38px","letterSpacing":"-0.02em","fontWeight":"700"}],"code-sm":["11px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-md":["22px",{"lineHeight":"30px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"600"}],"display":["48px",{"lineHeight":"56px","letterSpacing":"-0.03em","fontWeight":"700"}],"label-caps":["12px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 max-w-[1160px] mx-auto px-margin md:px-margin-md lg:px-margin-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-0 shrink-0"><a class="flex items-center gap-space-sm group" data-path="about" href="#"><span class="font-code-md text-code-md text-primary font-semibold tracking-tight group-hover:text-secondary transition-colors">Helloworld0822</span><span class="hidden sm:inline-block font-body-sm text-body-sm text-text-muted">/</span><span class="hidden sm:inline-block font-body-sm text-body-sm text-text-secondary truncate">전재민</span></a><div class="hidden xl:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-subtle text-secondary font-code-sm text-code-sm"><span class="w-1.5 h-1.5 rounded-full bg-tier-platinum animate-pulse"></span><span>Open to Work</span></div></div><nav class="hidden lg:flex items-center gap-space-xs p-1 rounded-full bg-surface-container-low/60" data-active-classes="text-primary font-semibold bg-surface-container"><a aria-current="page" class="px-3 py-1.5 rounded-full transition-colors text-primary font-semibold bg-surface-container" data-path="about" href="#">소개</a><a class="px-3 py-1.5 rounded-full font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="experience-and-activities" href="#">경력 및 활동</a><a class="px-3 py-1.5 rounded-full font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="tech-stack" href="#">기술 스택</a><a class="px-3 py-1.5 rounded-full font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="projects" href="#">프로젝트</a><a class="px-3 py-1.5 rounded-full font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="stats-and-tier" href="#">개발자 통계</a><a class="px-3 py-1.5 rounded-full font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="contact" href="#">연락처</a></nav><div class="flex items-center gap-space-sm shrink-0"><div class="hidden md:flex items-center gap-1 text-on-surface-variant"><a aria-label="GitHub Profile" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container hover:text-on-surface transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">code</span></a><a aria-label="Email" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container hover:text-on-surface transition-colors" data-path="contact" href="#"><span class="material-symbols-outlined text-[18px]">mail</span></a><a aria-label="Solved.ac Tier" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container hover:text-on-surface transition-colors" data-path="stats-and-tier" href="#"><span class="material-symbols-outlined text-[18px]">terminal</span></a></div><a class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary hover:bg-primary transition-all font-body-sm text-body-sm font-medium" data-path="contact" href="#"><span class="material-symbols-outlined text-[16px]">send</span><span>연락하기</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Inner Page Container bounded to 1160px with Swiss editorial spacing -->
+<div class="w-full max-w-[1160px] mx-auto px-margin md:px-margin-md lg:px-margin-lg space-y-space-2xl md:space-y-space-3xl pb-space-3xl">
+<!-- 1. HERO SECTION -->
+<section class="relative w-full pt-space-md">
+<!-- Dark Hero Ambient Card -->
+<div class="relative overflow-hidden rounded-xl bg-primary-container text-on-primary shadow-xl p-space-lg md:p-space-xl lg:p-space-2xl">
+<!-- Ambient decorative background glow & grid lines -->
+<div class="absolute -right-20 -top-24 w-96 h-96 rounded-full bg-secondary/20 blur-3xl pointer-events-none"></div>
+<div class="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-tier-platinum/10 blur-2xl pointer-events-none"></div>
+<div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+<!-- Left Text Content (7 cols) -->
+<div class="lg:col-span-7 flex flex-col space-y-space-md">
+<!-- Overline Meta Tag -->
+<div class="inline-flex items-center gap-2 w-fit px-3 py-1 rounded-full bg-surface-container-lowest/10 backdrop-blur-md">
+<span class="w-2 h-2 rounded-full bg-tier-platinum animate-pulse"></span>
+<span class="font-code-sm text-code-sm tracking-wider uppercase text-primary-fixed">Sunrin High School · TAPIE 4th</span>
+</div>
+<!-- Korean and English Monolithic Typographic Lockup -->
+<div class="flex flex-wrap items-baseline gap-x-space-md gap-y-1">
+<h1 class="font-display text-display text-on-primary tracking-tight font-bold">
+                전재민
+              </h1>
+<span class="font-body-lg text-body-lg text-primary-fixed-dim italic">
+                Jaemin Jeon
+              </span>
+</div>
+<!-- Core Statement -->
+<p class="font-headline-md text-headline-md text-primary-fixed font-medium leading-snug">
+              백엔드와 개발 도구를 만드는 풀스택 개발자입니다.
+            </p>
+<!-- Expanded Bio -->
+<p class="font-body-md text-body-md text-surface-container-high max-w-xl leading-relaxed">
+              선린인터넷고등학교 소프트웨어과 121기이자 동아리 TAPIE 4기 개발자로 활동하고 있습니다.
+              대규모 트래픽을 감당하는 견고한 시스템 구조와 개발자 경험(DX)을 극대화하는 툴링에 깊은 관심을 두고 있으며,
+              Rust와 Elixir로 더 안전하고 효율적인 비동기 시스템을 탐구합니다.
+            </p>
+<!-- Quick Action Buttons & Socials -->
+<div class="pt-space-sm flex flex-wrap items-center gap-space-sm">
+<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container-lowest text-primary font-body-sm text-body-sm font-semibold shadow-sm hover:bg-surface-container-low transition-all" href="#projects">
+<span>프로젝트 보기</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</a>
+<a class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 text-on-primary font-body-sm text-body-sm font-medium transition-colors" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">
+<span>GitHub 바로가기</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+<a class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 text-on-primary font-body-sm text-body-sm font-medium transition-colors" href="#stats">
+<span>Solved.ac 지표</span>
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+</a>
+<a class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-primary-fixed-dim hover:text-on-primary font-body-sm text-body-sm transition-colors" href="#contact">
+<span>연락하기</span>
+<span class="material-symbols-outlined text-[16px]">mail</span>
+</a>
+</div>
+<!-- Mini Spec Ribbon -->
+<div class="pt-space-md flex flex-wrap items-center gap-x-6 gap-y-2 font-code-sm text-code-sm text-primary-fixed-dim">
+<div class="flex items-center gap-2">
+<span class="text-tier-platinum font-semibold">●</span>
+<span>Rust &amp; Elixir Focused</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-tier-gold font-semibold">★</span>
+<span>Solved.ac Diamond IV</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">school</span>
+<span>Sunrin Software 121th</span>
+</div>
+</div>
+</div>
+<!-- Right Visual Silhouette / Profile Card (5 cols) -->
+<div class="lg:col-span-5 relative flex justify-center items-center">
+<div class="relative w-full max-w-[360px] aspect-[4/3] sm:aspect-square rounded-xl overflow-hidden shadow-2xl bg-primary">
+<!-- Visual Dev Photo matching inspiration -->
+<img class="w-full h-full object-cover object-center filter saturate-90 brightness-95" data-alt="Editorial portrait of a high school developer seen from behind looking out over a warm twilight city balcony with deep navy sky, warm dusk glow, urban streetlights, wearing a black hoodie and backpack, cinematic calm, serene quiet coding atmosphere matching warm sage and dark spruce tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBR540ihC8UpQd0ldYM00xDzFHHPMWapLXfLjAr6d6Lb2CYcilNm-nhLcbQWRrjbVKw4XlvDakVJB15ip61juYBu4SErVGP5VqCLmj8-RX1tfhVVt-QjPPF6tq1Y9-nCpS-QeoEZmp4AahfU7ICNJsVgFl3m0hkTKy20x44AjbRmU4zylFVpAJfiAcsUwXeXQU_Vz2hb_4DdByxZHWv0yAhT_2UMwnCXCxu5FesxKs"/>
+<!-- Gradient Scrim overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-transparent to-transparent opacity-80"></div>
+<!-- Floating Live Status Overlay Pill -->
+<div class="absolute bottom-4 left-4 right-4 p-3 rounded-lg bg-surface/90 backdrop-blur-md text-on-surface shadow-md flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-primary font-bold text-xs">
+                    JM
+                  </div>
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm font-semibold text-text-primary">Helloworld0822</span>
+<span class="font-body-sm text-[11px] text-text-secondary">Building Next-gen Systems</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-subtle text-secondary font-code-sm text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum"></span>
+                  Active
+                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. TWO-COLUMN SPLIT: EXPERIENCE & ACTIVITIES (LEFT) vs TECH STACK (RIGHT) -->
+<section class="w-full">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-gutter-lg items-start">
+<!-- ================= LEFT COLUMN: 경력과 활동 ================= -->
+<div class="lg:col-span-6 flex flex-col space-y-space-lg">
+<!-- Section Header -->
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-6 rounded-full bg-primary-container"></span>
+<h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight">
+                경력과 활동
+              </h2>
+</div>
+<span class="font-code-sm text-code-sm text-text-muted">6 Milestones</span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary -mt-2">
+            교내 대회, 오픈소스 기여, IT 동아리 및 글로벌 해커톤에서의 도전과 성과 기록입니다.
+          </p>
+<!-- Timeline Stream -->
+<div class="relative pl-6 space-y-space-md before:absolute before:left-2 before:top-3 before:bottom-3 before:w-0.5 before:bg-surface-variant">
+<!-- Item 1: 2026.11 디지털콘텐츠 개발대회 금상 -->
+<div class="relative group">
+<!-- Timeline node dot -->
+<span class="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full bg-surface-card ring-4 ring-tier-gold flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-gold"></span>
+</span>
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow space-y-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded font-code-sm text-code-sm font-semibold bg-primary-fixed text-primary">2026.11</span>
+<span class="font-code-sm text-code-sm text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">school</span>
+                      선린인터넷고등학교
+                    </span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tier-gold/15 text-tier-gold font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">military_tech</span> 금상 (Gold)
+                  </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                  2026년 디지털콘텐츠 개발대회 생활 금상
+                </h3>
+<p class="font-body-md text-body-md text-text-secondary">
+                  AxisOS 프로젝트에서 릴레이 백엔드 아키텍처 구축과 MCP(Model Context Protocol) 기반 AI 플러그인 생태계를 개발하여 최고상인 생활 금상을 수상했습니다.
+                </p>
+</div>
+</div>
+<!-- Item 2: 2026.10 XERJ 코퍼스 허브 선정 -->
+<div class="relative group">
+<span class="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full bg-surface-card ring-4 ring-primary flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</span>
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow space-y-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded font-code-sm text-code-sm font-semibold bg-surface-container text-text-primary">2026.10</span>
+<span class="font-code-sm text-code-sm text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">hub</span>
+                      XERJ Corpus Hub
+                    </span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-primary font-code-sm text-[11px] font-medium">
+                    Open Source
+                  </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                  XERJ 코퍼스 허브 선정 &amp; 기여자 등록
+                </h3>
+<p class="font-body-md text-body-md text-text-secondary">
+                  자체 설계 언어 <code class="font-code-sm text-code-sm px-1 py-0.5 rounded bg-surface-container">Forge-lang</code>이 XERJ 코퍼스 허브 공식 코드 사용 허가 요청을 승인받아 공식 코퍼스로 선정되었으며, 기여자로 공식 등재되었습니다.
+                </p>
+</div>
+</div>
+<!-- Item 3: 2026.07 선린톤 은상 -->
+<div class="relative group">
+<span class="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full bg-surface-card ring-4 ring-tier-silver flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-silver"></span>
+</span>
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow space-y-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded font-code-sm text-code-sm font-semibold bg-surface-container text-text-primary">2026.07</span>
+<span class="font-code-sm text-code-sm text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">code</span>
+                      선린인터넷고등학교
+                    </span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tier-silver/15 text-tier-silver font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">workspace_premium</span> 은상 (Silver)
+                  </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                  2026년 제12회 선린톤 은상 수상
+                </h3>
+<p class="font-body-md text-body-md text-text-secondary">
+                  보안 및 소프트웨어 무결성 점검 솔루션 <span class="font-medium text-text-primary">Crackseal</span> 프로젝트를 기획 및 구현하여 제12회 선린톤 은상을 수상했습니다.
+                </p>
+</div>
+</div>
+<!-- Item 4: 2026.03 - 현재 TAPIE 4기 -->
+<div class="relative group">
+<span class="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full bg-surface-card ring-4 ring-tier-platinum flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum"></span>
+</span>
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow space-y-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded font-code-sm text-code-sm font-semibold bg-tier-platinum/20 text-primary">2026.03 — 현재</span>
+<span class="font-code-sm text-code-sm text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">group_work</span>
+                      TAPIE
+                    </span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-secondary font-code-sm text-[11px]">동아리 활동</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                  TAPIE 4기 개발자
+                </h3>
+<p class="font-body-md text-body-md text-text-secondary">
+                  선린인터넷고등학교 대표 개발 동아리 TAPIE에서 웹 및 앱 프로젝트를 리드하며, 협업 파이프라인 정립 및 실무형 시스템 개발을 진행하고 있습니다.
+                </p>
+</div>
+</div>
+<!-- Item 5: 2026.03 - 현재 선린인터넷고 소프트웨어과 -->
+<div class="relative group">
+<span class="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full bg-surface-card ring-4 ring-secondary flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+</span>
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow space-y-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded font-code-sm text-code-sm font-semibold bg-surface-container text-text-primary">2026.03 — 현재</span>
+<span class="font-code-sm text-code-sm text-text-secondary">선린인터넷고등학교</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-subtle text-primary font-code-sm text-[11px]">121기</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                  소프트웨어과 121기 전공 과정
+                </h3>
+<p class="font-body-md text-body-md text-text-secondary">
+                  풀스택 개발 기초 및 심화 이론 이수, 알고리즘 문제 해결 트레이닝과 함께 Rust-Elixir 기반의 저지연 시스템 개인 프로젝트를 꾸준히 수행하고 있습니다.
+                </p>
+</div>
+</div>
+<!-- Item 6: 2026.02 Grizzly Hacks 2 우승 -->
+<div class="relative group">
+<span class="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full bg-surface-card ring-4 ring-tier-gold flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-gold"></span>
+</span>
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow space-y-1.5">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded font-code-sm text-code-sm font-semibold bg-surface-container text-text-primary">2026.02</span>
+<span class="font-code-sm text-code-sm text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">emoji_events</span>
+                      Grizzly Hacks
+                    </span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tier-gold/15 text-tier-gold font-code-sm text-[11px] font-semibold flex items-center gap-1">
+                    Winner 1st
+                  </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+                  Grizzly Hacks 2 우승 (Champion)
+                </h3>
+<p class="font-body-md text-body-md text-text-secondary">
+                  글로벌 해커톤 Grizzly Hacks 2에 출전하여 빠른 프로토타이핑과 차별화된 라우팅 아키텍처를 제시하여 최종 우승을 차지했습니다.
+                </p>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= RIGHT COLUMN: 기술 스택 ================= -->
+<div class="lg:col-span-6 flex flex-col space-y-space-lg">
+<!-- Section Header -->
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-6 rounded-full bg-secondary"></span>
+<h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight">
+                기술 스택
+              </h2>
+</div>
+<span class="font-code-sm text-code-sm text-text-muted">Tech Arsenal</span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary -mt-2">
+            실제 서비스 구축과 문제 해결에 활용하는 검증된 기술 군집입니다.
+          </p>
+<!-- Stack Cluster Cards -->
+<div class="flex flex-col space-y-space-md">
+<!-- 1. Backend Group (Priority 1) -->
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">dns</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-semibold">Backend &amp; Systems</h3>
+</div>
+<span class="font-code-sm text-code-sm text-secondary font-medium">Core Focus</span>
+</div>
+<div class="space-y-2.5">
+<!-- Rust Cluster -->
+<div class="p-2.5 rounded-lg bg-surface-subtle">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<!-- Rust SVG -->
+<svg class="w-4 h-4 text-text-primary" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm6.2 8.3a2 2 0 0 1-1.2.6v2.2a2 2 0 0 1 1.2.6l-1.3 2.1a2 2 0 0 1-1.3-.2l-1.2 1.9a2 2 0 0 1-.2 1.3l-2.4-.4a2 2 0 0 1-.7-1.1h-2.4a2 2 0 0 1-.7 1.1l-2.4.4a2 2 0 0 1-.2-1.3l-1.2-1.9a2 2 0 0 1-1.3.2L4.6 13.7a2 2 0 0 1 1.2-.6v-2.2a2 2 0 0 1-1.2-.6l1.3-2.1a2 2 0 0 1 1.3.2l1.2-1.9a2 2 0 0 1 .2-1.3l2.4.4a2 2 0 0 1 .7 1.1h2.4a2 2 0 0 1 .7-1.1l2.4-.4a2 2 0 0 1 .2 1.3l1.2 1.9a2 2 0 0 1 1.3-.2z"></path>
+</svg>
+<span class="font-code-md text-code-md font-semibold text-text-primary">Rust</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Axum</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Actix</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Tokio</span>
+</div>
+</div>
+</div>
+<!-- Elixir Cluster -->
+<div class="p-2.5 rounded-lg bg-surface-subtle">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<!-- Elixir Drop SVG -->
+<svg class="w-4 h-4 text-[#7A3982]" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2C8 7.5 5 12 5 15.5A7 7 0 0 0 12 22a7 7 0 0 0 7-6.5C19 12 16 7.5 12 2zm-.2 17.5a4.7 4.7 0 0 1-4.6-4.7c0-1.7 1.3-4.2 3.1-6.8 1.1 2.3 2 4.3 2.1 5.4.1 1.3-.4 2.8-.6 6.1z"></path>
+</svg>
+<span class="font-code-md text-code-md font-semibold text-text-primary">Elixir</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Phoenix</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">OTP / GenServer</span>
+</div>
+</div>
+</div>
+<!-- Python Cluster -->
+<div class="p-2.5 rounded-lg bg-surface-subtle">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<!-- Python SVG -->
+<svg class="w-4 h-4 text-[#3776AB]" fill="currentColor" viewbox="0 0 24 24">
+<path d="M11.9 2c-3.1 0-5 1.5-5 3.3v1.8h5.2v.7H4.4C2.6 7.8 1 9.4 1 12.3c0 2.8 1.5 4.5 4.3 4.5h1.8v-2.2c0-1.7 1.6-3.2 3.4-3.2h5.1c1.3 0 2.4-1.1 2.4-2.4V5.3c0-1.9-1.9-3.3-6.1-3.3zm-1.4 1.8a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zm1.6 18.2c3.1 0 5-1.5 5-3.3v-1.8h-5.2v-.7h7.7c1.8 0 3.4-1.6 3.4-4.5 0-2.8-1.5-4.5-4.3-4.5h-1.8v2.2c0 1.7-1.6 3.2-3.4 3.2H8.8c-1.3 0-2.4 1.1-2.4 2.4v3.7c0 1.9 1.9 3.3 6.1 3.3zm1.4-1.8a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8z"></path>
+</svg>
+<span class="font-code-md text-code-md font-semibold text-text-primary">Python</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">FastAPI</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">AsyncIO</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Frontend Group -->
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">web</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-semibold">Frontend Experience</h3>
+</div>
+<span class="font-code-sm text-code-sm text-text-muted">Modern Web</span>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="p-2.5 rounded-lg bg-surface-subtle flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tier-gold"></span>
+<span class="font-code-sm text-code-sm font-semibold text-text-primary">JS / TypeScript</span>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">React</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Next.js</span>
+</div>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-subtle flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tier-diamond"></span>
+<span class="font-code-sm text-code-sm font-semibold text-text-primary">Styling &amp; UI</span>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Tailwind CSS</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Material UI</span>
+<span class="px-2 py-0.5 rounded bg-surface-card text-text-secondary font-code-sm text-[11px]">Bootstrap</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 3. Database & Message Queue -->
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">database</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-semibold">Database &amp; Broker</h3>
+</div>
+<span class="font-code-sm text-code-sm text-text-muted">Storage &amp; IPC</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-subtle text-text-primary font-code-sm text-code-sm font-medium">
+<span class="material-symbols-outlined text-[16px] text-tier-silver">storage</span> PostgreSQL
+                </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-subtle text-text-primary font-code-sm text-code-sm font-medium">
+<span class="material-symbols-outlined text-[16px] text-[#00618A]">table_rows</span> MySQL
+                </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-subtle text-text-primary font-code-sm text-code-sm font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted">data_object</span> SQLite
+                </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-subtle text-text-primary font-code-sm text-code-sm font-medium">
+<span class="material-symbols-outlined text-[16px] text-tier-gold">outgoing_mail</span> RabbitMQ
+                </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-subtle text-text-primary font-code-sm text-code-sm font-medium">
+<span class="material-symbols-outlined text-[16px] text-tier-ruby">memory</span> Redis
+                </span>
+</div>
+</div>
+<!-- 4. Split Mini Groups: DevOps + Embedded -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+<!-- CI/CD & Cloud -->
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1.5 mb-2">
+<span class="material-symbols-outlined text-primary text-[18px]">cloud_sync</span>
+<h4 class="font-headline-sm text-[15px] font-semibold text-text-primary">DevOps &amp; Infra</h4>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">Docker</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">Podman</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">Kubernetes</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">AWS</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">GitHub Actions</span>
+</div>
+</div>
+</div>
+<!-- Algorithm & Embedded -->
+<div class="p-space-md rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1.5 mb-2">
+<span class="material-symbols-outlined text-primary text-[18px]">developer_board</span>
+<h4 class="font-headline-sm text-[15px] font-semibold text-text-primary">Embedded &amp; Low-Level</h4>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">C</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">C++</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">Arduino</span>
+<span class="px-2 py-1 rounded bg-surface-subtle text-text-primary font-code-sm text-[12px]">Raspberry Pi</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. DEVELOPER STATS & ACTIVITY (GITHUB 잔디 & SOLVED.AC 티어) -->
+<section class="w-full space-y-space-md pt-space-md" id="stats">
+<!-- Section Header -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-6 rounded-full bg-tier-platinum"></span>
+<h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight">
+              개발자 활동 및 지표
+            </h2>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+            지속적인 코드 커밋 히스토리(GitHub 잔디)와 알고리즘 풀이 지표(Solved.ac 티어)입니다.
+          </p>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded-full bg-surface-subtle text-secondary font-code-sm text-code-sm">
+            Live Synchronized
+          </span>
+</div>
+</div>
+<!-- 2 Cards Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-gutter-lg">
+<!-- Left: GitHub Contribution Heatmap Card (7 cols) -->
+<div class="lg:col-span-7 p-space-md md:p-space-lg rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-space-md">
+<!-- Card Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">code</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">GitHub Contributions</h3>
+<a class="font-code-sm text-code-sm text-secondary hover:underline" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">
+                    @Helloworld0822 ↗
+                  </a>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">1,428 contributions in the last year</p>
+</div>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-code-sm text-code-sm">
+<span class="text-text-muted">Streak:</span>
+<span class="px-2 py-0.5 rounded bg-surface-subtle text-primary font-semibold">142 Days 🔥</span>
+</div>
+</div>
+<!-- The Heatmap Visual Grid (잔디) -->
+<div class="space-y-2">
+<div class="flex items-center justify-between text-text-muted font-code-sm text-[11px] px-1">
+<span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span><span>Dec</span>
+</div>
+<!-- Dynamic 7-row SVG Heatmap Representation -->
+<div class="w-full overflow-x-auto pb-1">
+<svg class="w-full min-w-[520px] h-28" fill="none" viewbox="0 0 520 112">
+<!-- Helper JS or standard clean geometric grid matching Sage/Dark spruce theme -->
+<!-- Level 0: #EBEDF0, Level 1: #AECDC7, Level 2: #47645F, Level 3: #1C3834, Level 4: #05231F -->
+<g class="transition-all">
+<!-- Row generators (52 cols x 7 days) -->
+<!-- Loop patterned clusters of high activity representing real active student dev -->
+<!-- Week 1 - 52 sample matrix pattern -->
+<rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="0"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="0" y="12"></rect>
+<rect fill="#AECDC7" height="8" rx="2" width="8" x="0" y="24"></rect>
+<rect fill="#E5E7EB" height="8" rx="2" width="8" x="0" y="36"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="48"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="0" y="60"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="72"></rect>
+<!-- Column 2-10 -->
+<rect fill="#47645F" height="8" rx="2" width="8" x="10" y="0"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="12"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="24"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="10" y="36"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="10" y="48"></rect>
+<rect fill="#AECDC7" height="8" rx="2" width="8" x="10" y="60"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="20" y="0"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="12"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="20" y="24"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="36"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="48"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="20" y="60"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="20" y="72"></rect>
+<!-- Week 4 to 20 repeat dense blocks -->
+<g transform="translate(30,0)">
+<rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="0" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="0" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="10" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="48"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="10" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="72"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="20" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="24"></rect><rect fill="#E5E7EB" height="8" rx="2" width="8" x="20" y="36"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="20" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="20" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="0"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="30" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="24"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="36"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="30" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="40" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="40" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="40" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="40" y="72"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="50" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="12"></rect><rect fill="#E5E7EB" height="8" rx="2" width="8" x="50" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="50" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="72"></rect>
+</g>
+<!-- Middle Span to End repeating dense commits -->
+<g transform="translate(100,0)">
+<rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="0"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="0" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="72"></rect>
+<rect fill="#AECDC7" height="8" rx="2" width="8" x="10" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="24"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="36"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="10" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="72"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="20" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="12"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="20" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="36"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="20" y="48"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="20" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="30" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="30" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="40" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="40" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="40" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="72"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="50" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="24"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="36"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="50" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="72"></rect>
+</g>
+<!-- Remainder of the year filled nicely -->
+<g transform="translate(170,0)">
+<rect fill="#05231F" height="8" rx="2" width="8" x="0" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="0" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="10" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="10" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="72"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="20" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="24"></rect><rect fill="#E5E7EB" height="8" rx="2" width="8" x="20" y="36"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="20" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="20" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="0"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="30" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="40" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="40" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="48"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="40" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="40" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="50" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="50" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="72"></rect>
+</g>
+<!-- Final quarters 240 to 500 -->
+<g transform="translate(240,0)">
+<rect fill="#47645F" height="8" rx="2" width="8" x="0" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="24"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="36"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="0" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="0" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="0" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="10" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="10" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="10" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="10" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="20" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="20" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="20" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="20" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="20" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="30" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="30" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="30" y="60"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="30" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="40" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="40" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="40" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="40" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="40" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="0"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="50" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="50" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="50" y="72"></rect>
+<rect fill="#47645F" height="8" rx="2" width="8" x="60" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="60" y="12"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="60" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="60" y="36"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="60" y="48"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="60" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="60" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="70" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="70" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="70" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="70" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="70" y="48"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="70" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="70" y="72"></rect>
+<rect fill="#1C3834" height="8" rx="2" width="8" x="80" y="0"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="80" y="12"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="80" y="24"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="80" y="36"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="80" y="48"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="80" y="60"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="80" y="72"></rect>
+<rect fill="#05231F" height="8" rx="2" width="8" x="90" y="0"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="90" y="12"></rect><rect fill="#47645F" height="8" rx="2" width="8" x="90" y="24"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="90" y="36"></rect><rect fill="#1C3834" height="8" rx="2" width="8" x="90" y="48"></rect><rect fill="#AECDC7" height="8" rx="2" width="8" x="90" y="60"></rect><rect fill="#05231F" height="8" rx="2" width="8" x="90" y="72"></rect>
+</g>
+</g>
+</svg>
+</div>
+<!-- Legend & Top Language Breakdown -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
+<!-- Heat Legend -->
+<div class="flex items-center gap-1.5 font-code-sm text-code-sm text-text-muted">
+<span>Less</span>
+<span class="w-2.5 h-2.5 rounded-sm bg-[#E5E7EB]"></span>
+<span class="w-2.5 h-2.5 rounded-sm bg-primary-fixed-dim"></span>
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary"></span>
+<span class="w-2.5 h-2.5 rounded-sm bg-primary-container"></span>
+<span class="w-2.5 h-2.5 rounded-sm bg-primary"></span>
+<span>More</span>
+</div>
+<!-- Language Proportion Bar -->
+<div class="flex items-center gap-3 font-code-sm text-[12px]">
+<span class="flex items-center gap-1 text-text-secondary"><span class="w-2 h-2 rounded-full bg-primary-container"></span> Rust 45%</span>
+<span class="flex items-center gap-1 text-text-secondary"><span class="w-2 h-2 rounded-full bg-tier-platinum"></span> TS 30%</span>
+<span class="flex items-center gap-1 text-text-secondary"><span class="w-2 h-2 rounded-full bg-secondary"></span> Elixir 15%</span>
+<span class="flex items-center gap-1 text-text-secondary"><span class="w-2 h-2 rounded-full bg-tier-gold"></span> Py 10%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Solved.ac Algorithm Tier Card (5 cols) -->
+<div class="lg:col-span-5 p-space-md md:p-space-lg rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-space-md">
+<!-- Card Header with Solved.ac Badge -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<!-- Tier Crest Graphic -->
+<div class="relative w-12 h-12 rounded-xl bg-gradient-to-br from-tier-diamond to-primary-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-on-primary text-[26px]">terminal</span>
+<span class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded bg-surface-card text-tier-diamond font-code-sm text-[10px] font-bold shadow-sm">IV</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Solved.ac</h3>
+<span class="px-2 py-0.5 rounded-full bg-tier-diamond/15 text-tier-diamond font-code-sm text-code-sm font-bold">Diamond IV</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">Rating 1,894 · Class 4+</p>
+</div>
+</div>
+<a class="w-8 h-8 rounded-full bg-surface-subtle flex items-center justify-center text-text-secondary hover:text-primary transition-colors" href="https://solved.ac" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</div>
+<!-- Tier Progress Visual -->
+<div class="space-y-1.5">
+<div class="flex justify-between font-code-sm text-code-sm">
+<span class="text-text-muted">Progress to Diamond III</span>
+<span class="font-semibold text-text-primary">1,894 / 1,950 (91%)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-gradient-to-r from-tier-diamond to-tier-platinum rounded-full" style="width: 91%;"></div>
+</div>
+</div>
+<!-- Problem Solving Stats Grid -->
+<div class="grid grid-cols-3 gap-2 text-center">
+<div class="p-2.5 rounded-lg bg-surface-subtle">
+<span class="block font-code-sm text-code-sm text-text-muted">해결한 문제</span>
+<span class="font-headline-sm text-headline-sm font-bold text-text-primary">682</span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-subtle">
+<span class="block font-code-sm text-code-sm text-text-muted">연속 풀이</span>
+<span class="font-headline-sm text-headline-sm font-bold text-tier-gold">198일</span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-subtle">
+<span class="block font-code-sm text-code-sm text-text-muted">상위 랭킹</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Top 1.2%</span>
+</div>
+</div>
+<!-- Frequent Algorithm Tags -->
+<div class="pt-1 flex flex-wrap gap-1.5 font-code-sm text-[11px]">
+<span class="px-2 py-0.5 rounded bg-surface-container text-text-secondary">#Dynamic Programming</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-text-secondary">#Graph Theory</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-text-secondary">#Data Structures</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-text-secondary">#Dijkstra</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. FEATURED PROJECTS SECTION (WITH REALISTIC PHOTO CONTAINER CARDS) -->
+<section class="w-full space-y-space-md pt-space-md" id="projects">
+<!-- Section Header -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-space-xs">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-6 rounded-full bg-primary-container"></span>
+<h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight">
+              프로젝트
+            </h2>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+            실제 운영 환경과 해커톤에서 문제를 해결하기 위해 아키텍처부터 구현까지 직접 진행한 대표 프로젝트입니다.
+          </p>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-full bg-surface-card flex items-center justify-center text-text-secondary hover:text-primary shadow-sm hover:shadow transition-all">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-variant"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-variant"></span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-card flex items-center justify-center text-text-secondary hover:text-primary shadow-sm hover:shadow transition-all">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- 6 Responsive Project Cards Grid (3 columns on desktop, 2 on tablet, 1 on mobile) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1: waynudge -->
+<article class="group rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+<div>
+<!-- Image Container with Realistic Preview & Hover Zoom -->
+<div class="relative w-full h-44 overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-95" data-alt="Modern desktop terminal and developer API monitor dashboard interface showing real-time Rust async HTTP telemetry, JSON payload graphs, sleek dark theme with sage green accents and neon status lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpVPbT9musvk1vpC3pBWYahqDE7LBX1ZFMgeVXnYrw2zkhyFa-AZ_i5XRJTR87sMA8t0pQ-qpQg9xZAaztTwRfE3PhWoxmXhzORhxPXe_C4QuwMIZWNe2pqYhgyM87ZXBCNuGSYGYd221Uput5hYVlhM_THk8OGGX_xVGVdcZ-hKz_R9ECfCy51-aICmHnDRN7EULv0SAAB0KWbjhK1dC4f1YfiEB9wslZMDmnMDA"/>
+<div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-surface-card/90 backdrop-blur-md text-primary font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum"></span> 완료
+              </div>
+</div>
+<!-- Content Area -->
+<div class="p-space-md space-y-2">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold group-hover:text-secondary transition-colors">
+                  waynudge
+                </h3>
+<a class="text-text-muted group-hover:text-primary transition-colors" href="https://github.com/Helloworld0822/waynudge" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</a>
+</div>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">
+                Rust AI commute decision assistant with authenticated HTTP and MCP protocol. 실시간 이동 판단 보조 도구입니다.
+              </p>
+</div>
+</div>
+<!-- Footer Tech Stack Meta -->
+<div class="px-space-md pb-space-md pt-2 flex items-center justify-between font-code-sm text-code-sm text-text-muted">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">Rust</span>
+<span>·</span>
+<span>Actix</span>
+<span>·</span>
+<span>MCP</span>
+</div>
+<a class="font-body-sm text-[12px] text-secondary hover:underline" href="#">상세보기</a>
+</div>
+</article>
+<!-- Card 2: Search UI -->
+<article class="group rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+<div>
+<div class="relative w-full h-44 overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-95" data-alt="Algorithm visualizer interface showing interactive graph traversal, binary search trees, and heap sort animation blocks in a clean high-contrast technical UI with bone background and sage teal nodes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU3-rnchL1pRnQ--bW_Xe1Y04NA2QHdwF-WCFbG1x_atd_Pvj_ppuphKv0hry-dL58UUJf8HW_K76vbIH4AE7WhwlTsu3uLo0RKPwKw4aPjzZ5W3KjlWcnY6Lp2PLRJDoSzTViZ5O4LN2Z5X8kpgssR0p6VNEeGRYcb1a2toS-eYayTDJA2yv0E5Ga5H5r9TklIy9YVn2e7FC6WMgxQce4Lm7fjQiqpdbCVElQVEU"/>
+<div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-surface-card/90 backdrop-blur-md text-primary font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum"></span> 완료
+              </div>
+</div>
+<div class="p-space-md space-y-2">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold group-hover:text-secondary transition-colors">
+                  Search UI
+                </h3>
+<a class="text-text-muted group-hover:text-primary transition-colors" href="https://github.com/Helloworld0822/search-ui" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</a>
+</div>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">
+                복잡한 그래프 탐색 및 정렬 알고리즘의 동작 과정을 직관적으로 파악할 수 있는 고성능 네이티브 알고리즘 시각화 도구입니다.
+              </p>
+</div>
+</div>
+<div class="px-space-md pb-space-md pt-2 flex items-center justify-between font-code-sm text-code-sm text-text-muted">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">Rust</span>
+<span>·</span>
+<span>Iced GUI</span>
+<span>·</span>
+<span>Algorithms</span>
+</div>
+<a class="font-body-sm text-[12px] text-secondary hover:underline" href="#">상세보기</a>
+</div>
+</article>
+<!-- Card 3: Openrouter -->
+<article class="group rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+<div>
+<div class="relative w-full h-44 overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-95" data-alt="AI API routing mesh control dashboard with latency sparklines, token throughput gauges, and multi-model dispatching cards with dark spruce minimalism and emerald status indicators" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN-Pn4AP-nRP8XKtQ60n5g2wxLtZVzsl0jQ8dE9DihgA0-8foSYi2UBqwwNA6yA4O0afqqB4LZxo3QbVXvbglEvP6mWYp56fIeIVdMRH7S5APB83MkT5QgouqRmQngTbl0DQ7KbeUBew6DxxHk-gfuDV68PptvF2ph092gwdeuGjM3SN_nXAAgRsRqo08M_LxxisauzTt8zj8lhSLXSxrLMm2kJ90MxhraKZYBRW4"/>
+<div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-surface-card/90 backdrop-blur-md text-tier-gold font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">emoji_events</span> Hackathon 1st
+              </div>
+</div>
+<div class="p-space-md space-y-2">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold group-hover:text-secondary transition-colors">
+                  Openrouter
+                </h3>
+<a class="text-text-muted group-hover:text-primary transition-colors" href="https://github.com/Helloworld0822/openrouter" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</a>
+</div>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">
+                Grizzly Hacks II 해커톤 우승작. 지연 시간을 최소화하며 최적의 LLM 모델로 프롬프트를 분산시키는 스마트 라우팅 프록시입니다.
+              </p>
+</div>
+</div>
+<div class="px-space-md pb-space-md pt-2 flex items-center justify-between font-code-sm text-code-sm text-text-muted">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">JavaScript</span>
+<span>·</span>
+<span>Python</span>
+<span>·</span>
+<span>FastAPI</span>
+</div>
+<a class="font-body-sm text-[12px] text-secondary hover:underline" href="#">상세보기</a>
+</div>
+</article>
+<!-- Card 4: Portfolio (Current Site) -->
+<article class="group rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+<div>
+<div class="relative w-full h-44 overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-95" data-alt="Editorial portfolio web interface wireframe mockups, typography specimen, clean sage and bone white color scheme on an architect desk with laptop and code editor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRI2iSpREmd8Gq6KuaFoRTCwDGyG_vJEe34AaVeeI91gc6OMK6Y0-LkemwdeUG-egJKGy0inhc2yOsMDPcy6apbCPPBt1VWkpiR7HauU4TJrOwS2whNE2-gxXsDR1HiUX_ETC_rDUlx6vqqfaA6WD_dYmALMs6STemyl59GacZQNoFeyXj8Jl4ffXc1eLKY8x-WCu_CEGrXSQQcHIbbtC-dJMdX3S9dLOe0QLxNLQ"/>
+<div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-surface-card/90 backdrop-blur-md text-tier-gold font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-gold animate-ping"></span> 진행 중
+              </div>
+</div>
+<div class="p-space-md space-y-2">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold group-hover:text-secondary transition-colors">
+                  Portfolio
+                </h3>
+<a class="text-text-muted group-hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</a>
+</div>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">
+                현재 둘러보고 계시는 개인 포트폴리오 웹사이트입니다. 정교한 타이포그래피 계층 구조와 기술 지표를 감각적으로 표현합니다.
+              </p>
+</div>
+</div>
+<div class="px-space-md pb-space-md pt-2 flex items-center justify-between font-code-sm text-code-sm text-text-muted">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">TypeScript</span>
+<span>·</span>
+<span>Tailwind CSS</span>
+</div>
+<a class="font-body-sm text-[12px] text-secondary hover:underline" href="#">현재 페이지</a>
+</div>
+</article>
+<!-- Card 5: DayFlow -->
+<article class="group rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+<div>
+<div class="relative w-full h-44 overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-95" data-alt="Minimalist productivity app interface showing timeline calendar, kanban flow cards, smooth status pills, warm neutral aesthetic with soft shadows and refined micro-typography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFOSrX0t1w81hqMS1kPtEAXBZIfGtv5g_EhQwQCOPDfiMBYhWj8vxceV1Me08Vy3Xq4BHVy8kECkoAyQgjBL3Vb4fLD7cSH7ap8-q3r0Z4fLr2B6js6AWZ9fy9XGuZ8ZuABetEiuCEnyKAI9zHmhxFua_TdOtbZy9hVQKg1-RZq3J1X4QtHBDzTXrgsq96KAWJNhq_v-Kx895DfsHL_kBSivBML4IEh1Vw0lwtXdI"/>
+<div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-surface-card/90 backdrop-blur-md text-primary font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum"></span> 완료
+              </div>
+</div>
+<div class="p-space-md space-y-2">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold group-hover:text-secondary transition-colors">
+                  DayFlow
+                </h3>
+<a class="text-text-muted group-hover:text-primary transition-colors" href="https://github.com/Helloworld0822/dayflow" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</a>
+</div>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">
+                개발자와 팀의 일정 및 업무 흐름(Task Flow)을 칸반과 타임라인으로 매끄럽게 관리하는 현대적 웹 애플리케이션입니다.
+              </p>
+</div>
+</div>
+<div class="px-space-md pb-space-md pt-2 flex items-center justify-between font-code-sm text-code-sm text-text-muted">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">TypeScript</span>
+<span>·</span>
+<span>React</span>
+<span>·</span>
+<span>Zustand</span>
+</div>
+<a class="font-body-sm text-[12px] text-secondary hover:underline" href="#">상세보기</a>
+</div>
+</article>
+<!-- Card 6: ChatGend -->
+<article class="group rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+<div>
+<div class="relative w-full h-44 overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter brightness-95" data-alt="AI conversational agent chat UI showing multi-turn streaming responses, code snippets formatting with copy buttons, sleek minimal prompt bar, modern spruce theme" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0-bL7cdFN9t9nIcJEqEi9uNPu6JrI0MjSmGt5ei2b9h9KrwisqbOFf_Cwj0S1MAY3Y_B5Yl9lkJCF26VnX6JJwxWmVcnZJ6XfHybWTSiKIvO6mI1G-CB7oWFadO5TnAVq5aFIofjgYnESvI5I4pH0dTKfdj6lEUhbwYF6euHRUwbnSn6NHRM5hjsz8rQW5aKLwhU2JQRTAcOJP-0tk098UUo3Acr3pwErnsy2-SY"/>
+<div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-surface-card/90 backdrop-blur-md text-primary font-code-sm text-[11px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tier-platinum"></span> 완료
+              </div>
+</div>
+<div class="p-space-md space-y-2">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold group-hover:text-secondary transition-colors">
+                  ChatGend
+                </h3>
+<a class="text-text-muted group-hover:text-primary transition-colors" href="https://github.com/Helloworld0822/chatgend" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</a>
+</div>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">
+                생성형 AI 모델을 결합한 다목적 채팅 생성 및 세션 관리 웹 서비스로, 실시간 스트리밍 답변과 마크다운 렌더링을 지원합니다.
+              </p>
+</div>
+</div>
+<div class="px-space-md pb-space-md pt-2 flex items-center justify-between font-code-sm text-code-sm text-text-muted">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">TypeScript</span>
+<span>·</span>
+<span>React</span>
+<span>·</span>
+<span>SSE</span>
+</div>
+<a class="font-body-sm text-[12px] text-secondary hover:underline" href="#">상세보기</a>
+</div>
+</article>
+</div>
+</section>
+<!-- 5. CONTACT & CONNECT SECTION (TWO COLUMN INTERACTIVE CARD) -->
+<section class="w-full pt-space-md" id="contact">
+<div class="p-space-lg md:p-space-xl lg:p-space-2xl rounded-xl bg-surface-container-low shadow-sm">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-gutter-lg items-start">
+<!-- Left Info & Message (5 cols) -->
+<div class="lg:col-span-5 space-y-space-md">
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-6 rounded-full bg-primary-container"></span>
+<h2 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight">
+                  연락하기
+                </h2>
+</div>
+<p class="font-body-lg text-body-lg text-text-secondary leading-relaxed">
+                새로운 협업 프로젝트, 오픈소스 논의, 혹은 시스템 아키텍처에 관한 기술적 질문이 있으시다면 편하게 연락해 주세요.
+              </p>
+</div>
+<!-- Direct Contact Links -->
+<div class="space-y-3 pt-2">
+<a class="p-3 rounded-lg bg-surface-card hover:bg-surface-subtle transition-colors flex items-center gap-3 shadow-sm group" href="mailto:contact@helloworld0822.xyz">
+<div class="w-9 h-9 rounded-full bg-surface-subtle group-hover:bg-primary-container group-hover:text-on-primary transition-colors flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-code-sm text-[11px] text-text-muted uppercase">Email</span>
+<span class="font-code-md text-code-md text-text-primary font-medium truncate">contact@helloworld0822.xyz</span>
+</div>
+</a>
+<a class="p-3 rounded-lg bg-surface-card hover:bg-surface-subtle transition-colors flex items-center gap-3 shadow-sm group" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank">
+<div class="w-9 h-9 rounded-full bg-surface-subtle group-hover:bg-primary-container group-hover:text-on-primary transition-colors flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">code</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-code-sm text-[11px] text-text-muted uppercase">GitHub Profile</span>
+<span class="font-code-md text-code-md text-text-primary font-medium truncate">github.com/Helloworld0822</span>
+</div>
+</a>
+<a class="p-3 rounded-lg bg-surface-card hover:bg-surface-subtle transition-colors flex items-center gap-3 shadow-sm group" href="https://linkedin.com" rel="noreferrer" target="_blank">
+<div class="w-9 h-9 rounded-full bg-surface-subtle group-hover:bg-primary-container group-hover:text-on-primary transition-colors flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-code-sm text-[11px] text-text-muted uppercase">LinkedIn</span>
+<span class="font-code-md text-code-md text-text-primary font-medium truncate">linkedin.com/in/helloworld0822</span>
+</div>
+</a>
+</div>
+</div>
+<!-- Right Interactive Form (7 cols) -->
+<div class="lg:col-span-7 bg-surface-card p-space-md md:p-space-lg rounded-xl shadow-sm">
+<form class="space-y-space-md" id="portfolio-contact-form" onsubmit="event.preventDefault(); alert('소중한 메시지가 전송되었습니다. 확인 후 회신드리겠습니다.');">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<!-- Name Field -->
+<div class="space-y-1.5">
+<label class="block font-code-sm text-code-sm font-semibold text-text-primary" for="contact-name">
+                    이름 / 담당자명
+                  </label>
+<input class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low text-text-primary font-body-md text-body-md placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" id="contact-name" placeholder="홍길동" required="" type="text"/>
+</div>
+<!-- Email Field -->
+<div class="space-y-1.5">
+<label class="block font-code-sm text-code-sm font-semibold text-text-primary" for="contact-email">
+                    이메일 주소
+                  </label>
+<input class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low text-text-primary font-body-md text-body-md placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" id="contact-email" placeholder="you@example.com" required="" type="email"/>
+</div>
+</div>
+<!-- Message Field -->
+<div class="space-y-1.5">
+<label class="block font-code-sm text-code-sm font-semibold text-text-primary" for="contact-message">
+                  메시지 내용
+                </label>
+<textarea class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low text-text-primary font-body-md text-body-md placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary-container transition-all resize-y" id="contact-message" placeholder="프로젝트 제안, 기술 논의, 혹은 협업에 관한 내용을 자유롭게 남겨주세요." required="" rows="5"></textarea>
+</div>
+<!-- Submit Button -->
+<div class="flex items-center justify-between pt-1">
+<span class="font-body-sm text-body-sm text-text-muted hidden sm:inline-block">
+                  보통 24시간 이내에 회신드립니다.
+                </span>
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-primary-container text-on-primary hover:bg-primary transition-all font-body-sm text-body-sm font-semibold shadow-sm hover:scale-[1.01]" type="submit">
+<span>메시지 보내기</span>
+<span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div></main><footer class="w-full bg-surface-container-low mt-space-3xl"><div class="max-w-[1160px] mx-auto px-margin md:px-margin-md lg:px-margin-lg py-space-xl flex flex-col md:flex-row items-center justify-between gap-space-lg"><div class="flex flex-col items-center md:items-start gap-space-xs"><div class="flex items-center gap-space-sm"><span class="font-code-md text-code-md text-primary font-semibold">Helloworld0822</span><span class="font-body-sm text-body-sm text-text-muted">·</span><span class="font-body-sm text-body-sm text-text-secondary">전재민 (Jaemin Jeon)</span></div><p class="font-body-sm text-body-sm text-text-secondary">© 2026 Helloworld0822. All rights reserved.</p></div><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-md"><a class="font-code-sm text-code-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" href="https://github.com/Helloworld0822" rel="noreferrer" target="_blank"><span class="material-symbols-outlined text-[16px]">code</span><span>GitHub</span></a><a class="font-code-sm text-code-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" data-path="stats-and-tier" href="#"><span class="material-symbols-outlined text-[16px]">terminal</span><span>Solved.ac</span></a><a class="font-code-sm text-code-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" data-path="contact" href="#"><span class="material-symbols-outlined text-[16px]">mail</span><span>Contact</span></a></div><a class="flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><span class="material-symbols-outlined text-[18px]">arrow_upward</span><span>Back to top</span></a></div></div></footer></body></html>
