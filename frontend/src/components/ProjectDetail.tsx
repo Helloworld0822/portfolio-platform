@@ -1,3 +1,4 @@
+import { SiGithub } from "react-icons/si";
 import { Link, useParams } from "react-router-dom";
 import ProjectIcon from "./ProjectIcon";
 import ProjectSlides from "./ProjectSlides";
@@ -78,7 +79,7 @@ export default function ProjectDetail() {
       <p className="mt-2 text-body-lg text-text-secondary">{project.description}</p>
       <div className="mt-3 flex flex-wrap gap-2">{project.tags.map(tag => <span className="tech-tag" key={tag}>{tag}</span>)}</div>
     </div><div className="flex gap-2 font-code-sm text-code-sm">
-      {project.url && !project.repo_private && <a className="rounded-lg bg-primary-container px-4 py-2.5 font-semibold text-white" href={project.url} target="_blank" rel="noreferrer">GitHub 저장소 ↗</a>}
+      {project.url && !project.repo_private && <a className="rounded-lg bg-primary-container px-4 py-2.5 font-semibold text-white" href={project.url} target="_blank" rel="noreferrer"><SiGithub aria-hidden className="mr-1 inline-block" />GitHub 저장소 ↗</a>}
       {project.demo_url && <a className="rounded-lg border border-border-subtle bg-surface-card px-4 py-2.5 text-primary" href={project.demo_url} target="_blank" rel="noreferrer">배포 사이트 ↗</a>}
     </div></header>
     <ProjectSlides key={project.id} project={project} />

@@ -1,4 +1,5 @@
-import { Code2, Mail, Send } from "lucide-react";
+import { SiGithub } from "react-icons/si";
+import { Mail, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { BLOG_URL, PORTFOLIO_URL, isBlogHost, isPortfolioHost } from "../lib/site";
@@ -55,7 +56,7 @@ const Header = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
-          <a href="https://github.com/Helloworld0822" aria-label="GitHub" className="hidden text-primary xl:block"><Code2 size={17} /></a>
+          <a href="https://github.com/Helloworld0822" aria-label="GitHub" className="hidden text-primary xl:block"><SiGithub aria-hidden size={17} /></a>
           <a href="mailto:a100822@naver.com" aria-label="이메일" className="hidden text-primary xl:block"><Mail size={17} /></a>
           {user && (
             <div className="flex items-center gap-2">

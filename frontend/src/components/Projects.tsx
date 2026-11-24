@@ -1,3 +1,4 @@
+import { SiGithub } from "react-icons/si";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Grid2X2, List, Search } from "lucide-react";
@@ -58,7 +59,7 @@ export default function Projects({ archive = false }: { archive?: boolean }) {
           {[["진행 기간", featured.period], ["담당 역할", featured.role], ["기술 스택", featured.tags.join(" · ")]].filter(([,value]) => value).map(([label,value]) => <div key={label} className={`rounded-lg border border-white/10 bg-white/5 p-2.5 ${label === "기술 스택" ? "col-span-2" : ""}`}><dt className="font-code-sm text-code-sm text-white/65">{label}</dt><dd className="text-sm font-semibold">{value}</dd></div>)}
         </dl>
         <div className="mt-auto flex flex-wrap items-center gap-3 text-body-sm"><Link to={`/projects/${featured.id}`} className="rounded-lg bg-tier-platinum px-4 py-2 font-semibold text-primary">프로젝트 상세 보기 →</Link>
-        {featured.url && !featured.repo_private && <a href={featured.url} rel="noreferrer" target="_blank">GitHub ↗</a>}</div>
+        {featured.url && !featured.repo_private && <a href={featured.url} rel="noreferrer" target="_blank"><SiGithub aria-hidden className="mr-1 inline-block" />GitHub ↗</a>}</div>
       </div>
       {featured.details.length || featured.attachments?.some(item => item.kind === "image") ? <ProjectSlides key={featured.id} project={featured} compact /> : <div className="min-h-52"><Cover project={featured} /></div>}
     </section>}

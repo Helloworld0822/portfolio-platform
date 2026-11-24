@@ -1,5 +1,6 @@
+import { SiGithub, SiSolveddotac } from "react-icons/si";
 import { useState } from "react";
-import { ArrowUpRight, Code2, Trophy } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { usePublicData } from "../lib/usePublicData";
 import { useReveal } from "../lib/useReveal";
@@ -29,7 +30,7 @@ export default function Activity({ github }: { github: string }) {
       <h2 className="section-heading">개발자 활동 및 지표</h2>
       <div className="reveal-list mt-6 grid gap-5 lg:grid-cols-[7fr_5fr]">
         <div className="min-w-0 stitch-card p-6">
-          <h3 className="flex items-center gap-2 text-xl font-semibold text-navy"><Code2 size={21} />GitHub Contributions</h3>
+          <h3 className="flex items-center gap-2 text-xl font-semibold text-navy"><SiGithub aria-hidden size={21} />GitHub Contributions</h3>
           <a href={`https://github.com/${encodeURIComponent(github)}`} className="mt-1 inline-flex items-center gap-1 text-sm text-primary hover:underline">@{github} <ArrowUpRight size={14} /></a>
           {chartFailed ? <p className="mt-6 text-sm text-ink-muted">활동 기록은 GitHub에서 확인할 수 있습니다.</p> :
             <div className="mt-5 overflow-x-auto">
@@ -37,7 +38,7 @@ export default function Activity({ github }: { github: string }) {
             </div>}
         </div>
         <div className="stitch-card p-6">
-          <h3 className="flex items-center gap-2 text-xl font-semibold text-navy"><Trophy size={21} />Solved.ac</h3>
+          <h3 className="flex items-center gap-2 text-xl font-semibold text-navy"><SiSolveddotac color="#17a91b" aria-hidden size={21} />Solved.ac</h3>
           <a href={solvedUrl} className="mt-1 inline-flex items-center gap-1 text-sm text-primary hover:underline">@{solvedHandle} <ArrowUpRight size={14} /></a>
           {!badgeFailed && <a href={solvedUrl} className="mt-4 block w-fit max-w-full">
             <img src={badgeUrl} alt={solvedHandle + "의 solved.ac 티어 배지"} width="350" height="170" className="h-auto max-w-full" onError={() => setBadgeFailed(true)} />

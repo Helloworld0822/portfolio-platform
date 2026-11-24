@@ -1,3 +1,4 @@
+import { SiGithub } from "react-icons/si";
 import { useState } from "react";
 import { useAuth } from "../../lib/auth";
 import PostManager from "./PostManager";
@@ -35,7 +36,7 @@ const Admin = () => {
             onClick={() => login("/admin")}
             className="mt-6 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
           >
-            GitHub으로 로그인
+            <SiGithub aria-hidden className="mr-2 inline-block" />GitHub으로 로그인
           </button>
         </div>
       </section>

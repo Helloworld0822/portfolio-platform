@@ -1,10 +1,12 @@
-import { ArrowUpRight, Code2, Link2, Mail } from "lucide-react";
+import { SiGithub } from "react-icons/si";
+import { FaLinkedin } from "react-icons/fa6";
+import { ArrowUpRight, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useReveal } from "../lib/useReveal";
 
 const links = [
-  { label: "GitHub", Icon: Code2, href: "https://github.com/Helloworld0822" },
-  { label: "LinkedIn", Icon: Link2, href: "https://www.linkedin.com/in/%EC%9E%AC%EB%AF%BC-%EC%A0%84-ab333a418/" },
+  { label: "GitHub", Icon: SiGithub, href: "https://github.com/Helloworld0822" },
+  { label: "LinkedIn", Icon: FaLinkedin, href: "https://www.linkedin.com/in/%EC%9E%AC%EB%AF%BC-%EC%A0%84-ab333a418/" },
   { label: "이메일", Icon: Mail, href: "mailto:a100822@naver.com" },
 ];
 
@@ -144,7 +146,7 @@ const Contact = () => {
                 rel="noopener noreferrer"
                 className="flex w-full items-center gap-3 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-primary hover:underline"
               >
-                <link.Icon size={16} /> {link.label}<ArrowUpRight size={14} className="ml-auto" />
+                <link.Icon aria-hidden size={16} /> {link.label}<ArrowUpRight size={14} className="ml-auto" />
               </a>
             ))}
           </div>

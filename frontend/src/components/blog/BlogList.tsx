@@ -1,5 +1,6 @@
+import { SiGithub } from "react-icons/si";
 import { useState } from "react";
-import { ArrowRight, ArrowUpRight, CalendarDays, Code2, MessageSquare, Search } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, MessageSquare, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Profile } from "../../lib/profile";
 import { BLOG_HOST, isBlogHost, PORTFOLIO_URL } from "../../lib/site";
@@ -31,7 +32,7 @@ export function BlogAuthor({ author }: { author: Profile }) {
     </div>
     <p className="font-body-sm text-body-sm leading-relaxed text-text-secondary">{author.bio}</p>
     <div className="flex flex-wrap gap-2 border-t border-border-subtle pt-space-md">
-      <a className="tech-tag inline-flex items-center gap-1" href={"https://github.com/" + author.github}><Code2 size={14} /> GitHub <ArrowUpRight size={12} /></a>
+      <a className="tech-tag inline-flex items-center gap-1" href={"https://github.com/" + author.github}><SiGithub aria-hidden size={14} /> GitHub <ArrowUpRight size={12} /></a>
       <a className="tech-tag inline-flex items-center gap-1" href={isBlogHost() ? PORTFOLIO_URL : "/"}>포트폴리오 <ArrowUpRight size={12} /></a>
     </div>
   </section>;

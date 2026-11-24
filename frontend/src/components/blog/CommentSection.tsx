@@ -1,3 +1,4 @@
+import { SiGithub } from "react-icons/si";
 import { useEffect, useState, type FormEvent } from "react";
 import { authFetch } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
@@ -165,7 +166,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             onClick={() => login(`/blog/${postId}`)}
             className="rounded-md border border-border bg-canvas px-4 py-2 text-sm font-medium text-ink transition-colors duration-[240ms] hover:bg-surface-1"
           >
-            GitHub으로 로그인하고 댓글 남기기
+            <SiGithub aria-hidden className="mr-2 inline-block" />GitHub으로 로그인하고 댓글 남기기
           </button>
         )}
       </div>

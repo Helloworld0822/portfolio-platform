@@ -1,3 +1,4 @@
+import { SiGithub, SiSolveddotac } from "react-icons/si";
 import type { Profile } from "../lib/profile";
 import { useReveal } from "../lib/useReveal";
 
@@ -43,6 +44,7 @@ export default function Hero({ profile }: { profile: Profile }) {
                 </span>
               </a>
               <a className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 text-on-primary font-body-sm text-body-sm font-medium transition-colors" href={`https://github.com/${profile.github}`} rel="noreferrer" target="_blank">
+                <SiGithub aria-hidden size={16} />
                 <span>
                   GitHub 바로가기
                 </span>
@@ -54,9 +56,7 @@ export default function Hero({ profile }: { profile: Profile }) {
                 <span>
                   Solved.ac 지표
                 </span>
-                <span className="material-symbols-outlined text-[16px]">
-                  terminal
-                </span>
+                <SiSolveddotac aria-hidden size={16} />
               </a>
               <a className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-primary-fixed-dim hover:text-on-primary font-body-sm text-body-sm transition-colors" href="#contact">
                 <span>
@@ -79,7 +79,7 @@ export default function Hero({ profile }: { profile: Profile }) {
               <a className="absolute bottom-4 left-4 right-4 p-3 rounded-lg bg-surface/90 backdrop-blur-md text-on-surface shadow-md flex items-center justify-between" href={`https://github.com/${profile.github}`}>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-primary font-bold text-xs">
-                    JM
+                    <SiGithub aria-hidden size={19} />
                   </div>
                   <div className="flex flex-col">
                     <span className="font-code-sm text-code-sm font-semibold text-text-primary">
