@@ -93,7 +93,7 @@ class MockGitHub(BaseHTTPRequestHandler):
         if path == '/solved':
             if (self.headers.get('x-client-id'), self.headers.get('x-client-secret')) != ('test-solved', 'test-solved-secret'):
                 return self.send({}, 401)
-            self.send({'handle': 'a100822', 'tier': 17, 'solvedCount': 80, 'rating': 1540, 'extra': True})
+            self.send({'handle': 'helloworld0822', 'tier': 17, 'solvedCount': 80, 'rating': 1540, 'extra': True})
         elif path == '/user':
             bearer = self.headers.get('Authorization', '')
             login = {'Bearer mock-admin': 'Helloworld0822', 'Bearer mock-user': 'reader',
@@ -176,7 +176,7 @@ class PortfolioTests(unittest.TestCase):
     def test_solved_activity_cache(self):
         for _ in range(2):
             profile, _ = self.call('GET', '/api/activity/solved')
-            self.assertEqual(profile, {'handle': 'a100822', 'tier': 17, 'rating': 1540, 'solvedCount': 80})
+            self.assertEqual(profile, {'handle': 'helloworld0822', 'tier': 17, 'rating': 1540, 'solvedCount': 80})
         with MockGitHub.seen_lock:
             self.assertEqual(MockGitHub.seen.count('/solved'), 1)
 

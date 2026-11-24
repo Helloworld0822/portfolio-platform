@@ -23,7 +23,7 @@ function tierName(tier: number) {
 
 function SolvedActivity() {
   const { data: profile, status } = usePublicData<Profile>("/api/activity/solved");
-  const handle = profile?.handle || "a100822";
+  const handle = profile?.handle || "helloworld0822";
   const tier = profile?.tier ?? 0;
   const next = thresholds[tier + 1];
   const color = tierColors[Math.floor((tier - 1) / 5)] ?? "bg-primary";

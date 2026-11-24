@@ -20,7 +20,7 @@ struct Cache {
 
 static CACHE: Mutex<Option<Cache>> = Mutex::const_new(None);
 
-const PROFILE_URL: &str = "https://solved.ac/api/v4/users/a100822";
+const PROFILE_URL: &str = "https://solved.ac/api/v4/users/helloworld0822";
 
 fn deserialize_tier<'de, D: serde::Deserializer<'de>>(input: D) -> Result<u8, D::Error> {
     Ok(Option::<u8>::deserialize(input)?.unwrap_or(0))
@@ -46,7 +46,7 @@ async fn fetch_profile(url: &str, id: &str, secret: &str) -> Option<Profile> {
         .json()
         .await
         .ok()?;
-    (profile.handle == "a100822" && profile.tier <= 31).then_some(profile)
+    (profile.handle == "helloworld0822" && profile.tier <= 31).then_some(profile)
 }
 
 pub async fn solved_profile() -> HttpResponse {
@@ -80,9 +80,9 @@ mod tests {
     #[tokio::test]
     async fn accepts_only_metrics_for_the_portfolio_owner() {
         for (handle, tier, expected) in [
-            ("a100822", 17, true),
+            ("helloworld0822", 17, true),
             ("other", 17, false),
-            ("a100822", 32, false),
+            ("helloworld0822", 32, false),
         ] {
             let server = MockServer::start().await;
             let body = serde_json::json!({"handle": handle, "tier": tier, "rating": 1550, "solvedCount": 81});
