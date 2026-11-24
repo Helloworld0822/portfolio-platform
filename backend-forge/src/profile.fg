@@ -1,0 +1,43 @@
+import database;
+import web;
+import strings;
+import media;
+fn get(conn: int, request: int): int {
+    return database.response(conn, request, "SELECT content FROM portfolio_profile WHERE singleton", 0, 200);
+}
+fn named(body: int, key: string): int {
+    return web.required(body, key, 3) && web.chars(web.trim(web.field_text(body, key))) > 0;
+}
+fn valid(body: int): int {
+    if (named(body, "name") == 0 || web.required(body, "englishName", 3) == 0 || web.required(body, "affiliation", 3) == 0 || web.required(body, "statement", 3) == 0 || web.required(body, "bio", 3) == 0 || web.required(body, "github", 3) == 0 || web.required(body, "photo", 3) == 0 || web.required(body, "skills", 5) == 0) { return 0; }
+    let login: string = web.field_text(body, "github");
+    if (str_len(login) == 0) { return 0; }
+    let i: int = 0;
+    while (i < str_len(login)) {
+        let c: int = str_char_at(login, i);
+        if (c != 45 && (c < 48 || c > 57) && (c < 65 || c > 90) && (c < 97 || c > 122)) { return 0; }
+        i = i + 1;
+    }
+    let photo: string = web.field_text(body, "photo");
+    if (web.equal(photo, "/images/jaemin.jpg") == 0 && media.uploaded_image(photo) == 0 && (web.starts(photo, "https://") == 0 || web.valid(photo, "url") == 0)) { return 0; }
+    let skills: int = web.get(body, "skills");
+    let group_index: int = 0;
+    while (group_index < web.count(skills)) {
+        let group: int = web.at(skills, group_index);
+        if (named(group, "category") == 0 || web.required(group, "items", 5) == 0) { return 0; }
+        let items: int = web.get(group, "items");
+        let item_index: int = 0;
+        while (item_index < web.count(items)) {
+            let item: int = web.at(items, item_index);
+            if (named(item, "name") == 0 || (web.has(item, "children") != 0 && web.string_array(web.get(item, "children")) == 0)) { return 0; }
+            item_index = item_index + 1;
+        }
+        group_index = group_index + 1;
+    }
+    return 1;
+}
+fn update(conn: int, request: int): int {
+    let body: int = web.request_json(request);
+    if (valid(body) == 0) { return web.validation(request, "invalid portfolio profile"); }
+    return database.response(conn, request, "UPDATE portfolio_profile SET content=$1::jsonb WHERE singleton RETURNING content", database.args1(web.dump(body)), 200);
+}

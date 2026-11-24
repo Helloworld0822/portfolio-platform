@@ -43,6 +43,9 @@ fn list(conn: int, request: int, all: int): int {
     if (all != 0) { return database.response(conn, request, "SELECT COALESCE(json_agg(item),'[]'::json) FROM (SELECT * FROM projects ORDER BY created_at DESC) item", 0, 200); }
     return database.response(conn, request, public_sql(), 0, 200);
 }
+fn get(conn: int, request: int, id: string): int {
+    return database.response(conn, request, "SELECT row_to_json(p) FROM projects p WHERE id=$1::uuid AND published", database.args1(id), 200);
+}
 fn public_list(conn: int, request: int): int {
     return database.guarded_response(conn, request, public_sql());
 }

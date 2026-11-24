@@ -376,3 +376,27 @@ cleanup:
         response = fw_respond(request, 500, "{\"error\":\"internal\"}");
     return response;
 }
+
+static pthread_mutex_t solved_mutex = PTHREAD_MUTEX_INITIALIZER;
+static time_t solved_refresh_at;
+static char solved_cached[192];
+
+int64_t portfolio_solved_begin(void) {
+    pthread_mutex_lock(&solved_mutex);
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return now.tv_sec >= solved_refresh_at;
+}
+
+const char *portfolio_solved_end(int64_t refreshed, const char *profile) {
+    if (refreshed) {
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        int valid = profile && *profile && strlen(profile) < sizeof solved_cached;
+        if (valid) memcpy(solved_cached, profile, strlen(profile) + 1);
+        solved_refresh_at = now.tv_sec + (valid ? 3600 : 60);
+    }
+    const char *copy = fr_str_concat(solved_cached, "");
+    pthread_mutex_unlock(&solved_mutex);
+    return copy ? copy : "";
+}

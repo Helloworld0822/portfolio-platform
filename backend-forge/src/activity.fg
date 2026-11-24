@@ -1,0 +1,29 @@
+import web;
+extern fn portfolio_solved_begin(): int;
+extern fn portfolio_solved_end(refreshed: int, profile: string): string;
+fn metric(body: int, field: string, maximum: int): int {
+    let value: int = web.get(body, field);
+    if (web.kind(value) != 2) { return 0; }
+    let number: int = web.integer(value);
+    if (number < 0 || number > maximum || web.equal(web.dump(value), str_from_int(number)) == 0) { return 0; }
+    return 1;
+}
+fn fetch_profile(): string {
+    let url: string = web.env("SOLVED_PROFILE_URL", "https://solved.ac/api/v3/user/show?handle=a100822");
+    let body: int = web.fetch(url, "GET", "", "");
+    if (web.equal(web.field_text(body, "handle"), "a100822") == 0 || metric(body, "tier", 31) == 0 || metric(body, "rating", 4294967295) == 0 || metric(body, "solvedCount", 4294967295) == 0) { return ""; }
+    let profile: int = web.object();
+    web.set(profile, "handle", web.get(body, "handle"));
+    web.set(profile, "tier", web.get(body, "tier"));
+    web.set(profile, "rating", web.get(body, "rating"));
+    web.set(profile, "solvedCount", web.get(body, "solvedCount"));
+    return web.dump(profile);
+}
+fn solved(request: int): int {
+    let refresh: int = portfolio_solved_begin();
+    let profile: string = "";
+    if (refresh != 0) { profile = fetch_profile(); }
+    let cached: string = portfolio_solved_end(refresh, profile);
+    if (web.chars(cached) == 0) { return web.error(request, 503, "unavailable"); }
+    return web.respond(request, 200, cached);
+}

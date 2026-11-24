@@ -90,7 +90,9 @@ class MockGitHub(BaseHTTPRequestHandler):
         with MockGitHub.seen_lock:
             MockGitHub.seen.append(self.path)
         path = urllib.parse.urlsplit(self.path).path
-        if path == '/user':
+        if path == '/solved':
+            self.send({'handle': 'a100822', 'tier': 17, 'solvedCount': 80, 'rating': 1540, 'extra': True})
+        elif path == '/user':
             bearer = self.headers.get('Authorization', '')
             login = {'Bearer mock-admin': 'Helloworld0822', 'Bearer mock-user': 'reader',
                      'Bearer mock-blocked': 'blocked-reader'}.get(bearer)
@@ -149,6 +151,46 @@ class PortfolioTests(unittest.TestCase):
         body, _ = self.call('POST', '/api/admin/projects', data, 201, token())
         self.addCleanup(self.call, 'DELETE', '/api/admin/projects/' + body['id'], expected=204, auth=token())
         return body
+
+    def test_profile_round_trip(self):
+        original, _ = self.call('GET', '/api/profile')
+        self.addCleanup(self.call, 'PUT', '/api/admin/profile', original, auth=token())
+        profile = {**original, 'statement': 'Forge integration'}
+        self.call('PUT', '/api/admin/profile', profile, expected=401)
+        self.call('PUT', '/api/admin/profile', {**profile, 'photo': '/uploads/../file.jpg'}, 400, token())
+        self.call('PUT', '/api/admin/profile', {**profile, 'skills': [{'category': 'a', 'items': [{}]}]}, 400, token())
+        self.call('PUT', '/api/admin/profile', profile, auth=token())
+        updated, _ = self.call('GET', '/api/profile')
+        self.assertEqual(updated, profile)
+
+    def test_published_project_details(self):
+        published = self.project()
+        draft = self.project(published=False)
+        result, _ = self.call('GET', '/api/projects/' + published['id'])
+        self.assertEqual(result, published)
+        self.call('GET', '/api/projects/' + draft['id'], expected=404)
+        self.call('GET', '/api/projects/not-a-uuid', expected=404)
+
+    def test_solved_activity_cache(self):
+        for _ in range(2):
+            profile, _ = self.call('GET', '/api/activity/solved')
+            self.assertEqual(profile, {'handle': 'a100822', 'tier': 17, 'rating': 1540, 'solvedCount': 80})
+        with MockGitHub.seen_lock:
+            self.assertEqual(MockGitHub.seen.count('/solved'), 1)
+
+    def test_timeline_media(self):
+        url = '/uploads/550e8400-e29b-41d4-a716-446655440000.png'
+        media = [{'name': 'photo', 'url': url, 'kind': 'image'}]
+        row, _ = self.call('POST', '/api/admin/timeline', {'period': '2026', 'title': 'timeline',
+                           'org': '', 'description': '', 'attachments': media, 'icon_url': url}, 201, token())
+        path = '/api/admin/timeline/' + row['id']
+        self.addCleanup(self.call, 'DELETE', path, expected=204, auth=token())
+        self.assertEqual(row['attachments'], media)
+        self.assertEqual(row['icon_url'], url)
+        self.call('PUT', path, {'icon_url': '/uploads/../wrong.png'}, 400, token())
+        self.call('PUT', path, {'attachments': [{**media[0], 'kind': 'document'}]}, 400, token())
+        updated, _ = self.call('PUT', path, {'icon_url': '', 'attachments': []}, auth=token())
+        self.assertEqual((updated['icon_url'], updated['attachments']), ('', []))
 
     def test_health_cors_and_not_found(self):
         body, headers = self.call('GET', '/api/health', headers={'Origin': 'http://frontend.test'})

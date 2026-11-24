@@ -1145,6 +1145,84 @@
           }
         ]
       }
+    },
+    "/api/profile": {
+      "get": {
+        "summary": "Get the portfolio introduction and skills",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/profile": {
+      "put": {
+        "summary": "Update the portfolio introduction and skills",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{id}": {
+      "get": {
+        "summary": "Get a published project",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/activity/solved": {
+      "get": {
+        "summary": "Get solved.ac profile metrics",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
     }
   },
   "components": {

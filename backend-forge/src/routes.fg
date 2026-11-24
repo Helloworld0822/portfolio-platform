@@ -5,6 +5,8 @@ import abuse;
 import posts;
 import projects;
 import timeline;
+import profile;
+import activity;
 import comments;
 import contact;
 import bans;
@@ -23,6 +25,11 @@ fn handle(conn: int, request: int, user: int): int {
     if (web.equal(path, "/api/auth/github/callback") != 0 && web.equal(method, "GET") != 0) { return auth.callback(request); }
     if (web.equal(path, "/api/openapi.json") != 0 && web.equal(method, "GET") != 0) { return web.respond(request, 200, web.read(web.env("OPENAPI_PATH", "backend-forge/openapi.json"))); }
     if (web.starts(path, "/api/docs") != 0 && web.equal(method, "GET") != 0) { let result: int = web.respond(request, 200, web.read(web.env("DOCS_PATH", "backend-forge/docs.html"))); web.content_type(request, "text/html; charset=utf-8"); return result; }
+    if (web.equal(path, "/api/profile") != 0 && web.equal(method, "GET") != 0) { return profile.get(conn, request); }
+    if (web.equal(path, "/api/activity/solved") != 0 && web.equal(method, "GET") != 0) { return activity.solved(request); }
+    if (count == 3 && web.equal(web.segment(request, 0), "api") != 0 && web.equal(web.segment(request, 1), "projects") != 0 && web.equal(method, "GET") != 0 && web.valid(web.segment(request, 2), "uuid") != 0) {
+        return projects.get(conn, request, web.segment(request, 2));
+    }
     if (web.equal(path, "/api/posts") != 0 && web.equal(method, "GET") != 0) { return posts.list(conn, request, 0); }
     if (web.equal(path, "/api/projects") != 0 && web.equal(method, "GET") != 0) { return projects.list(conn, request, 0); }
     if (web.equal(path, "/api/timeline") != 0 && web.equal(method, "GET") != 0) { return timeline.list(conn, request, 0); }
@@ -42,6 +49,7 @@ fn handle(conn: int, request: int, user: int): int {
     if (web.equal(web.segment(request, 0), "api") != 0 && web.equal(web.segment(request, 1), "admin") != 0) {
         if (auth.admin(user) == 0) { return web.error(request, 401, "unauthorized"); }
         let resource: string = web.segment(request, 2); let id: string = web.segment(request, 3);
+        if (web.equal(resource, "profile") != 0 && count == 3 && web.equal(method, "PUT") != 0) { return profile.update(conn, request); }
         if (web.equal(resource, "posts") != 0) {
             if (count == 3 && web.equal(method, "GET") != 0) { return posts.list(conn, request, 1); }
             if (count == 3 && web.equal(method, "POST") != 0) { return posts.save(conn, request, "", 1); }
@@ -95,6 +103,7 @@ fn detached(request: int): int {
     let path: string = web.path(request);
     if (web.equal(method, "OPTIONS") != 0) { return 1; }
     if (web.equal(method, "GET") != 0) {
+        if (web.equal(path, "/api/activity/solved") != 0) { return 1; }
         if (web.equal(path, "/api/health") != 0 || web.starts(path, "/uploads/") != 0 || web.equal(path, "/api/auth/github/login") != 0 || web.equal(path, "/api/auth/github/callback") != 0 || web.equal(path, "/api/openapi.json") != 0 || web.starts(path, "/api/docs") != 0 || web.equal(path, "/api/admin/github/repos") != 0) { return 1; }
     }
     if (web.equal(method, "POST") != 0 && web.equal(path, "/api/admin/uploads") != 0) { return 1; }

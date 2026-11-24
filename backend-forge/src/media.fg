@@ -1,0 +1,8 @@
+import web;
+import strings;
+fn uploaded_image(url: string): int {
+    if (web.starts(url, "/uploads/") == 0 || str_len(url) < 48) { return 0; }
+    if (web.valid(str_sub(url, 9, 36), "uuid") == 0 || str_char_at(url, 45) != 46) { return 0; }
+    let ext: string = str_sub(url, 46, str_len(url) - 46);
+    return web.equal(ext, "png") || web.equal(ext, "jpg") || web.equal(ext, "jpeg") || web.equal(ext, "webp") || web.equal(ext, "gif") || web.equal(ext, "svg");
+}
