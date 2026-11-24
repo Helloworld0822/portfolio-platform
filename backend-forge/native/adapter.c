@@ -1,5 +1,6 @@
 #include "forge_web.h"
 #include "forge/string.h"
+#include <curl/curl.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -10,6 +11,53 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+struct solved_response {
+    char data[65536];
+    size_t length;
+};
+
+static size_t solved_write(char *data, size_t size, size_t count, void *context) {
+    struct solved_response *response = context;
+    if (size && count > (sizeof response->data - response->length - 1) / size) return 0;
+    size_t bytes = size * count;
+    memcpy(response->data + response->length, data, bytes);
+    response->length += bytes;
+    response->data[response->length] = '\0';
+    return bytes;
+}
+
+int64_t portfolio_solved_fetch(const char *url) {
+    const char *names[] = {"x-client-id", "x-client-secret"};
+    const char *values[] = {getenv("SOLVED_CLIENT_ID"), getenv("SOLVED_CLIENT_SECRET")};
+    struct curl_slist *headers = NULL;
+    CURL *client = curl_easy_init();
+    int64_t body = 0;
+    if (!client) return 0;
+    for (size_t i = 0; i < 2; i++) {
+        if (!values[i] || !*values[i] || strpbrk(values[i], "\r\n")) goto done;
+        char line[1024];
+        if ((size_t)snprintf(line, sizeof line, "%s: %s", names[i], values[i]) >= sizeof line) goto done;
+        struct curl_slist *next = curl_slist_append(headers, line);
+        if (!next) goto done;
+        headers = next;
+    }
+    struct solved_response response = {0};
+    long status = 0;
+    curl_easy_setopt(client, CURLOPT_URL, url);
+    curl_easy_setopt(client, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(client, CURLOPT_TIMEOUT, 5L);
+    curl_easy_setopt(client, CURLOPT_WRITEFUNCTION, solved_write);
+    curl_easy_setopt(client, CURLOPT_WRITEDATA, &response);
+    if (curl_easy_perform(client) == CURLE_OK &&
+        curl_easy_getinfo(client, CURLINFO_RESPONSE_CODE, &status) == CURLE_OK && status == 200)
+        body = fw_parse(response.data);
+done:
+    curl_easy_cleanup(client);
+    curl_slist_free_all(headers);
+    return body;
+}
 /* forge-web limits each rate key to 255 bytes; the full email can be 254
  * bytes alone. Copy deterministic hex into the current Forge string arena. */
 const char *portfolio_contact_email_digest(const char *email) {

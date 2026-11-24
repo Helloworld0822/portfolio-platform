@@ -91,6 +91,8 @@ class MockGitHub(BaseHTTPRequestHandler):
             MockGitHub.seen.append(self.path)
         path = urllib.parse.urlsplit(self.path).path
         if path == '/solved':
+            if (self.headers.get('x-client-id'), self.headers.get('x-client-secret')) != ('test-solved', 'test-solved-secret'):
+                return self.send({}, 401)
             self.send({'handle': 'a100822', 'tier': 17, 'solvedCount': 80, 'rating': 1540, 'extra': True})
         elif path == '/user':
             bearer = self.headers.get('Authorization', '')

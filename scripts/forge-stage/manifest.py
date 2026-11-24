@@ -32,6 +32,7 @@ forge = container("api", api, "512Mi", 8081, {
     "BACKEND_BASE_URL": "http://127.0.0.1:8081", "CORS_ALLOWED_ORIGINS": "http://frontend.test",
     "GITHUB_OAUTH_BASE_URL": mock_url, "GITHUB_API_BASE_URL": mock_url,
     "SOLVED_PROFILE_URL": mock_url + "/solved",
+    "SOLVED_CLIENT_ID": "test-solved", "SOLVED_CLIENT_SECRET": "test-solved-secret",
 })
 forge["volumeMounts"] = [{"name": "uploads", "mountPath": "/app/uploads"}]
 check = container("verify", fixture, "512Mi", 19091, {

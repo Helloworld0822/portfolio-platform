@@ -1,4 +1,5 @@
 import web;
+extern fn portfolio_solved_fetch(url: string): int;
 extern fn portfolio_solved_begin(): int;
 extern fn portfolio_solved_end(refreshed: int, profile: string): string;
 fn metric(body: int, field: string, maximum: int): int {
@@ -9,8 +10,10 @@ fn metric(body: int, field: string, maximum: int): int {
     return 1;
 }
 fn fetch_profile(): string {
-    let url: string = web.env("SOLVED_PROFILE_URL", "https://solved.ac/api/v3/user/show?handle=a100822");
-    let body: int = web.fetch(url, "GET", "", "");
+    let url: string = web.env("SOLVED_PROFILE_URL", "https://solved.ac/api/v4/users/a100822");
+    let body: int = portfolio_solved_fetch(url);
+    if (web.kind(body) != 4 || web.has(body, "tier") == 0) { return ""; }
+    if (web.kind(web.get(body, "tier")) == 0) { web.set(body, "tier", web.number(0)); }
     if (web.equal(web.field_text(body, "handle"), "a100822") == 0 || metric(body, "tier", 31) == 0 || metric(body, "rating", 4294967295) == 0 || metric(body, "solvedCount", 4294967295) == 0) { return ""; }
     let profile: int = web.object();
     web.set(profile, "handle", web.get(body, "handle"));
