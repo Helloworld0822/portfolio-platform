@@ -140,6 +140,10 @@
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --motion-arrive: 480ms;
+  --motion-stagger: 60ms;
+  --motion-feedback: 180ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
@@ -255,6 +259,23 @@ body {
 #root > main { flex: 1; width: 100%; }
 .portfolio-home { overflow-wrap: anywhere; word-break: keep-all; }
 @media (prefers-reduced-motion: no-preference) {
-  .section-enter { animation: section-arrive .36s ease-out both; }
-  @keyframes section-arrive { from { opacity: .8; transform: translateY(.45rem); } to { opacity: 1; transform: none; } }
+  .section-enter { animation: section-arrive var(--motion-arrive) var(--motion-ease) both; }
+  .section-enter .reveal-list > * {
+    animation: card-arrive var(--motion-arrive) var(--motion-ease) backwards;
+    animation-delay: var(--motion-stagger);
+  }
+  .section-enter .reveal-list > :nth-child(2) { animation-delay: calc(var(--motion-stagger) * 2); }
+  .section-enter .reveal-list > :nth-child(3) { animation-delay: calc(var(--motion-stagger) * 3); }
+  .section-enter .reveal-list > :nth-child(n + 4) { animation-delay: calc(var(--motion-stagger) * 4); }
+  a.stitch-card {
+    transition: transform var(--motion-feedback) var(--motion-ease), box-shadow var(--motion-feedback) ease;
+  }
+  a.stitch-card:active { transform: translateY(0) scale(.99); }
+  @media (hover: hover) and (pointer: fine) {
+    a.stitch-card:hover { transform: translateY(-3px); }
+    a.stitch-card:hover img { transform: scale(1.025); }
+  }
+  a.stitch-card img { transition: transform var(--motion-arrive) var(--motion-ease); }
+  @keyframes section-arrive { from { opacity: .25; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes card-arrive { from { opacity: .25; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 }

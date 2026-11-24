@@ -39,7 +39,7 @@ const Timeline = () => {
         )}
 
         {!loading && !error && entries && entries.length > 0 && (
-          <div className="ml-2 space-y-4 border-l border-border pl-5">
+          <div className="reveal-list ml-2 space-y-4 border-l border-border pl-5">
             {entries.map((entry) => {
               const icon = entry.attachments?.find(item => item.kind === "icon")?.url || entry.icon_url;
               return (

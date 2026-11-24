@@ -1,11 +1,13 @@
 import { CategoryIcon, SkillIcon } from "../lib/skillIcons";
 import type { SkillGroup } from "../lib/profile";
+import { useReveal } from "../lib/useReveal";
 
 export default function Skills({ groups }: { groups: SkillGroup[] }) {
-  return <section id="skills">
+  const { ref, className } = useReveal<HTMLElement>();
+  return <section ref={ref} className={className} id="skills">
     <h2 className="section-heading">기술 스택</h2>
     <p className="section-description">사용하는 도구와 기술 스택.</p>
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="reveal-list grid gap-4 sm:grid-cols-2">
       {groups.map((group, index) => <article key={group.category} className={`stitch-card p-4 ${index < 3 ? "sm:col-span-2" : ""}`}>
         <h3 className="mb-3 flex items-center gap-2 text-headline-sm text-primary"><CategoryIcon category={group.category} />{group.category}</h3>
         <ul className="flex flex-wrap gap-2">

@@ -9,3 +9,5 @@ Experience follows the introduction. Keep the API’s order. Place the date and 
 Use columns where the items remain legible. The phone layout has a single column for experience and projects. Technology families return to one column on small screens. A short reveal and link hover movement respect the reader’s reduced-motion preference.
 
 Brittany Chiang’s compact date-and-description entries influenced the experience section. Lee Robinson’s first-person bio informed the introduction. [Brittany Chiang](https://brittanychiang.com/) · [Lee Robinson](https://leerob.com/)
+
+Motion uses the existing viewport reveal: a 480ms arrival with a 12px rise and cubic-bezier(0.22, 1, 0.36, 1) easing. Related cards follow in 60ms steps capped at 240ms. Clickable project cards lift 3px on pointer hover and settle on press; feedback takes 180ms. This adapts the once-in-view stagger from beui.dev’s text-animation mechanism without splitting text or adding a library. Reduced-motion readers see all content immediately, without translation or scale. Mobile retains the short arrivals and uses press feedback without hover.

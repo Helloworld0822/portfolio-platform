@@ -5,6 +5,7 @@ import ProjectIcon from "./ProjectIcon";
 import ProjectSlides from "./ProjectSlides";
 import type { Project } from "../lib/project";
 import { usePublicData } from "../lib/usePublicData";
+import { useReveal } from "../lib/useReveal";
 
 function Cover({ project }: { project: Project }) {
   const cover = project.attachments?.find(item => item.kind === "image");
@@ -21,12 +22,13 @@ export default function Projects({ archive = false }: { archive?: boolean }) {
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [listView, setListView] = useState(false);
+  const { ref, className } = useReveal<HTMLElement>();
   const term = query.trim().toLowerCase();
   const matches = projects?.filter(p => (!statusFilter || p.status === statusFilter) && [p.title, p.description, ...p.tags].join(" ").toLowerCase().includes(term)) ?? [];
   const featured = archive && !term && !statusFilter ? matches[0] : undefined;
   const cards = featured ? matches.slice(1) : matches;
   const pages = Math.ceil(cards.length / 6);
-  return <section id="projects" className={archive ? "stitch-layout py-10" : ""}>
+  return <section ref={ref} id="projects" className={`${archive ? "stitch-layout py-10" : ""} ${className}`}>
     {archive ? <>
       <nav className="mb-4 font-code-sm text-code-sm text-text-secondary" aria-label="페이지 경로"><Link to="/">home</Link> / projects</nav>
       <header className="archive-head"><div>
@@ -61,7 +63,7 @@ export default function Projects({ archive = false }: { archive?: boolean }) {
       {featured.details.length || featured.attachments?.some(item => item.kind === "image") ? <ProjectSlides key={featured.id} project={featured} compact /> : <div className="min-h-52"><Cover project={featured} /></div>}
     </section>}
     {archive && cards.length > 0 && <div className="mb-4"><p className="archive-label">Project catalogue</p><h2 className="text-headline-md">전체 프로젝트 아카이브 <small className="text-code-sm text-secondary">{cards.length}</small></h2></div>}
-    <div className={listView ? "grid gap-3" : "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"}>{cards.slice(page * 6, page * 6 + 6).map(project => <Link key={project.id} to={`/projects/${project.id}`} className="stitch-card group flex min-w-0 flex-col overflow-hidden border border-border-subtle">
+    <div className={`reveal-list ${listView ? "grid gap-3" : "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"}`}>{cards.slice(page * 6, page * 6 + 6).map(project => <Link key={project.id} to={`/projects/${project.id}`} className="stitch-card group flex min-w-0 flex-col overflow-hidden border border-border-subtle">
       {!archive && <div className="relative h-44"><Cover project={project} /><span className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-1 text-code-sm text-primary">{project.status}</span></div>}
       <div className={archive ? "flex flex-1 flex-col gap-3 p-6" : "flex flex-1 flex-col gap-3 p-4"}>{archive && <span className="tech-tag w-fit">{project.status}</span>}<h3 className="flex justify-between text-headline-sm text-text-primary"><span><ProjectIcon project={project} />{project.title}</span><span aria-hidden="true" className="text-secondary">↗</span></h3>
       <p className="flex-1 text-body-md text-text-secondary">{project.description}</p>

@@ -1,8 +1,10 @@
 import type { Profile } from "../lib/profile";
+import { useReveal } from "../lib/useReveal";
 
 export default function Hero({ profile }: { profile: Profile }) {
+  const { ref, className } = useReveal<HTMLElement>();
   return (
-    <section className="relative w-full pt-space-md" id="hero">
+    <section ref={ref} className={`relative w-full pt-space-md ${className}`} id="hero">
       <div className="relative overflow-hidden rounded-xl bg-primary-container text-on-primary shadow-xl p-space-lg md:p-space-xl lg:p-space-2xl" id="story">
         <div className="absolute -right-20 -top-24 w-96 h-96 rounded-full bg-secondary/20 blur-3xl pointer-events-none">
         </div>
@@ -32,7 +34,7 @@ export default function Hero({ profile }: { profile: Profile }) {
               {profile.bio}
             </p>
             <div className="pt-space-sm flex flex-wrap items-center gap-space-sm">
-              <a className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container-lowest text-primary font-body-sm text-body-sm font-semibold shadow-sm hover:bg-surface-container-low transition-all" href="#projects">
+              <a className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container-lowest text-primary font-body-sm text-body-sm font-semibold shadow-sm hover:bg-surface-container-low transition-colors" href="#projects">
                 <span>
                   프로젝트 보기
                 </span>

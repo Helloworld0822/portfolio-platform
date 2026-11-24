@@ -2,10 +2,11 @@ import { useState } from "react";
 import { ArrowUpRight, Code2, Trophy } from "lucide-react";
 
 import { usePublicData } from "../lib/usePublicData";
+import { useReveal } from "../lib/useReveal";
 
 const solvedHandle = "a100822";
 const solvedUrl = `https://solved.ac/ko/u/${solvedHandle}`;
-const badgeUrl = `https://mazassumnida.wtf/api/generate_badge?boj=${solvedHandle}`;
+const badgeUrl = `https://mazassumnida.wtf/api/generate_badge?handle=${solvedHandle}`;
 
 type Profile = { tier: number; rating: number; solvedCount: number };
 
@@ -21,11 +22,12 @@ export default function Activity({ github }: { github: string }) {
   const {data: profile, status} = usePublicData<Profile>("/api/activity/solved");
   const [badgeFailed, setBadgeFailed] = useState(false);
   const [chartFailed, setChartFailed] = useState(false);
+  const { ref, className } = useReveal<HTMLElement>();
 
   return (
-    <section id="stats" className="w-full">
+    <section ref={ref} id="stats" className={`w-full ${className}`}>
       <h2 className="section-heading">개발자 활동 및 지표</h2>
-      <div className="mt-6 grid gap-5 lg:grid-cols-[7fr_5fr]">
+      <div className="reveal-list mt-6 grid gap-5 lg:grid-cols-[7fr_5fr]">
         <div className="min-w-0 stitch-card p-6">
           <h3 className="flex items-center gap-2 text-xl font-semibold text-navy"><Code2 size={21} />GitHub Contributions</h3>
           <a href={`https://github.com/${encodeURIComponent(github)}`} className="mt-1 inline-flex items-center gap-1 text-sm text-primary hover:underline">@{github} <ArrowUpRight size={14} /></a>
