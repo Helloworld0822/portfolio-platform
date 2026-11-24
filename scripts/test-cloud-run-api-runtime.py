@@ -30,7 +30,7 @@ old = forge if os.environ['SERVING'] == 'forge' else rust
 new = {'forge': forge, 'rust': rust}.get(os.environ['CHOICE'], old)
 
 api_env = [{'name': 'DATABASE_URL', 'valueFrom': {'secretKeyRef': {'name': 'portfolio-neon-database-url'}}}]
-forge_env = [{'name': 'HOST', 'value': '127.0.0.1'}, {'name': 'PORT', 'value': '8081'},
+forge_env = [{'name': 'HOST', 'value': '0.0.0.0'}, {'name': 'PORT', 'value': '8081'},
              {'name': 'FORGE_TRUSTED_PROXIES', 'value': '127.0.0.1/32'}]
 
 def containers(image, proxy=True):
@@ -126,7 +126,7 @@ class DeployRuntimeTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         update = next(call for call in calls if call[:4] == ['gcloud', 'run', 'services', 'update'])
         self.assertIn('--no-traffic', update)
-        self.assertIn('--update-env-vars=HOST=127.0.0.1,PORT=8081,FORGE_TRUSTED_PROXIES=127.0.0.1/32', update)
+        self.assertIn('--update-env-vars=HOST=0.0.0.0,PORT=8081,FORGE_TRUSTED_PROXIES=127.0.0.1/32', update)
         traffic = [call[-1] for call in calls if '--to-revisions' in call]
         self.assertEqual(traffic, ['candidate=100', 'old=100'])
 

@@ -26,7 +26,7 @@ db = container("db", fixture, "512Mi", 5432, {
 })
 forge = container("api", api, "512Mi", 8081, {
     "DATABASE_URL": db_url, "DATABASE_POOL_SIZE": "1", "JWT_SECRET": jwt,
-    "HOST": "127.0.0.1", "PORT": "8081", "FORGE_TRUSTED_PROXIES": "127.0.0.1/32",
+    "HOST": "0.0.0.0", "PORT": "8081", "FORGE_TRUSTED_PROXIES": "127.0.0.1/32",
     "ADMIN_GITHUB_USERNAME": "Helloworld0822", "GITHUB_CLIENT_ID": "test-client",
     "GITHUB_CLIENT_SECRET": "test-client-secret", "FRONTEND_URL": "http://frontend.test",
     "BACKEND_BASE_URL": "http://127.0.0.1:8081", "CORS_ALLOWED_ORIGINS": "http://frontend.test",
