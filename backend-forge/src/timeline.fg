@@ -14,6 +14,11 @@ fn validate(body: int, create: int): int {
     if (web.optional(body, "description", 3) == 0) { return 0; }
     if (web.present(body, "title") != 0 && web.chars(web.trim(web.field_text(body, "title"))) == 0) { return 0; }
     if (web.optional(body, "icon_url", 3) == 0 || web.optional(body, "attachments", 5) == 0) { return 0; }
+    if (web.present(body, "marker_color") != 0 || (create != 0 && web.has(body, "marker_color") != 0)) {
+        if (web.required(body, "marker_color", 3) == 0) { return 0; }
+        let color: string = web.field_text(body, "marker_color");
+        if (web.equal(color, "default") == 0 && web.equal(color, "gold") == 0 && web.equal(color, "silver") == 0 && web.equal(color, "bronze") == 0) { return 0; }
+    }
     let icon: string = web.field_text(body, "icon_url");
     if (web.present(body, "icon_url") != 0 && web.chars(icon) > 0 && media.uploaded_image(icon) == 0) { return 0; }
     if (create != 0 && web.has(body, "attachments") != 0 && web.present(body, "attachments") == 0) { return 0; }
@@ -38,8 +43,8 @@ fn public_list(conn: int, request: int): int {
 fn save(conn: int, request: int, id: string, create: int): int {
     let body: int = web.request_json(request);
     if (validate(body, create) == 0) { return web.validation(request, "invalid or missing field"); }
-    if (create != 0) { return database.response(conn, request, "WITH changed AS (INSERT INTO timeline_entries(period,title,org,description,icon_url,attachments,sort_order) SELECT (jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).period,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).title,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).org,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).description,COALESCE($1::jsonb->>'icon_url',''),COALESCE($1::jsonb->'attachments','[]'::jsonb),COALESCE((SELECT MAX(sort_order)+1 FROM timeline_entries),0) RETURNING *) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201); }
-    return database.response(conn, request, "WITH changed AS (UPDATE timeline_entries SET period=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).period,period),title=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).title,title),org=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).org,org),description=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).description,description),icon_url=COALESCE($1::jsonb->>'icon_url',icon_url),attachments=COALESCE(NULLIF($1::jsonb->'attachments','null'::jsonb),attachments),updated_at=now() WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
+    if (create != 0) { return database.response(conn, request, "WITH changed AS (INSERT INTO timeline_entries(period,title,org,description,icon_url,attachments,marker_color,sort_order) SELECT (jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).period,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).title,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).org,(jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).description,COALESCE($1::jsonb->>'icon_url',''),COALESCE($1::jsonb->'attachments','[]'::jsonb),COALESCE($1::jsonb->>'marker_color','default'),COALESCE((SELECT MAX(sort_order)+1 FROM timeline_entries),0) RETURNING *) SELECT row_to_json(changed) FROM changed", database.args1(web.dump(body)), 201); }
+    return database.response(conn, request, "WITH changed AS (UPDATE timeline_entries SET period=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).period,period),title=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).title,title),org=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).org,org),description=COALESCE((jsonb_populate_record(NULL::timeline_entries,$1::jsonb)).description,description),icon_url=COALESCE($1::jsonb->>'icon_url',icon_url),attachments=COALESCE(NULLIF($1::jsonb->'attachments','null'::jsonb),attachments),marker_color=COALESCE($1::jsonb->>'marker_color',marker_color),updated_at=now() WHERE id=$2::uuid RETURNING *) SELECT row_to_json(changed) FROM changed", database.args2(web.dump(body), id), 200);
 }
 fn remove(conn: int, request: int, id: string): int { return database.response(conn, request, "DELETE FROM timeline_entries WHERE id=$1::uuid", database.args1(id), 204); }
 fn reorder(conn: int, request: int): int {

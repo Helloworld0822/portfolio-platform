@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { timelineMarkers } from "../../lib/timeline";
 import MediaEditor from "./MediaEditor";
 import type { ProjectAttachment } from "./ProjectEditor";
 
 interface EntryDraft {
   icon_url: string;
+  marker_color: string;
   attachments: ProjectAttachment[];
   period: string;
   title: string;
@@ -82,6 +84,20 @@ const TimelineEditor = ({
             onChange={(e) => onChange({ ...draft, title: e.target.value })}
             className={editorInputClass}
           />
+        </div>
+
+        <div>
+          <label htmlFor="timeline-marker" className={editorLabelClass}>
+            타임라인 표시 색상
+          </label>
+          <select
+            id="timeline-marker"
+            value={draft.marker_color}
+            onChange={(e) => onChange({ ...draft, marker_color: e.target.value })}
+            className={editorInputClass}
+          >
+            {timelineMarkers.map(marker => <option key={marker.value} value={marker.value}>{marker.label}</option>)}
+          </select>
         </div>
 
         <div>

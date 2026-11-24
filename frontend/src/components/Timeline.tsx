@@ -1,6 +1,7 @@
 import { BriefcaseBusiness } from "lucide-react";
 import { usePublicData } from "../lib/usePublicData";
 import { useReveal } from "../lib/useReveal";
+import { timelineMarkers } from "../lib/timeline";
 
 import type { ProjectAttachment } from "../lib/project";
 
@@ -13,6 +14,7 @@ interface TimelineEntry {
   description: string;
   sort_order: number;
   icon_url: string;
+  marker_color?: string;
 }
 
 const Timeline = () => {
@@ -42,9 +44,11 @@ const Timeline = () => {
           <div className="reveal-list ml-2 space-y-4 border-l border-border pl-5">
             {entries.map((entry) => {
               const icon = entry.attachments?.find(item => item.kind === "icon")?.url || entry.icon_url;
+              const marker = timelineMarkers.find(marker => marker.value === entry.marker_color);
               return (
                 <div
                   key={entry.id}
+                  data-marker={entry.marker_color}
                   className="timeline-entry stitch-card relative space-y-1.5 p-4"
                 >
                   <div className="flex flex-wrap items-center gap-2">
@@ -53,7 +57,7 @@ const Timeline = () => {
                       <BriefcaseBusiness aria-hidden="true" className="size-3.5 text-text-muted" />}
                     <span className="font-code-sm text-code-sm text-text-secondary">{entry.org}</span>
                   </div>
-                  <h3 className="text-headline-sm font-bold text-text-primary">{entry.title}</h3>
+                  <h3 className="text-headline-sm font-bold text-text-primary">{entry.title}{marker && marker.value !== "default" && <span className="sr-only"> · {marker.label}</span>}</h3>
                   {entry.description && <p className="whitespace-pre-line text-body-md text-text-secondary">{entry.description}</p>}
                   {entry.attachments?.some(item => item.kind === "image") && <div className="flex flex-wrap gap-2 pt-2">
                     {entry.attachments.filter(item => item.kind === "image").map(image => <a href={image.url} key={image.url} target="_blank" rel="noreferrer">

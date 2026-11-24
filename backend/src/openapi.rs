@@ -110,6 +110,7 @@ impl Modify for SecurityAddon {
         models::CreateContactRequest,
         routes::contact::DedupResult,
         models::ProjectAttachment,
+        models::TimelineMarkerColor,
         models::TimelineEntry,
         models::CreateTimelineRequest,
         models::UpdateTimelineRequest,

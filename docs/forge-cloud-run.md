@@ -15,9 +15,11 @@ the same ordinary health JSON; do not infer the runtime from it.
    migrations from both fresh and current-version schema snapshots, GitHub OAuth
    callback/login, existing JWT claim compatibility, trusted proxy/client IP,
    per-IP/contact and comment budgets, bans/admin bypass, uploads/readback and
-   cleanup, and root/portfolio/blog routes and static assets. Confirm all 15
-   migrations are already applied before overlapping runtimes against live data;
-   their migration locks differ. Recheck the actual running probe/sidecar
+   cleanup, and root/portfolio/blog routes and static assets. Confirm all 16
+   migrations are already applied by Rust before switching runtimes against live data.
+   Forge preserves existing SQLx checksums but records placeholder checksums for
+   migrations it applies, which prevents a later Rust startup from validating them.
+   Their migration locks also differ. Recheck the actual running probe/sidecar
    configuration, not only the Docker health check. An interrupted OAuth flow
    may require a fresh login across a runtime switch.
 3. If any check fails, keep the currently serving runtime. In particular,

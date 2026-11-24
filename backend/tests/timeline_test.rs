@@ -2,7 +2,7 @@ mod common;
 
 use actix_web::{test, web, App};
 use portfolio_blog_api::app::configure_app;
-use portfolio_blog_api::models::TimelineEntry;
+use portfolio_blog_api::models::{TimelineEntry, TimelineMarkerColor};
 use serde_json::json;
 
 async fn build_app(
@@ -31,6 +31,9 @@ async fn list_timeline_returns_seeded_entries_in_order() {
 
     // The 0008 migration seeds four entries with sort_order 0..=3.
     assert_eq!(entries.len(), 4);
+    assert!(entries
+        .iter()
+        .all(|entry| entry.marker_color == TimelineMarkerColor::Default));
     let orders: Vec<i32> = entries.iter().map(|e| e.sort_order).collect();
     let mut sorted = orders.clone();
     sorted.sort_unstable();
@@ -94,6 +97,7 @@ async fn create_update_delete_timeline_entries() {
     assert_eq!(resp.status(), 201);
     let created: TimelineEntry = test::read_body_json(resp).await;
     assert_eq!(created.title, "새 경력");
+    assert_eq!(created.marker_color, TimelineMarkerColor::Default);
     assert_eq!(
         created.icon_url,
         "/uploads/550e8400-e29b-41d4-a716-446655440000.png"

@@ -14,6 +14,7 @@ const emptyDraft: EntryDraft = {
   org: "",
   description: "",
   icon_url: "",
+  marker_color: "default",
 };
 
 const TimelineManager = () => {
@@ -61,6 +62,7 @@ const TimelineManager = () => {
       org: entry.org,
       description: entry.description,
       icon_url: entry.icon_url ?? "",
+      marker_color: entry.marker_color ?? "default",
     });
   };
 

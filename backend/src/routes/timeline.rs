@@ -118,11 +118,11 @@ pub async fn create_timeline(
     let conn = pool.get().await?;
     let row = conn
         .query_one(
-            "INSERT INTO timeline_entries (period, title, org, description, attachments, icon_url, sort_order)
-             VALUES ($1, $2, $3, $4, $5, $6,
+            "INSERT INTO timeline_entries (period, title, org, description, attachments, icon_url, marker_color, sort_order)
+             VALUES ($1, $2, $3, $4, $5, $6, $7,
                      (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM timeline_entries))
              RETURNING *",
-            &[&body.period, &body.title, &body.org, &body.description, &attachments, &body.icon_url],
+            &[&body.period, &body.title, &body.org, &body.description, &attachments, &body.icon_url, &body.marker_color.as_str()],
         )
         .await?;
 
@@ -182,10 +182,10 @@ pub async fn update_timeline(
     let row = conn
         .query_one(
             "UPDATE timeline_entries
-             SET period = $1, title = $2, org = $3, description = $4, attachments = COALESCE($6, attachments), icon_url = COALESCE($7, icon_url), updated_at = now()
+             SET period = $1, title = $2, org = $3, description = $4, attachments = COALESCE($6, attachments), icon_url = COALESCE($7, icon_url), marker_color = COALESCE($8, marker_color), updated_at = now()
              WHERE id = $5
              RETURNING *",
-            &[&period, &title, &org, &description, &id, &media, &body.icon_url],
+            &[&period, &title, &org, &description, &id, &media, &body.icon_url, &body.marker_color.map(|color| color.as_str())],
         )
         .await?;
 

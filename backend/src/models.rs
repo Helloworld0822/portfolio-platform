@@ -259,8 +259,30 @@ pub struct CreateCommentRequest {
     pub body: String,
 }
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum TimelineMarkerColor {
+    #[default]
+    Default,
+    Gold,
+    Silver,
+    Bronze,
+}
+
+impl TimelineMarkerColor {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Gold => "gold",
+            Self::Silver => "silver",
+            Self::Bronze => "bronze",
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct TimelineEntry {
+    pub marker_color: TimelineMarkerColor,
     pub id: Uuid,
     pub period: String,
     pub title: String,
@@ -277,6 +299,9 @@ impl TryFrom<&Row> for TimelineEntry {
     type Error = anyhow::Error;
     fn try_from(row: &Row) -> Result<Self, Self::Error> {
         Ok(TimelineEntry {
+            marker_color: serde_json::from_value(serde_json::Value::String(
+                row.try_get("marker_color")?,
+            ))?,
             id: row.try_get::<_, Uuid>("id").map_err(|_| row_err())?,
             period: row.try_get::<_, String>("period").map_err(|_| row_err())?,
             title: row.try_get::<_, String>("title").map_err(|_| row_err())?,
@@ -302,6 +327,8 @@ impl TryFrom<&Row> for TimelineEntry {
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct CreateTimelineRequest {
     #[serde(default)]
+    pub marker_color: TimelineMarkerColor,
+    #[serde(default)]
     pub attachments: Vec<ProjectAttachment>,
     pub period: String,
     pub title: String,
@@ -313,6 +340,7 @@ pub struct CreateTimelineRequest {
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateTimelineRequest {
+    pub marker_color: Option<TimelineMarkerColor>,
     pub attachments: Option<Vec<ProjectAttachment>>,
     pub period: Option<String>,
     pub title: Option<String>,

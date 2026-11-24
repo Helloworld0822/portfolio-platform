@@ -59,7 +59,7 @@ else
     [[ "$identity" == "$shared_identity" ]]
 fi
 gcloud storage buckets create "gs://$bucket" --project "$project" --location "$region" \
-    --uniform-bucket-level-access --public-access-prevention --no-soft-delete
+    --uniform-bucket-level-access --public-access-prevention --soft-delete-duration=0
 bucket_created=true
 gcloud storage buckets add-iam-policy-binding "gs://$bucket" \
     --member="serviceAccount:$identity" --role=roles/storage.objectUser >/dev/null

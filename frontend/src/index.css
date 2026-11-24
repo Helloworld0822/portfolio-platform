@@ -132,6 +132,8 @@
   --color-border: #d1ddd6;
   --color-success: #00875a;
   --color-gold: #bf9b30;
+  --color-marker-silver: #78848e;
+  --color-marker-bronze: #a86332;
   --color-danger: #c9372c;
 
   --shadow-card: 0 1px 3px rgb(28 56 52 / 5%);
@@ -241,6 +243,9 @@ body {
   content: "";
   @apply absolute -left-[27px] top-3 size-3 rounded-full border-[3px] border-secondary bg-surface ring-2 ring-surface;
 }
+.timeline-entry[data-marker="gold"]::before { border-color: var(--color-gold); background-color: var(--color-gold); }
+.timeline-entry[data-marker="silver"]::before { border-color: var(--color-marker-silver); background-color: var(--color-marker-silver); }
+.timeline-entry[data-marker="bronze"]::before { border-color: var(--color-marker-bronze); background-color: var(--color-marker-bronze); }
 [id] { scroll-margin-top: 5rem; }
 @media (max-width: 63.99rem) {
   [id], section[id] { scroll-margin-top: 7.5rem; }
