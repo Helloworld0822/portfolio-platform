@@ -1,3 +1,5 @@
+forge_api_memory=512Mi
+
 select_api_runtime() {
   local choice=$1 serving_image=$2 registry=$3 serving_runtime
   case "$serving_image" in
@@ -14,9 +16,10 @@ select_api_runtime() {
 }
 
 forge_api_config_matches() {
-  jq -e '
+  jq -e --arg memory "$forge_api_memory" '
     [.[] | select(.name=="api")] | length==1 and
     (.[0] | ((.command // []) | length)==0 and ((.args // []) | length)==0 and
+      .resources.limits.memory==$memory and
       any(.env[]; .name=="HOST" and .value=="0.0.0.0") and
       any(.env[]; .name=="PORT" and .value=="8081") and
       any(.env[]; .name=="FORGE_TRUSTED_PROXIES" and .value=="127.0.0.1/32") and

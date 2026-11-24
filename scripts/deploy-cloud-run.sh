@@ -63,9 +63,9 @@ if [[ "$runtime" == forge ]]; then
     fi
     sleep 15
   done
-  api_options=(--update-env-vars=HOST=0.0.0.0,PORT=8081,FORGE_TRUSTED_PROXIES=127.0.0.1/32)
+  api_options=(--memory="$forge_api_memory" --update-env-vars=HOST=0.0.0.0,PORT=8081,FORGE_TRUSTED_PROXIES=127.0.0.1/32)
 elif jq -e 'any(.spec.template.spec.containers[] | select(.name=="api") | .env[]; .name=="FORGE_TRUSTED_PROXIES")' <<<"$state" >/dev/null; then
-  api_options=(--remove-env-vars=FORGE_TRUSTED_PROXIES)
+  api_options=(--memory=1Gi --remove-env-vars=FORGE_TRUSTED_PROXIES)
 fi
 
 gcloud auth configure-docker "$region-docker.pkg.dev" --quiet

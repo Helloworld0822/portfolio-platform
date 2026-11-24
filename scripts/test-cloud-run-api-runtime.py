@@ -38,6 +38,7 @@ def containers(image, proxy=True):
            'volumeMounts': [{'mountPath': '/app/uploads'}]}
     if image == forge and proxy:
         api['env'] += forge_env
+        api['resources'] = {'limits': {'memory': '512Mi'}}
     return [api, {'name': 'nginx', 'image': nginx}]
 
 if tool == 'git':
@@ -65,7 +66,10 @@ elif tool == 'gcloud':
     elif args[:3] == ['run', 'revisions', 'describe']:
         image = old if args[3] == 'old' else new
         conditions = [{'type': name, 'status': 'True'} for name in ['Ready', 'ContainerHealthy']]
-        print(json.dumps({'spec': {'containers': containers(image, os.environ.get('BAD_PROXY') != '1')},
+        actual = containers(image, os.environ.get('BAD_PROXY') != '1')
+        if args[3] == 'old' and os.environ.get('OLD_MEMORY'):
+            actual[0]['resources']['limits']['memory'] = os.environ['OLD_MEMORY']
+        print(json.dumps({'spec': {'containers': actual},
                           'status': {'conditions': conditions}}))
     elif args[:3] == ['artifacts', 'docker', 'images']:
         kind = args[4].rsplit('/', 1)[-1].split(':', 1)[0]
@@ -121,6 +125,13 @@ class DeployRuntimeTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertFalse(any('update-traffic' in call or 'update' in call for call in calls))
 
+    def test_automatic_rightsizes_existing_forge_revision(self):
+        result, calls = self.run_fixture(serving='forge', OLD_MEMORY='1Gi')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        update = next(call for call in calls if '--no-traffic' in call)
+        self.assertIn('--memory=512Mi', update[update.index('api'):])
+        self.assertTrue(any('candidate=100' in call for call in calls))
+
     def test_ready_forge_candidate_uses_loopback_and_retains_rollback(self):
         result, calls = self.run_fixture(choice='forge', verified=True, PUBLIC_SMOKE_FAIL='1')
         self.assertNotEqual(result.returncode, 0)
@@ -148,6 +159,7 @@ class DeployRuntimeTests(unittest.TestCase):
         self.assertIn('Serving candidate (runtime=rust', result.stdout)
         update = next(call for call in calls if call[:4] == ['gcloud', 'run', 'services', 'update'])
         self.assertIn('--remove-env-vars=FORGE_TRUSTED_PROXIES', update)
+        self.assertIn('--memory=1Gi', update)
         self.assertFalse(any(call[0] == 'gh' for call in calls))
 
     def test_wrong_candidate_proxy_is_never_promoted(self):
