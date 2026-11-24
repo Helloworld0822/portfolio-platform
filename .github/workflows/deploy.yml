@@ -50,9 +50,38 @@ jobs:
           service_account: portfolio-deploy@portfolio-514800.iam.gserviceaccount.com
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
       - name: Release containers to Cloud Run
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
           PORTFOLIO_API_RUNTIME: ${{ inputs.api_runtime || 'keep' }}
           FORGE_STAGING_COMMIT: ${{ inputs.forge_staging_commit }}
           FORGE_STAGING_DIGEST: ${{ inputs.forge_staging_digest }}
         run: bash scripts/deploy-cloud-run.sh
+      - name: Authenticate staging requests
+        if: inputs.api_runtime == 'stage-forge' && steps.release.outputs.api != ''
+        id: stage_auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          project_id: portfolio-514800
+          workload_identity_provider: projects/1024499736581/locations/global/workloadIdentityPools/portfolio-actions/providers/github
+          service_account: portfolio-deploy@portfolio-514800.iam.gserviceaccount.com
+          token_format: id_token
+          id_token_audience: urn:portfolio:forge-staging
+          id_token_include_email: true
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Verify isolated Forge service
+        if: inputs.api_runtime == 'stage-forge' && steps.release.outputs.api != ''
+        env:
+          STAGE_ID_TOKEN: ${{ steps.stage_auth.outputs.id_token }}
+          STAGE_COMMIT: ${{ steps.release.outputs.commit }}
+          STAGE_API: ${{ steps.release.outputs.api }}
+          STAGE_NGINX: ${{ steps.release.outputs.nginx }}
+        run: bash scripts/stage-forge-cloud-run.sh "$STAGE_COMMIT" "$STAGE_API" "$STAGE_NGINX"
+      - name: Save verified staging result
+        if: inputs.api_runtime == 'stage-forge' && steps.release.outputs.api != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-staging-evidence
+          path: ${{ runner.temp }}/forge-staging-evidence.json
+          if-no-files-found: error

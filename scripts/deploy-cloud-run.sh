@@ -98,6 +98,10 @@ if [[ "$runtime" == forge ]]; then
     backend-forge/scripts/build.sh backend-forge/openapi.json backend-forge/docs.html \
     backend/migrations scripts/update-forge-toolchain.py .dockerignore .gitmodules)
   if [[ "$selection" == stage-forge ]]; then
+    web=$(resolve_image nginx nginx/Containerfile . frontend nginx/Containerfile nginx/cloud-run.conf .dockerignore)
+    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+      printf 'commit=%s\napi=%s\nnginx=%s\n' "$commit" "$api" "$web" >> "$GITHUB_OUTPUT"
+    fi
     echo "Stage in an isolated service (commit=$commit, api=$api). No Cloud Run service was changed."
     exit 0
   fi
@@ -169,7 +173,7 @@ if ! current_main; then exit 0; fi
 gcloud run services update-traffic "$service" "${run_args[@]}" --to-revisions "$candidate=100"
 check_release() {
   local path
-  for path in /api/health /api/projects; do
+  for path in /api/health /api/profile /api/projects /api/timeline /api/posts /images/jaemin.jpg; do
     curl --fail --silent --show-error --max-time 15 --retry 3 --retry-all-errors \
       "https://portfolio.helloworld0822.xyz$path" --output /dev/null || return 1
   done

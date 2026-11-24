@@ -1,0 +1,8 @@
+FROM postgres:16-alpine
+RUN apk add --no-cache python3
+COPY backend/migrations /stage/migrations
+COPY backend-forge/tests/integration.py /stage/integration.py
+COPY scripts/forge-stage/seed.sh /docker-entrypoint-initdb.d/seed.sh
+COPY scripts/forge-stage/verify.sh /stage/verify.sh
+RUN chmod +x /docker-entrypoint-initdb.d/seed.sh
+USER postgres

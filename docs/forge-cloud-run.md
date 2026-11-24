@@ -8,14 +8,14 @@ the same ordinary health JSON; do not infer the runtime from it.
 1. After the exact main commit passes CI and Forge migration CI, manually run
    Deploy with `api_runtime=stage-forge`. This resolves or publishes the
    linux/amd64 Forge API image to Artifact Registry and prints its immutable
-   digest. It does not create a Cloud Run revision or change traffic.
+   digest. The workflow then verifies that image on a disposable Cloud Run service and uploads the staging result. Production traffic stays on the serving revision during this check.
 2. Verify that exact API digest and the production nginx configuration on an
    isolated authenticated Cloud Run service, disposable database and disposable
    GCS mount. Never stage writes in the live database or upload bucket. Exercise
    migrations from both fresh and current-version schema snapshots, GitHub OAuth
    callback/login, existing JWT claim compatibility, trusted proxy/client IP,
    per-IP/contact and comment budgets, bans/admin bypass, uploads/readback and
-   cleanup, and root/portfolio/blog routes and static assets. Confirm all 11
+   cleanup, and root/portfolio/blog routes and static assets. Confirm all 15
    migrations are already applied before overlapping runtimes against live data;
    their migration locks differ. Recheck the actual running probe/sidecar
    configuration, not only the Docker health check. An interrupted OAuth flow
@@ -28,8 +28,8 @@ the same ordinary health JSON; do not infer the runtime from it.
 4. With explicit rollout approval, run Deploy with `api_runtime=forge`,
    `forge_staging_commit` set to that exact main SHA and
    `forge_staging_digest` to the tested `sha256:…` value. Deploy validates the
-   supplied evidence identifiers, but does not perform the isolated staging
-   checks itself. It stages the candidate at zero traffic, checks revision
+   supplied evidence identifiers. Use the commit and image digest from the
+   successful staging run. It stages the candidate at zero traffic, checks revision
    readiness and exact container images, then switches traffic. The public
    read-only smoke and serving-revision checks automatically restore the
    prior revision on failure. Confirm selected runtime from the serving
