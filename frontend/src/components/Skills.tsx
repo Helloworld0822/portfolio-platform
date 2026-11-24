@@ -1,89 +1,20 @@
 import { CategoryIcon, SkillIcon } from "../lib/skillIcons";
-import { useReveal } from "../lib/useReveal";
+import type { SkillGroup } from "../lib/profile";
 
-type SkillItem = {
-  name: string;
-  children?: string[];
-};
-
-type SkillGroup = {
-  category: string;
-  items: SkillItem[];
-};
-
-const skillGroups: SkillGroup[] = [
-  {
-    category: "Frontend",
-    items: [
-      { name: "JS/TS", children: ["React", "Next.js"] },
-      { name: "HTML / CSS", children: ["Tailwind CSS", "Bootstrap", "Material UI"] },
-    ],
-  },
-  {
-    category: "Backend",
-    items: [
-      { name: "Rust", children: ["Axum", "Actix"] },
-      { name: "Python", children: ["FastAPI"] },
-      { name: "Elixir", children: ["Phoenix"] },
-    ],
-  },
-  {
-    category: "Database",
-    items: [
-      { name: "PostgreSQL" },
-      { name: "MySQL" },
-      { name: "SQLite" },
-      { name: "RabbitMQ" },
-      { name: "Redis" },
-    ],
-  },
-  {
-    category: "CI/CD",
-    items: [
-      { name: "Docker" },
-      { name: "Podman" },
-      { name: "Kubernetes" },
-      { name: "AWS" },
-      { name: "GitHub Actions" },
-    ],
-  },
-  {
-    category: "Algorithm & Embedded",
-    items: [
-      { name: "C" },
-      { name: "C++" },
-      { name: "Arduino" },
-      { name: "Raspberry Pi" },
-    ],
-  },
-];
-
-export default function Skills() {
-  const { ref, className } = useReveal<HTMLElement>();
-  return (
-    <section id="skills" ref={ref} className={className} aria-labelledby="stack-heading">
-      <h2 id="stack-heading" className="section-heading">기술 스택</h2>
-      <div className="skill-groups">
-        {skillGroups.map(group => (
-          <div className="surface-card skill-group" key={group.category}>
-            <h3><CategoryIcon category={group.category} className="skill-category-icon" />{group.category}</h3>
-            <ul className="skill-items">
-              {group.items.map(skill => (
-                <li key={skill.name}>
-                  <div className="skill-name"><SkillIcon name={skill.name} />{skill.name}</div>
-                  {skill.children && (
-                    <ul className="skill-children">
-                      {skill.children.map(child => (
-                        <li key={child}><SkillIcon name={child} className="size-4 shrink-0" />{child}</li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+export default function Skills({ groups }: { groups: SkillGroup[] }) {
+  return <section id="skills">
+    <h2 className="section-heading">기술 스택</h2>
+    <p className="section-description">사용하는 도구와 기술 스택.</p>
+    <div className="grid gap-4 sm:grid-cols-2">
+      {groups.map((group, index) => <article key={group.category} className={`stitch-card p-4 ${index < 3 ? "sm:col-span-2" : ""}`}>
+        <h3 className="mb-3 flex items-center gap-2 text-headline-sm text-primary"><CategoryIcon category={group.category} />{group.category}</h3>
+        <ul className="flex flex-wrap gap-2">
+          {group.items.map(skill => <li key={skill.name} className="flex flex-wrap items-center gap-2 rounded-lg bg-surface-subtle px-3 py-2 text-body-sm">
+            <SkillIcon name={skill.name} className="size-4" /><strong>{skill.name}</strong>
+            {skill.children?.map(child => <span key={child} className="text-secondary">{child}</span>)}
+          </li>)}
+        </ul>
+      </article>)}
+    </div>
+  </section>;
 }

@@ -64,20 +64,30 @@ fn validate_title(title: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+pub(super) fn is_uploaded_image(value: &str) -> bool {
+    value
+        .strip_prefix("/uploads/")
+        .and_then(|name| name.rsplit_once('.'))
+        .is_some_and(|(name, ext)| {
+            Uuid::parse_str(name).is_ok()
+                && matches!(ext, "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg")
+        })
+}
+
 fn validate_media(attachments: &[ProjectAttachment]) -> Result<(), AppError> {
     for item in attachments {
-        let file = item
-            .url
-            .strip_prefix("/uploads/")
-            .and_then(|name| name.rsplit_once('.'));
-        if !matches!(item.kind.as_str(), "image" | "icon")
-            || !file.is_some_and(|(name, ext)| {
-                Uuid::parse_str(name).is_ok()
-                    && matches!(ext, "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg")
-            })
-        {
+        if !matches!(item.kind.as_str(), "image" | "icon") || !is_uploaded_image(&item.url) {
             return Err(AppError::Validation("invalid uploaded image".into()));
         }
+    }
+    Ok(())
+}
+
+fn validate_icon_url(value: &str) -> Result<(), AppError> {
+    if !value.is_empty() && !is_uploaded_image(value) {
+        return Err(AppError::Validation(
+            "icon_url must be an uploaded image".into(),
+        ));
     }
     Ok(())
 }
@@ -103,15 +113,16 @@ pub async fn create_timeline(
     validate_title(&body.title)?;
     validate_media(&body.attachments)?;
     let attachments = serde_json::to_value(&body.attachments).map_err(anyhow::Error::from)?;
+    validate_icon_url(&body.icon_url)?;
 
     let conn = pool.get().await?;
     let row = conn
         .query_one(
-            "INSERT INTO timeline_entries (period, title, org, description, attachments, sort_order)
-             VALUES ($1, $2, $3, $4, $5,
+            "INSERT INTO timeline_entries (period, title, org, description, attachments, icon_url, sort_order)
+             VALUES ($1, $2, $3, $4, $5, $6,
                      (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM timeline_entries))
              RETURNING *",
-            &[&body.period, &body.title, &body.org, &body.description, &attachments],
+            &[&body.period, &body.title, &body.org, &body.description, &attachments, &body.icon_url],
         )
         .await?;
 
@@ -163,15 +174,18 @@ pub async fn update_timeline(
         .map(serde_json::to_value)
         .transpose()
         .map_err(anyhow::Error::from)?;
+    if let Some(icon_url) = &body.icon_url {
+        validate_icon_url(icon_url)?;
+    }
 
     let conn = pool.get().await?;
     let row = conn
         .query_one(
             "UPDATE timeline_entries
-             SET period = $1, title = $2, org = $3, description = $4, attachments = COALESCE($6, attachments), updated_at = now()
+             SET period = $1, title = $2, org = $3, description = $4, attachments = COALESCE($6, attachments), icon_url = COALESCE($7, icon_url), updated_at = now()
              WHERE id = $5
              RETURNING *",
-            &[&period, &title, &org, &description, &id, &media],
+            &[&period, &title, &org, &description, &id, &media, &body.icon_url],
         )
         .await?;
 
@@ -242,4 +256,29 @@ pub async fn reorder_timeline(
 
     tx.commit().await.map_err(anyhow::Error::from)?;
     Ok(HttpResponse::NoContent().finish())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_icon_url;
+
+    #[test]
+    fn icons_accept_only_uploaded_images_or_removal() {
+        assert!(validate_icon_url("").is_ok());
+        for extension in ["png", "jpg", "jpeg", "gif", "webp", "svg"] {
+            assert!(validate_icon_url(&format!(
+                "/uploads/550e8400-e29b-41d4-a716-446655440000.{extension}"
+            ))
+            .is_ok());
+        }
+        for value in [
+            "https://example.com/logo.png",
+            "javascript:alert(1)",
+            "/uploads/../logo.svg",
+            "/uploads/550e8400-e29b-41d4-a716-446655440000.pdf",
+            "/uploads/550e8400-e29b-41d4-a716-446655440000.png?x=1",
+        ] {
+            assert!(validate_icon_url(value).is_err(), "accepted {value}");
+        }
+    }
 }

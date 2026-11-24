@@ -1,3 +1,4 @@
+pub mod activity;
 pub mod auth_routes;
 pub mod bans;
 pub mod comments;
@@ -5,6 +6,7 @@ pub mod contact;
 pub mod github_repos;
 pub mod health;
 pub mod posts;
+pub mod profile;
 pub mod projects;
 pub mod timeline;
 pub mod uploads;

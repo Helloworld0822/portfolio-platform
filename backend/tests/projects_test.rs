@@ -52,6 +52,69 @@ async fn list_projects_returns_only_published() {
 }
 
 #[tokio::test]
+async fn public_detail_hides_drafts_and_reads_the_stored_profile() {
+    let (pool, _db) = common::setup().await;
+    let conn = pool.get().await.unwrap();
+    let id: uuid::Uuid = conn
+        .query_one("SELECT id FROM projects WHERE published LIMIT 1", &[])
+        .await
+        .unwrap()
+        .get(0);
+    let app = build_app(pool.clone()).await;
+    let uri = format!("/api/projects/{id}");
+    let get = || test::TestRequest::get().uri(&uri).to_request();
+    let project: Project = test::call_and_read_body_json(&app, get()).await;
+    assert_eq!(project.id, id);
+    conn.execute("UPDATE projects SET published=false WHERE id=$1", &[&id])
+        .await
+        .unwrap();
+    assert_eq!(test::call_service(&app, get()).await.status(), 404);
+
+    conn.execute("UPDATE portfolio_profile SET content=jsonb_set(content, '{name}', to_jsonb('Test owner'::text))", &[]).await.unwrap();
+    let req = test::TestRequest::get().uri("/api/profile").to_request();
+    let profile: serde_json::Value = test::call_and_read_body_json(&app, req).await;
+    assert_eq!(profile["name"], "Test owner");
+    assert!(profile["skills"].is_array());
+    assert_eq!(profile["photo"], "/images/jaemin.jpg");
+    let mut updated = profile;
+    updated["name"] = json!("Updated owner");
+    let update = || {
+        test::TestRequest::put()
+            .uri("/api/admin/profile")
+            .set_json(&updated)
+    };
+    assert_eq!(
+        test::call_service(&app, update().to_request())
+            .await
+            .status(),
+        401
+    );
+    assert_eq!(
+        test::call_service(
+            &app,
+            update().insert_header(common::auth_header()).to_request()
+        )
+        .await
+        .status(),
+        200
+    );
+    updated["photo"] = json!("javascript:alert(1)");
+    let invalid = test::TestRequest::put()
+        .uri("/api/admin/profile")
+        .insert_header(common::auth_header())
+        .set_json(&updated)
+        .to_request();
+    assert_eq!(test::call_service(&app, invalid).await.status(), 400);
+    let public: serde_json::Value = test::call_and_read_body_json(
+        &app,
+        test::TestRequest::get().uri("/api/profile").to_request(),
+    )
+    .await;
+    assert_eq!(public["name"], "Updated owner");
+    assert_ne!(public["photo"], updated["photo"]);
+}
+
+#[tokio::test]
 async fn create_project_requires_authentication() {
     let (pool, _db) = common::setup().await;
 

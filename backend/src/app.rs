@@ -45,8 +45,17 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 "/comments/{id}",
                 web::delete().to(routes::comments::delete_own_comment),
             )
+            .route("/profile", web::get().to(routes::profile::get))
             // Public portfolio content
+            .route(
+                "/activity/solved",
+                web::get().to(routes::activity::solved_profile),
+            )
             .route("/projects", web::get().to(routes::projects::list_projects))
+            .route(
+                "/projects/{id}",
+                web::get().to(routes::projects::get_project),
+            )
             // Public timeline ("경력")
             .route("/timeline", web::get().to(routes::timeline::list_timeline))
             // Public contact form
@@ -82,6 +91,7 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 web::delete().to(routes::posts::delete_post),
             )
             // Admin portfolio content
+            .route("/admin/profile", web::put().to(routes::profile::update))
             .route(
                 "/admin/projects",
                 web::get().to(routes::projects::list_admin_projects),

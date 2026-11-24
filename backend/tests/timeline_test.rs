@@ -86,13 +86,18 @@ async fn create_update_delete_timeline_entries() {
             "attachments": [
                 { "kind": "icon", "name": "학교 로고", "url": "/uploads/b054405a-b047-4aaa-88ab-ab6fd677d1b3.svg" },
                 { "kind": "image", "name": "발표 사진", "url": "/uploads/e6c224e0-740a-4b1b-83d2-9e1c822307a6.jpg" }
-            ]
+            ],
+            "icon_url": "/uploads/550e8400-e29b-41d4-a716-446655440000.png"
         }))
         .to_request();
     let resp = test::call_service(&app, create_req).await;
     assert_eq!(resp.status(), 201);
     let created: TimelineEntry = test::read_body_json(resp).await;
     assert_eq!(created.title, "새 경력");
+    assert_eq!(
+        created.icon_url,
+        "/uploads/550e8400-e29b-41d4-a716-446655440000.png"
+    );
 
     let update_req = test::TestRequest::put()
         .uri(&format!("/api/admin/timeline/{}", created.id))
@@ -114,6 +119,33 @@ async fn create_update_delete_timeline_entries() {
         .to_request();
     let cleared: TimelineEntry = test::call_and_read_body_json(&app, clear_media).await;
     assert!(cleared.attachments.is_empty());
+    assert_eq!(updated.icon_url, created.icon_url);
+
+    let public_req = test::TestRequest::get().uri("/api/timeline").to_request();
+    let entries: Vec<TimelineEntry> = test::call_and_read_body_json(&app, public_req).await;
+    assert_eq!(
+        entries
+            .iter()
+            .find(|entry| entry.id == created.id)
+            .unwrap()
+            .icon_url,
+        created.icon_url
+    );
+
+    let invalid_req = test::TestRequest::put()
+        .uri(&format!("/api/admin/timeline/{}", created.id))
+        .insert_header(common::auth_header())
+        .set_json(json!({ "icon_url": "javascript:alert(1)" }))
+        .to_request();
+    assert_eq!(test::call_service(&app, invalid_req).await.status(), 400);
+
+    let clear_req = test::TestRequest::put()
+        .uri(&format!("/api/admin/timeline/{}", created.id))
+        .insert_header(common::auth_header())
+        .set_json(json!({ "icon_url": "" }))
+        .to_request();
+    let cleared: TimelineEntry = test::call_and_read_body_json(&app, clear_req).await;
+    assert!(cleared.icon_url.is_empty());
 
     let delete_req = test::TestRequest::delete()
         .uri(&format!("/api/admin/timeline/{}", created.id))

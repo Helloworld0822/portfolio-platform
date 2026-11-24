@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-const SECTION_IDS = ["hero", "story", "timeline", "skills", "projects", "contact"];
+const SECTION_IDS = ["hero", "timeline", "skills", "stats", "projects", "contact"];
 
 const buttonClass =
   "flex size-9 items-center justify-center rounded-md border border-border bg-canvas text-ink-muted shadow-card transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40";

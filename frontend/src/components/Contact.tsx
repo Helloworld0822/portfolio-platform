@@ -1,14 +1,15 @@
+import { ArrowUpRight, Code2, Link2, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useReveal } from "../lib/useReveal";
 
 const links = [
-  { label: "GitHub", href: "https://github.com/Helloworld0822" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/%EC%9E%AC%EB%AF%BC-%EC%A0%84-ab333a418/" },
-  { label: "이메일", href: "mailto:a100822@naver.com" },
+  { label: "GitHub", Icon: Code2, href: "https://github.com/Helloworld0822" },
+  { label: "LinkedIn", Icon: Link2, href: "https://www.linkedin.com/in/%EC%9E%AC%EB%AF%BC-%EC%A0%84-ab333a418/" },
+  { label: "이메일", Icon: Mail, href: "mailto:a100822@naver.com" },
 ];
 
 const inputClass =
-  "w-full rounded-md border border-border bg-canvas px-3 py-2 text-sm text-ink focus-visible:outline-primary";
+  "w-full rounded-md border border-border bg-surface-1 px-4 py-2.5 text-sm text-ink placeholder-ink-subdued outline-none transition-colors duration-[120ms] focus:border-primary";
 
 const Contact = () => {
   const [name, setName] = useState("");
@@ -61,32 +62,19 @@ const Contact = () => {
   const { ref, className } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="contact" className="border-t border-border bg-canvas">
-      <div ref={ref} className={`site-container portfolio-content ${className}`}>
-        <div className="contact-layout">
+    <section id="contact" className="w-full">
+      <div ref={ref} className={`w-full ${className}`}>
+        <div className="grid gap-5 rounded-2xl bg-surface-subtle p-5 md:grid-cols-[5fr_7fr] md:p-10">
           <div><h2 className="section-heading">연락하기</h2>
-          <p className="max-w-sm text-ink-muted">
-            프로젝트 협업이나 개발 관련 질문을 보내 주세요.
+          <p className="mt-4 max-w-md text-ink-muted">
+            새로운 기회, 협업, 흥미로운 문제에 항상 열려 있습니다.
+            언제든 편하게 연락해 주세요.
           </p>
 
-          <div className="mt-5 flex flex-wrap gap-4">
-            {links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target={link.href.startsWith("mailto") ? undefined : "_blank"}
-                rel="noopener noreferrer"
-                className="text-sm text-primary-pressed underline underline-offset-4"
-              >
-                {link.label}
-              </a>
-            ))}
           </div>
-          </div>
-
           <form
             onSubmit={handleSubmit}
-            className="space-y-4"
+            className="stitch-card p-5 md:p-7 space-y-4 text-left md:col-start-2 md:row-span-2 md:row-start-1 md:mt-0"
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
@@ -136,18 +124,30 @@ const Contact = () => {
             {status === "success" && (
               <p className="text-sm text-success">메시지가 전송되었습니다. 빠른 시일 내에 답변드리겠습니다.</p>
             )}
-            {status === "error" && <p className="text-sm text-danger">{errorMessage}</p>}
+            {status === "error" && <p role="alert" className="text-sm text-danger">{errorMessage}</p>}
 
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-60"
+              className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {status === "sending" ? "전송 중..." : "메시지 보내기"}
             </button>
           </form>
 
-
+          <div className="flex flex-col items-start gap-2">
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("mailto") ? undefined : "_blank"}
+                rel="noopener noreferrer"
+                className="flex w-full items-center gap-3 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-primary hover:underline"
+              >
+                <link.Icon size={16} /> {link.label}<ArrowUpRight size={14} className="ml-auto" />
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </section>

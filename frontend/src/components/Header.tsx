@@ -1,9 +1,10 @@
+import { Code2, Mail, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { BLOG_URL, PORTFOLIO_URL, isBlogHost } from "../lib/site";
+import { BLOG_URL, PORTFOLIO_URL, isBlogHost, isPortfolioHost } from "../lib/site";
 
 const navLinkClassName =
-  "rounded-md px-2 py-1.5 text-sm text-ink-muted md:px-3 transition-colors duration-[240ms] hover:bg-surface-1 hover:text-primary";
+  "rounded-full px-2.5 py-2 text-sm text-ink-muted transition-colors duration-[240ms] hover:bg-surface-1 hover:text-primary";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -15,32 +16,38 @@ const Header = () => {
     return `${base}/#${id}`;
   };
 
-  const blogHref = isBlogHost() ? "/blog" : `${BLOG_URL}/blog`;
+  const blogHref = isPortfolioHost() ? `${BLOG_URL}/blog` : "/blog";
   const homeHref = isBlogHost() ? PORTFOLIO_URL : "/";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-page/95 backdrop-blur-sm">
-      <div className="site-container flex min-h-16 flex-wrap items-center justify-between gap-y-1 py-2 sm:flex-nowrap">
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/90 backdrop-blur-md">
+      <div className="stitch-layout flex min-h-16 flex-wrap items-center justify-between gap-2 py-2 lg:flex-nowrap">
         <Link
           to={homeHref}
           className="text-lg font-semibold tracking-tight text-navy transition-colors duration-[240ms] hover:text-primary"
         >
-          Helloworld0822
+          Helloworld0822 <span className="hidden text-sm font-normal text-text-secondary xl:inline">/ 전재민</span>
         </Link>
-        <nav aria-label="주요 메뉴" className="order-last flex w-full flex-wrap items-center gap-0 sm:order-none sm:w-auto sm:gap-1">
+        <nav aria-label="주요 메뉴" className="order-last flex w-full items-center overflow-x-auto whitespace-nowrap rounded-full bg-surface-subtle px-2 py-1 lg:order-none lg:w-auto">
           <a href={buildSectionHref("story")} className={navLinkClassName}>
             소개
           </a>
-          <a href={buildSectionHref("timeline")} className={navLinkClassName}>경력</a>
+          <a href={buildSectionHref("timeline")} className={navLinkClassName}>
+            경력
+          </a>
           <a href={buildSectionHref("skills")} className={navLinkClassName}>
             기술
           </a>
           <a href={buildSectionHref("projects")} className={navLinkClassName}>
             프로젝트
           </a>
+          <a href={buildSectionHref("stats")} className={navLinkClassName}>개발자 활동</a>
           <Link to={blogHref} className={navLinkClassName}>
             블로그
           </Link>
+          <a href={buildSectionHref("contact")} className={navLinkClassName}>
+            연락처
+          </a>
           {user?.isAdmin && (
             <Link to="/admin" className={navLinkClassName}>
               관리자
@@ -48,13 +55,15 @@ const Header = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
+          <a href="https://github.com/Helloworld0822" aria-label="GitHub" className="hidden text-primary xl:block"><Code2 size={17} /></a>
+          <a href="mailto:a100822@naver.com" aria-label="이메일" className="hidden text-primary xl:block"><Mail size={17} /></a>
           {user && (
-            <div className="hidden items-center gap-2 sm:flex">
+            <div className="flex items-center gap-2">
               {user.avatarUrl && (
                 <img
                   src={user.avatarUrl}
                   alt={user.username}
-                  className="size-7 rounded-full"
+                  className="hidden size-7 rounded-full sm:block"
                 />
               )}
               <button
@@ -68,9 +77,9 @@ const Header = () => {
           )}
           <a
             href={buildSectionHref("contact")}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-[120ms] hover:bg-primary-hover active:bg-primary-pressed"
           >
-            연락하기
+            <Send size={14} /> 연락하기
           </a>
         </div>
       </div>

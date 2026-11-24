@@ -267,6 +267,7 @@ pub struct TimelineEntry {
     pub org: String,
     pub description: String,
     pub attachments: Vec<ProjectAttachment>,
+    pub icon_url: String,
     pub sort_order: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -284,6 +285,9 @@ impl TryFrom<&Row> for TimelineEntry {
                 .try_get::<_, String>("description")
                 .map_err(|_| row_err())?,
             attachments: serde_json::from_value(row.try_get("attachments")?)?,
+            icon_url: row
+                .try_get::<_, String>("icon_url")
+                .map_err(|_| row_err())?,
             sort_order: row.try_get::<_, i32>("sort_order").map_err(|_| row_err())?,
             created_at: row
                 .try_get::<_, DateTime<Utc>>("created_at")
@@ -303,6 +307,8 @@ pub struct CreateTimelineRequest {
     pub title: String,
     pub org: String,
     pub description: String,
+    #[serde(default)]
+    pub icon_url: String,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -312,6 +318,7 @@ pub struct UpdateTimelineRequest {
     pub title: Option<String>,
     pub org: Option<String>,
     pub description: Option<String>,
+    pub icon_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]

@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
-    <footer className="border-t border-border bg-page py-8">
-      <div className="site-container flex flex-col items-center justify-between gap-4 sm:flex-row">
+    <footer className="border-t border-border bg-surface py-8">
+      <div className="stitch-layout flex flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-sm text-ink-muted">
           &copy; {new Date().getFullYear()} Helloworld0822. All rights reserved.
         </p>

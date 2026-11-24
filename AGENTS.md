@@ -53,6 +53,8 @@ npm install
 npm run dev   # http://localhost:5173
 ```
 
+Vite proxies `/api` and `/uploads` to localhost:8080. Set `PORTFOLIO_API_ORIGIN` in `frontend/.env.local` for a different local API port. The homepage loads introduction and skills from `GET /api/profile` (migration 0015). The 소개 admin tab saves changes with `PUT /api/admin/profile`. Public project detail uses `GET /api/projects/{id}` and only returns published records.
+
 Migrations auto-apply on backend startup (`backend/migrations/`).
 
 ## Testing
@@ -148,6 +150,11 @@ A successful main push through CI triggers `.github/workflows/deploy.yml`. It ch
 - `backend/src/routes/timeline.rs`: timeline ("경력") CRUD +
   `POST /api/admin/timeline/reorder` (full `ids` list in desired order).
   Seeded by `migrations/0008_timeline.sql`.
+  Optional `icon_url` from `migrations/0014_timeline_icons.sql` accepts uploaded
+  image paths; the admin editor uploads, previews, and removes career logos.
+- Project attachments use the first image as the public card cover; the detail
+  page shows full images and links to originals. Career and skills share two
+  columns from 1024px, with vertically stacked skill categories and items.
 - DB columns added by `migrations/0007_*`: `repo_languages JSONB`,
   `repo_private BOOLEAN`, `attachments JSONB`.
 ### Forge frontend

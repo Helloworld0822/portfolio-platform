@@ -4,11 +4,13 @@ import PostManager from "./PostManager";
 import ProjectManager from "./ProjectManager";
 import TimelineManager from "./TimelineManager";
 import Inbox from "./Inbox";
+import ProfileManager from "./ProfileManager";
 import BansManager from "./BansManager";
 
-type Tab = "posts" | "projects" | "timeline" | "inbox" | "bans";
+type Tab = "profile" | "posts" | "projects" | "timeline" | "inbox" | "bans";
 
 const tabs: { id: Tab; label: string }[] = [
+  { id: "profile", label: "소개" },
   { id: "posts", label: "글" },
   { id: "projects", label: "프로젝트" },
   { id: "timeline", label: "경력" },
@@ -74,7 +76,7 @@ const Admin = () => {
           </button>
         </div>
 
-        <div className="mt-6 flex gap-1 border-b border-border">
+        <div className="mt-6 flex flex-wrap gap-1 border-b border-border">
           {tabs.map(({ id, label }) => (
             <button
               key={id}
@@ -92,6 +94,7 @@ const Admin = () => {
         </div>
 
         <div className="mt-8">
+          {tab === "profile" && <ProfileManager />}
           {tab === "posts" && <PostManager />}
           {tab === "projects" && <ProjectManager />}
           {tab === "timeline" && <TimelineManager />}

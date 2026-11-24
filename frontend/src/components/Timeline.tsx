@@ -1,41 +1,32 @@
-import { useEffect, useState } from "react";
-import type { ProjectAttachment } from "./ProjectModal";
+import { BriefcaseBusiness } from "lucide-react";
+import { usePublicData } from "../lib/usePublicData";
 import { useReveal } from "../lib/useReveal";
 
+import type { ProjectAttachment } from "../lib/project";
+
 interface TimelineEntry {
+  attachments?: ProjectAttachment[];
   id: string;
   period: string;
   title: string;
   org: string;
   description: string;
   sort_order: number;
-  attachments?: ProjectAttachment[];
+  icon_url: string;
 }
 
 const Timeline = () => {
-  const [entries, setEntries] = useState<TimelineEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/timeline")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("failed to load timeline");
-        }
-        return res.json() as Promise<TimelineEntry[]>;
-      })
-      .then((data) => setEntries(data))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: entries, status } = usePublicData<TimelineEntry[]>("/api/timeline");
+  const loading = !status;
+  const error = status >= 400;
 
   const { ref, className } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="timeline" className="experience" aria-labelledby="experience-heading">
+    <section id="timeline" className="min-w-0">
       <div ref={ref} className={className}>
-        <h2 id="experience-heading" className="section-heading">경력과 활동</h2>
+        <h2 className="section-heading">경력과 활동 {entries && entries.length > 0 && <span className="ml-auto font-code-sm text-code-sm font-normal text-text-muted">{entries.length} Milestones</span>}</h2>
+        <p className="section-description">활동 경험과 주요 이정표.</p>
 
         {loading && (
           <p className="mt-10 text-sm text-ink-muted">불러오는 중...</p>
@@ -43,33 +34,36 @@ const Timeline = () => {
         {!loading && error && (
           <p className="mt-10 text-sm text-ink-muted">경력을 불러오지 못했습니다.</p>
         )}
-        {!loading && !error && entries.length === 0 && (
+        {!loading && !error && entries?.length === 0 && (
           <p className="mt-10 text-sm text-ink-muted">등록된 경력이 없습니다.</p>
         )}
 
-        {!loading && !error && entries.length > 0 && (
-          <ol className="experience-list">
-            {entries.map(entry => {
-              const images = entry.attachments?.filter(a => a.kind === "image");
-              const icon = entry.attachments?.find(a => a.kind === "icon");
+        {!loading && !error && entries && entries.length > 0 && (
+          <div className="ml-2 space-y-4 border-l border-border pl-5">
+            {entries.map((entry) => {
+              const icon = entry.attachments?.find(item => item.kind === "icon")?.url || entry.icon_url;
               return (
-                <li key={entry.id}>
-                  <div className="experience-meta">
-                    <span className="experience-date">{entry.period}</span>
-                    {entry.org && <span className="experience-org">{entry.org}</span>}
+                <div
+                  key={entry.id}
+                  className="timeline-entry stitch-card relative space-y-1.5 p-4"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded bg-primary-fixed px-2 py-0.5 font-code-sm text-code-sm font-semibold text-primary">{entry.period}</span>
+                    {icon ? <img src={icon} alt="" loading="lazy" className="size-5 object-contain" /> :
+                      <BriefcaseBusiness aria-hidden="true" className="size-3.5 text-text-muted" />}
+                    <span className="font-code-sm text-code-sm text-text-secondary">{entry.org}</span>
                   </div>
-                  <div>
-                    <h3>{icon && <img src={icon.url} alt="" width={26} height={26} loading="lazy" />}{entry.title}</h3>
-                    {entry.description && <p className="experience-description">{entry.description}</p>}
-                    {!!images?.length && <div className="experience-gallery">{images.map(a =>
-                      <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
-                        <img src={a.url} alt={a.name} loading="lazy" decoding="async" />
-                      </a>)}</div>}
-                  </div>
-                </li>
+                  <h3 className="text-headline-sm font-bold text-text-primary">{entry.title}</h3>
+                  {entry.description && <p className="whitespace-pre-line text-body-md text-text-secondary">{entry.description}</p>}
+                  {entry.attachments?.some(item => item.kind === "image") && <div className="flex flex-wrap gap-2 pt-2">
+                    {entry.attachments.filter(item => item.kind === "image").map(image => <a href={image.url} key={image.url} target="_blank" rel="noreferrer">
+                      <img src={image.url} alt={image.name} loading="lazy" decoding="async" className="aspect-[4/3] w-32 rounded-lg object-cover" />
+                    </a>)}
+                  </div>}
+                </div>
               );
             })}
-          </ol>
+          </div>
         )}
       </div>
     </section>

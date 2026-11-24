@@ -3,6 +3,7 @@ import MediaEditor from "./MediaEditor";
 import type { ProjectAttachment } from "./ProjectEditor";
 
 interface EntryDraft {
+  icon_url: string;
   attachments: ProjectAttachment[];
   period: string;
   title: string;
@@ -97,7 +98,7 @@ const TimelineEditor = ({
         </div>
 
         <MediaEditor attachments={draft.attachments} onUploading={setUploading}
-          onChange={attachments => onChange({ ...draft, attachments })} />
+          onChange={attachments => onChange({ ...draft, attachments, icon_url: attachments.find(item => item.kind === "icon")?.url ?? "" })} />
 
         {error && <p className="text-sm text-danger">{error}</p>}
 

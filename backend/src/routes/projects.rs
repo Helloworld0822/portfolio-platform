@@ -71,6 +71,22 @@ pub async fn list_projects(pool: web::Data<PgPool>) -> Result<HttpResponse, AppE
     Ok(HttpResponse::Ok().json(projects))
 }
 
+#[utoipa::path(get, path = "/api/projects/{id}", tag = "projects", params(("id" = Uuid, Path, description = "Project ID")), responses((status = 200, body = Project), (status = 404, description = "No published project with this ID")))]
+pub async fn get_project(
+    pool: web::Data<PgPool>,
+    id: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let conn = pool.get().await?;
+    let row = conn
+        .query_opt(
+            "SELECT * FROM projects WHERE published AND id = $1",
+            &[&id.into_inner()],
+        )
+        .await?
+        .ok_or(AppError::NotFound)?;
+    Ok(HttpResponse::Ok().json(Project::try_from(&row)?))
+}
+
 /// List every project, unpublished included.
 #[utoipa::path(
     get,

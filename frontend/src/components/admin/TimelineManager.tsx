@@ -13,6 +13,7 @@ const emptyDraft: EntryDraft = {
   title: "",
   org: "",
   description: "",
+  icon_url: "",
 };
 
 const TimelineManager = () => {
@@ -50,12 +51,16 @@ const TimelineManager = () => {
   const startEdit = (entry: TimelineEntry) => {
     setEditingId(entry.id);
     setSaveError(null);
+    const attachments = entry.attachments ?? [];
     setEditing({
-      attachments: entry.attachments ?? [],
+      attachments: entry.icon_url && !attachments.some(item => item.kind === "icon")
+        ? [...attachments, { kind: "icon", name: entry.org || entry.title, url: entry.icon_url }]
+        : attachments,
       period: entry.period,
       title: entry.title,
       org: entry.org,
       description: entry.description,
+      icon_url: entry.icon_url ?? "",
     });
   };
 
@@ -184,13 +189,16 @@ const TimelineManager = () => {
         {entries?.length === 0 && (
           <p className="text-sm text-ink-muted">아직 등록된 경력이 없습니다.</p>
         )}
-        {entries?.map((entry, index) => (
+        {entries?.map((entry, index) => {
+          const icon = entry.attachments?.find(item => item.kind === "icon")?.url || entry.icon_url;
+          return (
           <div
             key={entry.id}
-            className="flex items-center justify-between gap-4 rounded-lg border border-border bg-canvas p-4 shadow-card"
+            className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-canvas p-4 shadow-card"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
+                {icon && <img src={icon} alt="" className="size-10 shrink-0 rounded border border-border object-contain p-1" />}
                 <span className="text-xs text-ink-subdued">{index + 1}</span>
                 <span className="truncate font-medium text-ink">{entry.title}</span>
               </div>
@@ -234,7 +242,8 @@ const TimelineManager = () => {
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
