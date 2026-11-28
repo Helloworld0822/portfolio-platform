@@ -8,13 +8,24 @@ import type { Project } from "../lib/project";
 import { usePublicData } from "../lib/usePublicData";
 import { useReveal } from "../lib/useReveal";
 
+const illustrations = new Map([
+  ["waynudge", "/images/projects/waynudge.webp"],
+  ["search-ui", "/images/projects/search-ui.webp"],
+  ["openrouter", "/images/projects/openrouter.webp"],
+  ["portfolio", "/images/keyboard-still-life.webp"],
+  ["dayflow", "/images/projects/dayflow.webp"],
+  ["chatgend", "/images/projects/chatgend.webp"],
+]);
+
 function Cover({ project }: { project: Project }) {
   const cover = project.attachments?.find(item => item.kind === "image");
-  const slug = project.title.toLowerCase().replaceAll(" ", "-");
-  const artwork = ["waynudge", "search-ui", "openrouter", "portfolio", "dayflow", "chatgend"].includes(slug) ? "/stitch/" + slug + ".jpg" : undefined;
-  const src = cover?.url || artwork;
-  return src ? <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" /> :
-    <div aria-hidden="true" className="project-cover"><span>{project.title}</span></div>;
+  if (cover) return <img src={cover.url} alt={cover.name} className="h-full w-full object-cover" loading="lazy" />;
+  const artwork = illustrations.get(project.title.trim().toLowerCase().replaceAll(" ", "-"));
+  if (!artwork) return <div aria-hidden="true" className="project-cover"><span>{project.title}</span></div>;
+  return <figure className="relative h-full w-full">
+    <img src={artwork} alt="" className="h-full w-full object-cover" loading="lazy" />
+    <figcaption className="absolute bottom-2 left-2 rounded bg-white/95 px-2 py-1 text-xs text-primary">AI 삽화</figcaption>
+  </figure>;
 }
 
 export default function Projects({ archive = false }: { archive?: boolean }) {
