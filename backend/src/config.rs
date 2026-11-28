@@ -13,6 +13,8 @@ pub struct Config {
     pub github_oauth_base_url: String,
     pub github_api_base_url: String,
     pub github_token: Option<String>,
+    pub openai_api_key: Option<String>,
+    pub image_generation_url: String,
     pub upload_dir: String,
 }
 
@@ -41,6 +43,10 @@ impl Config {
             github_api_base_url: std::env::var("GITHUB_API_BASE_URL")
                 .unwrap_or_else(|_| "https://api.github.com".to_string()),
             github_token: std::env::var("GITHUB_TOKEN").ok().filter(|t| !t.is_empty()),
+            openai_api_key: std::env::var("OPENAI_API_KEY")
+                .ok()
+                .filter(|s| !s.trim().is_empty()),
+            image_generation_url: "https://api.openai.com/v1/images/generations".into(),
             upload_dir: std::env::var("UPLOAD_DIR").unwrap_or_else(|_| "./uploads".to_string()),
         })
     }

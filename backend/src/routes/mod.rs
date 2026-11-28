@@ -5,6 +5,7 @@ pub mod comments;
 pub mod contact;
 pub mod github_repos;
 pub mod health;
+pub mod images;
 pub mod posts;
 pub mod profile;
 pub mod projects;

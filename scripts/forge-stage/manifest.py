@@ -31,6 +31,7 @@ forge = container("api", api, "512Mi", 8081, {
     "GITHUB_CLIENT_SECRET": "test-client-secret", "FRONTEND_URL": "http://frontend.test",
     "BACKEND_BASE_URL": "http://127.0.0.1:8081", "CORS_ALLOWED_ORIGINS": "http://frontend.test",
     "GITHUB_OAUTH_BASE_URL": mock_url, "GITHUB_API_BASE_URL": mock_url,
+    "OPENAI_API_KEY": "mock-image-key", "IMAGE_GENERATION_URL": mock_url + "/images/generations",
     "SOLVED_PROFILE_URL": mock_url + "/solved",
     "SOLVED_CLIENT_ID": "test-solved", "SOLVED_CLIENT_SECRET": "test-solved-secret",
 })

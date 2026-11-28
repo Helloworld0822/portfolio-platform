@@ -157,6 +157,10 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 "/admin/uploads",
                 web::post().to(routes::uploads::upload_file),
             )
+            .route(
+                "/admin/images/generate",
+                web::post().to(routes::images::generate_image),
+            )
             // Admin abuse controls
             .route("/admin/bans", web::get().to(routes::bans::list_bans))
             .route("/admin/bans/ips", web::post().to(routes::bans::ban_ip))

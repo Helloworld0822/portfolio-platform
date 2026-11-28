@@ -1,0 +1,13 @@
+--- bridge.c
++++ bridge.c
+@@ -1279,6 +1279,10 @@
+     return "image/svg+xml";
+   if (!strcasecmp(ext, ".pdf"))
+     return "application/pdf";
++  if (!strcasecmp(ext, ".ppt"))
++    return "application/vnd.ms-powerpoint";
++  if (!strcasecmp(ext, ".pptx"))
++    return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+   return "application/octet-stream";
+ }
+ int64_t fw_file(int64_t h, const char *root, const char *name) {

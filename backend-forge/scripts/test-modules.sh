@@ -5,7 +5,7 @@ BUILD_DIR=${BUILD_DIR:-"$APP_ROOT/backend-forge/build"}
 FORGE_SOURCE=${FORGE_SOURCE:-"$APP_ROOT/backend-forge/toolchain"}
 POSTGRES_SOURCE=${POSTGRES_SOURCE:-"$APP_ROOT/backend-forge/vendor/forge-postgres"}
 WEB_SOURCE=${WEB_SOURCE:-"$APP_ROOT/backend-forge/vendor/forge-web"}
-cmake -S "$WEB_SOURCE" -B "$BUILD_DIR/web" -DCMAKE_BUILD_TYPE=Release
+cmake -S "$BUILD_DIR/web-source" -B "$BUILD_DIR/web" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR/web" -j 4
 ctest --test-dir "$BUILD_DIR/web" --output-on-failure
 ctest --test-dir "$BUILD_DIR/postgres" --output-on-failure

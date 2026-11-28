@@ -14,7 +14,14 @@ cmake --build "$BUILD_DIR/toolchain" --target forge forge_std forge_runtime -j 4
 SDK_ROOT="$BUILD_DIR/toolchain"
 cmake -S "$POSTGRES_SOURCE" -B "$BUILD_DIR/postgres" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR/postgres" -j 4
-cmake -S "$WEB_SOURCE" -B "$BUILD_DIR/web" -DCMAKE_BUILD_TYPE=Release
+PATCHED_WEB="$BUILD_DIR/web-source"
+mkdir -p "$PATCHED_WEB"
+cp -R "$WEB_SOURCE/CMakeLists.txt" "$WEB_SOURCE/src" "$WEB_SOURCE/include" "$WEB_SOURCE/tests" "$PATCHED_WEB/"
+patch -s "$PATCHED_WEB/src/bridge.c" < "$APP_ROOT/backend-forge/native/powerpoint-mime.patch"
+if [ -f "$BUILD_DIR/web/CMakeCache.txt" ] && ! grep -Fqx "CMAKE_HOME_DIRECTORY:INTERNAL=$PATCHED_WEB" "$BUILD_DIR/web/CMakeCache.txt"; then
+    rm "$BUILD_DIR/web/CMakeCache.txt"
+fi
+cmake -S "$PATCHED_WEB" -B "$BUILD_DIR/web" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR/web" -j 4
 "$BUILD_DIR/toolchain/bin/forge" "$APP_ROOT/backend-forge/src/main.fg" --emit-c -o "$BUILD_DIR/server.c" -I "$POSTGRES_SOURCE" -I "$WEB_SOURCE" --forge-root "$SDK_ROOT" --lib-dir "$SDK_ROOT/lib"
 cat "$APP_ROOT/backend-forge/native/adapter.c" >> "$BUILD_DIR/server.c"

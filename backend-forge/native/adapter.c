@@ -448,3 +448,125 @@ const char *portfolio_solved_end(int64_t refreshed, const char *profile) {
     pthread_mutex_unlock(&solved_mutex);
     return copy ? copy : "";
 }
+
+#include <json-c/json.h>
+#include <openssl/evp.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+enum { IMAGE_BYTES = 20 * 1024 * 1024, IMAGE_BASE64 = (IMAGE_BYTES + 2) / 3 * 4 };
+
+const char *portfolio_image_prompt(const char *value) {
+    const unsigned char *p = (const unsigned char *)value, *start = NULL, *end = NULL;
+    size_t units = 0, trimmed_units = 0;
+    while (*p) {
+        const unsigned char *character = p;
+        unsigned point = *p++;
+        if (point >= 0xc0) {
+            point &= point < 0xe0 ? 31 : point < 0xf0 ? 15 : 7;
+            while ((*p & 0xc0) == 0x80) point = (point << 6) | (*p++ & 63);
+        }
+        int space = (point >= 9 && point <= 13) || point == 32 || point == 0x85 ||
+                    point == 0xa0 || point == 0x1680 || (point >= 0x2000 && point <= 0x200a) ||
+                    point == 0x2028 || point == 0x2029 || point == 0x202f || point == 0x205f || point == 0x3000;
+        if (!space && !start) start = character;
+        if (start) units += point > 0xffff ? 2 : 1;
+        if (!space) { end = p; trimmed_units = units; }
+    }
+    if (!start || trimmed_units > 1000) return "";
+    const char *result = fr_str_sub((const char *)start, 0, end - start);
+    return result ? result : "";
+}
+
+static size_t image_receive(char *chunk, size_t size, size_t count, void *context) {
+    FILE *stream = context;
+    long used = ftell(stream);
+    if (used < 0 || (size && count > (IMAGE_BASE64 + 65536u - (size_t)used) / size)) return 0;
+    return fwrite(chunk, 1, size * count, stream);
+}
+
+static int image_decode(json_object *response, unsigned char **png) {
+    json_object *data, *encoded;
+    if (!json_object_object_get_ex(response, "data", &data) || !json_object_is_type(data, json_type_array) ||
+        json_object_array_length(data) != 1 ||
+        !json_object_object_get_ex(json_object_array_get_idx(data, 0), "b64_json", &encoded) ||
+        !json_object_is_type(encoded, json_type_string)) return 0;
+    const char *text = json_object_get_string(encoded);
+    int n = json_object_get_string_len(encoded);
+    if (n < 4 || n > IMAGE_BASE64 || n % 4) return 0;
+    int padding = (text[n-1] == '=') + (text[n-2] == '=');
+    if (strspn(text, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/") != (size_t)(n-padding) ||
+        (padding && text[n-1] != '=')) return 0;
+    *png = malloc((size_t)n / 4 * 3);
+    if (!*png) return 0;
+    int length = EVP_DecodeBlock(*png, (const unsigned char *)text, n) - padding;
+    if (length < 20 || length > IMAGE_BYTES || memcmp(*png, "\x89PNG\r\n\x1a\n", 8) ||
+        memcmp(*png + length - 12, "\0\0\0\0IEND\xae\x42\x60\x82", 12)) return 0;
+    return length;
+}
+
+static int64_t image_store(int64_t request, const unsigned char *png, size_t length) {
+    const char *root = fw_env("UPLOAD_DIR", "./uploads"), *id = fw_uuid();
+    char path[512], temporary[512], response[100];
+    if (!*id || (mkdir(root, 0755) && errno != EEXIST) ||
+        snprintf(path, sizeof path, "%s/%s.png", root, id) >= (int)sizeof path ||
+        snprintf(temporary, sizeof temporary, "%s/.image-XXXXXX", root) >= (int)sizeof temporary)
+        return fw_respond(request, 500, "{\"error\":\"internal\"}");
+    int fd = mkstemp(temporary);
+    if (fd < 0) return fw_respond(request, 500, "{\"error\":\"internal\"}");
+    FILE *file = fdopen(fd, "wb");
+    int ok = file && fwrite(png, 1, length, file) == length;
+    if (file) { if (fclose(file)) ok = 0; }
+    else close(fd);
+    if (!ok || rename(temporary, path)) {
+        unlink(temporary);
+        return fw_respond(request, 500, "{\"error\":\"internal\"}");
+    }
+    snprintf(response, sizeof response, "{\"url\":\"/uploads/%s.png\"}", id);
+    return fw_respond(request, 201, response);
+}
+
+int64_t portfolio_image_generate(int64_t request, const char *payload, const char *key) {
+    CURL *client = curl_easy_init();
+    struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
+    char *body = NULL;
+    size_t size = 0;
+    FILE *stream = open_memstream(&body, &size);
+    json_object *response = NULL;
+    unsigned char *png = NULL;
+    int length = 0;
+    long status = 0;
+    if (client && headers && stream && !strpbrk(key, "\r\n")) {
+        curl_easy_setopt(client, CURLOPT_URL, fw_env("IMAGE_GENERATION_URL", "https://api.openai.com/v1/images/generations"));
+        curl_easy_setopt(client, CURLOPT_PROTOCOLS_STR, "https,http");
+        curl_easy_setopt(client, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+        curl_easy_setopt(client, CURLOPT_XOAUTH2_BEARER, key);
+        curl_easy_setopt(client, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(client, CURLOPT_POSTFIELDS, payload);
+        curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1L);
+        curl_easy_setopt(client, CURLOPT_CONNECTTIMEOUT, 5L);
+        curl_easy_setopt(client, CURLOPT_TIMEOUT, 105L);
+        curl_easy_setopt(client, CURLOPT_WRITEFUNCTION, image_receive);
+        curl_easy_setopt(client, CURLOPT_WRITEDATA, stream);
+        if (curl_easy_perform(client) == CURLE_OK)
+            curl_easy_getinfo(client, CURLINFO_RESPONSE_CODE, &status);
+    }
+    if (stream && fclose(stream) == 0 && status >= 200 && status < 300 && body && !memchr(body, 0, size)) {
+        struct json_tokener *parser = json_tokener_new_ex(32);
+        if (parser) {
+            json_tokener_set_flags(parser, JSON_TOKENER_STRICT);
+            response = json_tokener_parse_ex(parser, body, (int)size + 1);
+            if (json_tokener_get_error(parser) == json_tokener_success)
+                length = image_decode(response, &png);
+            json_tokener_free(parser);
+        }
+    }
+    free(body);
+    json_object_put(response);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(client);
+    int64_t result = length ? image_store(request, png, length) :
+        fw_respond(request, 502, "{\"error\":\"image_generation_failed\"}");
+    free(png);
+    return result;
+}

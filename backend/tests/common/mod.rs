@@ -26,6 +26,8 @@ pub fn test_config() -> Config {
         github_oauth_base_url: "http://localhost:0".to_string(),
         github_api_base_url: "http://localhost:0".to_string(),
         github_token: None,
+        openai_api_key: None,
+        image_generation_url: "http://localhost:0".into(),
         upload_dir: "./test-uploads".to_string(),
     }
 }

@@ -9,10 +9,12 @@ use crate::auth::middleware::AdminUser;
 use crate::config::Config;
 use crate::error::AppError;
 
-const ALLOWED_EXTENSIONS: &[&str] = &["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf"];
-const MAX_FILE_BYTES: usize = 20 * 1024 * 1024;
+const ALLOWED_EXTENSIONS: &[&str] = &[
+    "png", "jpg", "jpeg", "gif", "webp", "svg", "pdf", "ppt", "pptx",
+];
+pub(super) const MAX_FILE_BYTES: usize = 20 * 1024 * 1024;
 
-/// Upload an image or PDF for use in posts or project attachments. Saves the
+/// Upload an image, PDF or PowerPoint for use in posts or project attachments. Saves the
 /// file under the configured upload dir and returns its public /uploads URL.
 #[utoipa::path(
     post,
@@ -84,5 +86,5 @@ pub async fn upload_file(
 
 #[derive(utoipa::ToSchema, serde::Serialize)]
 pub struct UploadResponse {
-    url: String,
+    pub(super) url: String,
 }

@@ -1706,6 +1706,7 @@ dependencies = [
  "actix-multipart",
  "actix-web",
  "anyhow",
+ "base64",
  "bb8",
  "bb8-postgres",
  "chrono",

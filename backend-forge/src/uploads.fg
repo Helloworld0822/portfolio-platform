@@ -7,3 +7,17 @@ fn create(request: int): int {
     return web.respond(request, 201, web.dump(out));
 }
 fn get(request: int, name: string): int { return web.file(request, web.env("UPLOAD_DIR", "./uploads"), name); }
+
+extern fn portfolio_image_prompt(value: string): string;
+extern fn portfolio_image_generate(request: int, payload: string, key: string): int;
+fn generate(request: int): int {
+    let body: int = web.request_json(request);
+    if (web.required(body, "prompt", 3) == 0) { return web.validation(request, "prompt is required"); }
+    let prompt: string = portfolio_image_prompt(web.field_text(body, "prompt"));
+    if (str_len(prompt) == 0) { return web.validation(request, "prompt must contain 1 to 1000 UTF-16 code units"); }
+    let key: string = web.trim(web.env("OPENAI_API_KEY", ""));
+    if (str_len(key) == 0) { return web.error(request, 503, "image_generation_unavailable"); }
+    let payload: int = web.parse("{\"model\":\"gpt-image-2\",\"n\":1,\"size\":\"1024x1024\",\"quality\":\"low\",\"output_format\":\"png\"}");
+    web.set(payload, "prompt", web.jstring(prompt));
+    return portfolio_image_generate(request, web.dump(payload), key);
+}

@@ -907,6 +907,67 @@
         ]
       }
     },
+    "/api/admin/images/generate": {
+      "post": {
+        "summary": "Generate an image in uploads",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "prompt"
+                ],
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "description": "1 to 1000 UTF-16 code units after trimming whitespace"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Generated image URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid prompt"
+          },
+          "401": {
+            "description": "Invalid or missing admin JWT"
+          },
+          "502": {
+            "description": "Image generation failed"
+          },
+          "503": {
+            "description": "Image generation is not configured"
+          }
+        }
+      }
+    },
     "/api/admin/uploads": {
       "post": {
         "summary": "POST /api/admin/uploads",

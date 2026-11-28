@@ -91,7 +91,8 @@ GitHub OAuth App 의 Authorization callback URL 은
 | GET/POST | `/api/admin/timeline` | 경력 목록 / 생성 |
 | PUT/DELETE | `/api/admin/timeline/{id}` | 경력 수정 / 삭제 |
 | POST | `/api/admin/timeline/reorder` | 경력 순서 재배치 (전체 id 목록) |
-| POST | `/api/admin/uploads` | 이미지/PDF 업로드 (multipart `file`, 20MB 제한) |
+| POST | `/api/admin/uploads` | 이미지/PDF/PowerPoint 업로드 (multipart `file`, 20MB 제한) |
+| POST | `/api/admin/images/generate` | 프롬프트로 PNG 생성 (입력 `{"prompt":"…"}`, 성공 시 201 및 업로드 URL) |
 | GET | `/uploads/{file}` | 업로드된 파일 (nginx가 api로 프록시) |
 | GET | `/api/admin/contact` | 받은 문의 목록 |
 | GET | `/api/admin/bans` | 차단된 IP / 사용자 목록 |
@@ -207,6 +208,10 @@ npm run build
 - GitHub OIDC와 Workload Identity Federation을 사용한다. `portfolio-actions/github` 공급자는 이 저장소의 `main` 배포 워크플로만 `portfolio-deploy` 서비스 계정으로 인증한다.
 - `ops/backup`이 바뀌면 백업 이미지를 빌드하고 도쿄의 `portfolio-db-backup` 작업에 다이제스트를 반영한다.
 - 운영 API의 Neon 연결 문자열은 `portfolio-neon-database-url`에 저장하고 TLS를 요구한다. Compose는 로컬 개발용 PostgreSQL을 사용한다.
+
+관리자 이미지 생성을 사용하려면 로컬 Compose의 `.env`에 `OPENAI_API_KEY`를 설정한다.
+Cloud Run에서는 Secret Manager에 `portfolio-openai-api-key`를 저장하고 런타임 서비스 계정에 이 시크릿의 `roles/secretmanager.secretAccessor`를 부여한 뒤, 서비스의 `api` 컨테이너에 `OPENAI_API_KEY`를 해당 시크릿 버전으로 연결한다. 이후 다이제스트 배포는 기존 시크릿 연결을 유지한다.
+키가 없으면 생성 요청은 503을 반환한다. 관리자가 제출한 프롬프트는 OpenAI Images API로 전송되며 생성 요청에 사용료가 부과될 수 있다. 생성된 PNG의 업로드 URL은 공개된다.
 
 도메인을 Cloudflare Worker로 연결하는 구성과 전환 절차는 [게이트웨이 운영 문서](ops/edge/README.md)에 있다.
 

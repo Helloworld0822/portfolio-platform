@@ -81,6 +81,7 @@ fn handle(conn: int, request: int, user: int): int {
             if (count == 4 && web.equal(id, "dedupe") != 0 && web.equal(method, "POST") != 0) { return contact.dedupe(conn, request); }
             if (count == 4 && web.valid(id, "uuid") != 0 && web.equal(method, "DELETE") != 0) { return contact.remove(conn, request, id); }
         }
+        if (web.equal(path, "/api/admin/images/generate") != 0 && web.equal(method, "POST") != 0) { return uploads.generate(request); }
         if (web.equal(resource, "uploads") != 0 && count == 3 && web.equal(method, "POST") != 0) { return uploads.create(request); }
         if (web.equal(resource, "comments") != 0 && count == 4 && web.valid(id, "uuid") != 0 && web.equal(method, "DELETE") != 0) { return comments.remove(conn, request, id, user); }
         if (web.equal(resource, "github") != 0 && count == 4 && web.equal(id, "repos") != 0 && web.equal(method, "GET") != 0) { return github.user_repos(request); }
@@ -106,7 +107,7 @@ fn detached(request: int): int {
         if (web.equal(path, "/api/activity/solved") != 0) { return 1; }
         if (web.equal(path, "/api/health") != 0 || web.starts(path, "/uploads/") != 0 || web.equal(path, "/api/auth/github/login") != 0 || web.equal(path, "/api/auth/github/callback") != 0 || web.equal(path, "/api/openapi.json") != 0 || web.starts(path, "/api/docs") != 0 || web.equal(path, "/api/admin/github/repos") != 0) { return 1; }
     }
-    if (web.equal(method, "POST") != 0 && web.equal(path, "/api/admin/uploads") != 0) { return 1; }
+    if (web.equal(method, "POST") != 0 && (web.equal(path, "/api/admin/uploads") != 0 || web.equal(path, "/api/admin/images/generate") != 0)) { return 1; }
     if ((web.equal(method, "POST") != 0 || web.equal(method, "PUT") != 0) && web.starts(path, "/api/admin/projects") != 0) { return 1; }
     return 0;
 }

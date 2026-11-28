@@ -151,6 +151,7 @@ async fn create_project_stores_arrays_and_optional_fields() {
             "period": "2026.08 -",
             "role": "1인 개발",
             "url": null,
+            "attachments": [{"name":"Pitch","kind":"presentation","url":"/uploads/example.pptx"}],
             "published": true
         }))
         .to_request();
@@ -163,6 +164,23 @@ async fn create_project_stores_arrays_and_optional_fields() {
     assert_eq!(project.tags.len(), 3);
     assert_eq!(project.period.as_deref(), Some("2026.08 -"));
     assert_eq!(project.url, None);
+    assert_eq!(project.attachments[0].kind, "presentation");
+    let uri = format!("/api/admin/projects/{}", project.id);
+    let replacement = json!({"kind":"presentation","name":"Revised","url":"/uploads/revised.ppt"});
+    let update = test::TestRequest::put()
+        .uri(&uri)
+        .insert_header(common::auth_header())
+        .set_json(json!({"attachments": [replacement]}))
+        .to_request();
+    assert_eq!(test::call_service(&app, update).await.status(), 200);
+    let read = test::TestRequest::get()
+        .uri(&format!("/api/projects/{}", project.id))
+        .to_request();
+    let saved: Project = test::call_and_read_body_json(&app, read).await;
+    assert_eq!(
+        serde_json::to_value(saved.attachments).unwrap(),
+        json!([replacement])
+    );
 }
 
 #[tokio::test]

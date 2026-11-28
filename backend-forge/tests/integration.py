@@ -63,6 +63,9 @@ def request(method, path, data=None, auth=None, headers=None, raw=None):
         return response.status, result, dict(response.headers)
 
 
+TEST_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5fpAwAAAAASUVORK5CYII='
+
+
 class MockGitHub(BaseHTTPRequestHandler):
     pause = None
     seen = []
@@ -79,7 +82,20 @@ class MockGitHub(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_POST(self):
-        form = urllib.parse.parse_qs(self.rfile.read(int(self.headers.get('Content-Length', 0))).decode())
+        body = self.rfile.read(int(self.headers.get('Content-Length', 0))).decode()
+        if self.path == '/images/generations':
+            payload = json.loads(body)
+            if self.headers.get('Authorization') != 'Bearer mock-image-key':
+                return self.send({}, 401)
+            prompt = payload.pop('prompt')
+            if prompt == 'invalid image':
+                return self.send({'data': [{'b64_json': 'YmFk'}]})
+            if prompt == 'upstream error':
+                return self.send({}, 429)
+            if payload != {'model': 'gpt-image-2', 'n': 1, 'size': '1024x1024', 'quality': 'low', 'output_format': 'png'}:
+                return self.send({}, 400)
+            return self.send({'data': [{'b64_json': TEST_PNG}]})
+        form = urllib.parse.parse_qs(body)
         code = form.get('code', [''])[0]
         if code in ('admin', 'user', 'blocked'):
             self.send({'access_token': 'mock-' + code})
@@ -662,6 +678,33 @@ class PortfolioTests(unittest.TestCase):
         self.assertEqual(response_headers['Content-Type'], 'image/png')
         self.call('GET', '/uploads/%2e%2e%2f.env', expected=404)
         self.call('POST', '/api/admin/uploads', expected=400, auth=token(), raw=raw.replace(b'image.png', b'evil.exe'), headers=headers)
+
+    def test_admin_image_generation(self):
+        path = '/api/admin/images/generate'
+        self.call('POST', path, {'prompt': 'image'}, expected=401)
+        self.call('POST', path, {'prompt': 'image'}, expected=401, auth=token('reader', 'user'))
+        for prompt in [None, [], '　', '😀' * 501]:
+            self.call('POST', path, {'prompt': prompt}, expected=400, auth=token())
+        for prompt in ['  upstream error　', 'invalid image']:
+            error, _ = self.call('POST', path, {'prompt': prompt}, expected=502, auth=token())
+            self.assertEqual(error, {'error': 'image_generation_failed'})
+        result, _ = self.call('POST', path, {'prompt': '😀' * 500}, expected=201, auth=token())
+        self.assertRegex(result['url'], r'^/uploads/[a-f0-9-]{36}\.png$')
+        image, headers = self.call('GET', result['url'])
+        self.assertEqual(image, base64.b64decode(TEST_PNG))
+        self.assertEqual(headers['Content-Type'], 'image/png')
+
+    def test_powerpoint_upload(self):
+        for ext, mime in [('ppt', 'application/vnd.ms-powerpoint'),
+                          ('pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')]:
+            raw = (f'--slides\r\nContent-Disposition: form-data; name="file"; filename="slides.{ext.upper()}"\r\n\r\n'
+                   'slide data\r\n--slides--\r\n').encode()
+            result, _ = self.call('POST', '/api/admin/uploads', expected=201, auth=token(), raw=raw,
+                                  headers={'Content-Type': 'multipart/form-data; boundary=slides'})
+            self.assertTrue(result['url'].endswith('.' + ext))
+            data, headers = self.call('GET', result['url'])
+            self.assertEqual(data, b'slide data')
+            self.assertEqual(headers['Content-Type'], mime)
 
     def test_upload_size_limit(self):
         boundary = 'forge-large-boundary'
