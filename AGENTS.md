@@ -134,7 +134,7 @@ A successful main push through CI triggers `.github/workflows/deploy.yml`. It ch
   project importer; `github_client()` builds the shared reqwest client with the
   GitHub-mandated User-Agent.
 - `backend/src/routes/uploads.rs`: `POST /api/admin/uploads` multipart upload
-  (png/jpg/jpeg/gif/webp/svg/pdf, 20MB cap) → `/uploads/{uuid}.{ext}`,
+  (png/jpg/jpeg/gif/webp/svg/pdf/ppt/pptx, 20MB cap) → `/uploads/{uuid}.{ext}`,
   served by actix-files. Requires admin JWT.
 - `backend/src/bans.rs`: abuse controls. IP bans and blocked GitHub logins live
   in Postgres (`banned_ips`, `blocked_users` via `migrations/0010_bans.sql`) with
@@ -155,6 +155,9 @@ A successful main push through CI triggers `.github/workflows/deploy.yml`. It ch
 - Project attachments use the first image as the public card cover; the detail
   page shows full images and links to originals. Career and skills share two
   columns from 1024px, with vertically stacked skill categories and items.
+- Project and post editors support AI image generation through the admin-only
+  `POST /api/admin/images/generate` route. Bundled illustrations also work
+  without an image provider key.
 - DB columns added by `migrations/0007_*`: `repo_languages JSONB`,
   `repo_private BOOLEAN`, `attachments JSONB`.
 ### Forge frontend

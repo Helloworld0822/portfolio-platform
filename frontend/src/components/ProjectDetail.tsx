@@ -66,7 +66,7 @@ export default function ProjectDetail() {
   if (!project) return <main className="stitch-layout py-14"><Link to="/projects">← 프로젝트 목록</Link>
     <p className="mt-5">{status === 404 ? "공개된 프로젝트를 찾을 수 없습니다." : status ? "프로젝트를 불러오지 못했습니다." : "불러오는 중…"}</p></main>;
 
-  const pdfs = project.attachments?.filter(item => item.kind === "pdf") ?? [];
+  const documents = project.attachments?.filter(item => item.kind === "pdf" || item.kind === "presentation") ?? [];
   const related = (catalogue ?? []).filter(item => item.id !== project.id && item.tags.some(tag => project.tags.includes(tag))).slice(0, 3);
   return <main>
     <nav aria-label="페이지 경로" className="bg-surface-container-low py-2"><div className="stitch-layout flex flex-wrap items-center gap-2 font-code-sm text-code-sm text-secondary">
@@ -92,7 +92,11 @@ export default function ProjectDetail() {
         {Object.keys(project.repo_languages).length > 0 && <section className="stitch-card space-y-4 p-6"><h2 className="text-headline-sm">코드베이스 언어 분포</h2><LanguageBar languages={project.repo_languages} /></section>}
       </aside>
     </div>
-    {pdfs.map(pdf => <section className="stitch-card mt-6 p-4" key={pdf.url}><a href={pdf.url} target="_blank" rel="noreferrer">{pdf.name} ↗</a><iframe src={pdf.url} title={pdf.name} className="mt-2 h-80 w-full" /></section>)}
+    {documents.map(file => <section className="stitch-card mt-6 p-4" key={file.url}>
+      {file.kind === "pdf" ? <><a href={file.url} target="_blank" rel="noreferrer">{file.name} ↗</a>
+        <iframe src={file.url} title={file.name} className="mt-2 h-80 w-full" /></> :
+        <a href={file.url} download={file.name}>{file.name} 다운로드</a>}
+    </section>)}
     </div>
     {related.length > 0 && <section className="bg-surface-container-low py-10"><div className="stitch-layout">
       <div className="mb-5 flex items-end justify-between gap-3"><div><p className="archive-label">Next explorations</p><h2 className="text-headline-md">관련 프로젝트</h2></div><Link to="/projects" className="text-sm text-secondary">전체 프로젝트 보기 →</Link></div>

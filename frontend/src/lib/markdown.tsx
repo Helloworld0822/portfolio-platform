@@ -1,3 +1,4 @@
+import { attachmentKind } from "./attachments";
 import type { Components } from "react-markdown";
 
 /**
@@ -26,7 +27,8 @@ export const markdownComponents: Components = {
       );
     }
     return (
-      <a href={href} title={title}>
+      <a href={href} title={title} download={href?.startsWith("/uploads/") && attachmentKind(href) === "presentation"
+        ? (typeof children === "string" ? children : true) : undefined}>
         {children}
       </a>
     );

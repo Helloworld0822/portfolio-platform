@@ -222,7 +222,7 @@ const ProjectEditor = ({
         </div>
 
         <MediaEditor
-          allowPdf
+          allowDocuments
           onUploading={setUploading}
           attachments={draft.attachments}
           onChange={(attachments) => onChange({ ...draft, attachments })}

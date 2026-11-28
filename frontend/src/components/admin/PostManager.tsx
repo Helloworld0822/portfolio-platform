@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import ImageTools from "./ImageTools";
+import { attachmentAccept, attachmentKind, uploadAttachment } from "../../lib/attachments";
 import ReactMarkdown from "react-markdown";
 import { authFetch } from "../../lib/api";
 import { markdownComponents } from "../../lib/markdown";
@@ -209,24 +211,18 @@ const PostManager = () => {
     e.target.value = "";
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    if (file.size > 20 * 1024 * 1024) {
+      setSaveError("20MB 이하의 파일을 선택해 주세요.");
+      return;
+    }
 
     setUploading(true);
     setSaveError(null);
     try {
-      const res = await authFetch("/api/admin/uploads", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) {
-        throw new Error("upload failed");
-      }
-      const data = (await res.json()) as { url: string };
-      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-      const markdown = isPdf
-        ? `[${file.name}](${data.url})`
-        : `![${file.name.replace(/\.[^.]+$/, "")}](${data.url})`;
+      const url = await uploadAttachment(file);
+      const isImage = attachmentKind(file.name) === "image";
+      const label = (isImage ? file.name.replace(/\.[^.]+$/, "") : file.name).replace(/[\\[\]]/g, "\\$&");
+      const markdown = `${isImage ? "!" : ""}[${label}](${url})`;
       insertMarkdown(markdown);
     } catch {
       setSaveError("파일 업로드에 실패했습니다.");
@@ -242,7 +238,7 @@ const PostManager = () => {
           {isNew ? "새 글 작성" : "글 수정"}
         </h2>
 
-        <div className="mt-5 space-y-4">
+        <fieldset disabled={saving || savingDraft || uploading} className="mt-5 space-y-4">
           <div>
             <label htmlFor="post-title" className={editorLabelClass}>
               제목
@@ -278,7 +274,7 @@ const PostManager = () => {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,application/pdf,.pdf"
+                  accept={attachmentAccept}
                   onChange={handleUpload}
                   className="hidden"
                 />
@@ -288,7 +284,7 @@ const PostManager = () => {
                   disabled={uploading || preview}
                   className="rounded-md border border-border px-3 py-1 text-xs font-medium text-ink-muted transition-colors duration-[120ms] hover:bg-surface-1 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {uploading ? "업로드 중..." : "이미지/PDF 업로드"}
+                  {uploading ? "업로드 중..." : "이미지/PDF/PPT 업로드"}
                 </button>
                 <button
                   type="button"
@@ -315,6 +311,8 @@ const PostManager = () => {
               />
             )}
           </div>
+
+          {!preview && <ImageTools onBusy={setUploading} onInsert={image => insertMarkdown(`![${image.name}](${image.url})`)} />}
 
           <label className="flex items-center gap-2 text-sm text-ink">
             <input
@@ -358,7 +356,7 @@ const PostManager = () => {
               취소
             </button>
           </div>
-        </div>
+        </fieldset>
       </div>
     );
   }
